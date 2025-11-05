@@ -12,3 +12,12 @@ export interface Skill {
   name: string
   level?: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert'
 }
+
+export type ContactType = 'email' | 'linkedin' | 'github'
+
+export interface Contact {
+  type: ContactType
+  label: string
+  value: string
+  href: string
+}
