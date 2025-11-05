@@ -11,8 +11,19 @@
               stroke-linejoin="round" />
           </svg>
         </div>
-        <div
-          class="aspect-[16/9] w-full rounded border border-black/10 dark:border-white/10 bg-[linear-gradient(135deg,rgba(0,0,0,0.06)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.06)_50%,rgba(0,0,0,0.06)_75%,transparent_75%,transparent)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.12)_50%,rgba(255,255,255,0.12)_75%,transparent_75%,transparent)] bg-[size:14px_14px] mb-4" />
+        <div class="relative aspect-[16/9] w-full overflow-hidden rounded border border-black/10 dark:border-white/10 mb-4">
+          <img
+            v-if="p.image"
+            :src="p.image"
+            :alt="`${p.title} screenshot`"
+            loading="lazy"
+            class="absolute inset-0 h-full w-full object-cover filter grayscale transition-transform duration-300 group-hover:scale-[1.02]"
+          />
+          <div
+            v-else
+            class="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.06)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.06)_50%,rgba(0,0,0,0.06)_75%,transparent_75%,transparent)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.12)_50%,rgba(255,255,255,0.12)_75%,transparent_75%,transparent)] bg-[size:14px_14px]"
+          />
+        </div>
         <h3 class="text-xl font-semibold">{{ p.title }}</h3>
         <p class="mt-2 opacity-80">{{ p.description }}</p>
         <ul class="mt-4 flex flex-wrap gap-2">
@@ -60,11 +71,12 @@ const projects: Project[] = [
       "Web Development",],
     link: 'https://tegar-nugroho.web.app/',
     repo: 'https://github.com/tegarnugroho',
+    image: 'https://images.unsplash.com/photo-1641736494173-e7d5775121b2?q=80&w=1170&auto=format&fit=crop',
   },
   {
     id: 'p2',
     title: 'Danafix - Online Loan Application',
-    description: 'Fast and easy online loan platform in Indonesia offering loans from IDR 500K to 10M. Apply in 7 minutes, get approval in 1 day with no collateral required.',
+    description: 'Mobile app for seamless online loan applications, offering features like document upload, real-time status tracking, and secure data handling for a smooth user experience.',
     tech: [
       "Flutter",
       "Financial APIs",
@@ -73,6 +85,7 @@ const projects: Project[] = [
       "Security",],
     link: 'https://danafix.com/',
     repo: 'https://github.com/tegarnugroho',
+    image: 'https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=1170&auto=format&fit=crop',
   },
   {
     id: 'p3',
@@ -86,6 +99,7 @@ const projects: Project[] = [
       "Event Management",],
     link: 'https://tribelio.com/',
     repo: 'https://github.com/tegarnugroho',
+    image: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=1170&auto=format&fit=crop',
   },
   {
     id: 'p4',
@@ -97,8 +111,9 @@ const projects: Project[] = [
       "Project Management",
       "Team Collaboration",
       "Analytics",],
-    link: 'https://tribelio.com/',
+    link: 'https://cicle.app/tentang/',
     repo: 'https://github.com/tegarnugroho',
+    image: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&h=400&fit=crop&q=80',
   },
 ]
 </script>
