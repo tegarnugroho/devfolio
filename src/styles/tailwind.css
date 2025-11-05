@@ -30,6 +30,27 @@
   .chip {
     @apply rounded border border-black/20 dark:border-white/20 px-3 py-1 text-xs transition-transform duration-200 hover:-translate-y-0.5 hover:bg-black/5 dark:hover:bg-white/10;
   }
+  .chip-s {
+    @apply text-[11px] px-2 py-0.5;
+  }
+  .chip-m {
+    @apply text-xs px-3 py-1;
+  }
+  .chip-l {
+    @apply text-sm px-4 py-1.5 font-medium;
+  }
+  .chip-dot {
+    @apply relative pl-3;
+  }
+  .chip-dot::before {
+    content: '•';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    opacity: 0.7;
+  }
 }
 
 @layer utilities {
