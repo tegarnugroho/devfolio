@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply transition-colors duration-300;
+  }
+  ::selection {
+    @apply bg-black text-white dark:bg-white dark:text-black;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 rounded border px-5 py-2 text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white;
+  }
+  .btn-ghost {
+    @apply btn border-black/20 dark:border-white/20 hover:-translate-y-0.5 hover:bg-black/5 dark:hover:bg-white/10 active:translate-y-0;
+  }
+  .btn-solid {
+    @apply btn border-black dark:border-white bg-black text-white dark:bg-white dark:text-black hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .card {
+    @apply rounded border border-black/15 dark:border-white/15 bg-white/60 dark:bg-black/60 backdrop-blur-sm transition-transform duration-200 hover:-translate-y-1;
+  }
+  .chip {
+    @apply rounded border border-black/20 dark:border-white/20 px-3 py-1 text-xs transition-transform duration-200 hover:-translate-y-0.5 hover:bg-black/5 dark:hover:bg-white/10;
+  }
+}
+
+@layer utilities {
+  .icon-rotate {
+    transition: transform 250ms ease;
+  }
+  .icon-rotate-on:hover .icon-rotate {
+    transform: rotate(12deg);
+  }
+  @keyframes grid-pan {
+    from { background-position: 0px 0px, 0px 0px; }
+    to { background-position: 28px 0px, 0px 28px; }
+  }
+  .animate-grid-pan {
+    animation: grid-pan 28s linear infinite;
+  }
+}
