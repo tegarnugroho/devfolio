@@ -9,7 +9,7 @@
       <ContactSection />
     </main>
     <footer class="max-w-5xl mx-auto px-4 py-8 text-sm opacity-60">
-      <p>&copy; {{ year }} Your Name.</p>
+      <p>&copy; {{ year }} Tegar.</p>
     </footer>
   </div>
   

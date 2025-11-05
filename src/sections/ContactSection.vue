@@ -1,27 +1,68 @@
 <template>
   <section id="contact" class="py-20 border-t border-black/10 dark:border-white/10">
-    <h2 v-reveal class="text-2xl font-semibold tracking-tight">Contact</h2>
-    <div class="mt-6 space-y-3">
-      <a v-reveal href="mailto:you@example.com" class="inline-flex items-center gap-2 hover:opacity-85">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M3 5h18v14H3z" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M3 7l9 6 9-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span>you@example.com</span>
-      </a>
-      <a v-reveal="{delay: 80}" href="#" class="inline-flex items-center gap-2 hover:opacity-85">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M4 4h16v16H4z" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M7 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span>linkedin.com/in/yourname</span>
-      </a>
-      <a v-reveal="{delay: 160}" href="#" class="inline-flex items-center gap-2 hover:opacity-85">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M9 19c-7 2 1-11 6-14l1 1c-4 5-10 12-7 13z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>github.com/yourname</span>
-      </a>
+    <div class="grid gap-8 lg:grid-cols-3">
+      <div>
+        <span v-reveal class="text-[11px] tracking-[0.18em] uppercase opacity-60">Contact</span>
+        <h2 v-reveal="{delay: 60}" class="mt-1 text-2xl font-semibold tracking-tight">Let’s Connect</h2>
+        <p v-reveal="{delay: 120}" class="mt-3 opacity-75">Open for open-source projects and community collaboration.</p>
+      </div>
+      <div class="lg:col-span-2">
+        <div class="card p-5">
+          <ul class="divide-y divide-black/10 dark:divide-white/10">
+            <li v-reveal class="group first:pt-0 pt-2">
+              <a href="mailto:you@example.com" class="flex items-center justify-between rounded px-2 py-3 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                <div class="flex items-center gap-3">
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="16" height="16" rx="2" fill="currentColor"/>
+                    <rect x="3" y="4.5" width="10" height="7" rx="1" class="fill-white dark:fill-black"/>
+                    <path d="M3.5 5.5 L8 8.5 L12.5 5.5" class="stroke-current" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <div>
+                    <div class="text-sm font-medium">Email</div>
+                    <div class="text-sm opacity-70">tegar@wolkk.com</div>
+                  </div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
+                  <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+            </li>
+            <li v-reveal="{delay: 80}" class="group pt-2">
+              <a href="#" target="_blank" rel="noopener" class="flex items-center justify-between rounded px-2 py-3 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                <div class="flex items-center gap-3">
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146z"/>
+                    <path class="fill-white dark:fill-black" d="M4.943 13.5V6H2.542v7.5h2.401zm-1.2-8.574c.837 0 1.356-.554 1.356-1.248-.015-.709-.52-1.248-1.341-1.248-.822 0-1.356.54-1.356 1.248 0 .694.519 1.248 1.326 1.248h.015zM13.458 13.5V9.359c0-2.211-1.18-3.243-2.753-3.243-1.27 0-1.845.7-2.164 1.194h.015V6H6.155c.03.677 0 7.5 0 7.5h2.401v-4.192c0-.224.016-.448.082-.608.181-.447.593-.912 1.284-.912.906 0 1.27.688 1.27 1.697V13.5h2.266z"/>
+                  </svg>
+                  <div>
+                    <div class="text-sm font-medium">LinkedIn</div>
+                    <div class="text-sm opacity-70">linkedin.com/in/tegaranugroho</div>
+                  </div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
+                  <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+            </li>
+            <li v-reveal="{delay: 160}" class="group pt-2">
+              <a href="#" target="_blank" rel="noopener" class="flex items-center justify-between rounded px-2 py-3 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                <div class="flex items-center gap-3">
+                  <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8a8.01 8.01 0 0 0 5.47 7.59c.4.08.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.03 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/>
+                  </svg>
+                  <div>
+                    <div class="text-sm font-medium">GitHub</div>
+                    <div class="text-sm opacity-70">github.com/tegarnugroho</div>
+                  </div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="transition-transform group-hover:translate-x-0.5" aria-hidden="true">
+                  <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </section>
 </template>

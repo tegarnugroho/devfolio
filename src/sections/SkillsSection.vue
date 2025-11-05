@@ -34,11 +34,37 @@
 
 <script setup lang="ts">
 const groups = [
-  { title: 'Frontend', items: ['TypeScript', 'Vue 3', 'Tailwind CSS', 'Vite'] },
-  { title: 'Backend & APIs', items: ['Node.js', 'REST APIs'] },
-  { title: 'Tooling & Testing', items: ['Testing'] },
+  {
+    title: 'Flutter & Mobile',
+    items: ['Flutter', 'Dart', 'Android', 'iOS', 'Flutter Web', 'Flutter Desktop'],
+  },
+  {
+    title: 'Architecture & State',
+    items: ['Clean Architecture', 'BLoC', 'Cubit', 'Riverpod', 'GetIt/Injectable', 'Freezed'],
+  },
+  {
+    title: 'Networking & Realtime',
+    items: ['Dio', 'HTTP', 'WebSocket', 'Interceptors', 'Logging'],
+  },
+  {
+    title: 'Hardware & Integration',
+    items: ['Bluetooth (Classic/LE)', 'HID Barcode Scanners', 'Platform Channels'],
+  },
+  {
+    title: 'Data & Storage',
+    items: ['SQLite (sqflite)', 'Hive', 'Shared Preferences', 'Local Caching'],
+  },
+  {
+    title: 'Tooling & DevOps',
+    items: ['Git', 'CI/CD', 'Android SDK', 'VS Code', 'Jira', 'Trello'],
+  },
+  {
+    title: 'Testing',
+    items: ['Flutter Test', 'bloc_test', 'Mockito'],
+  },
 ]
 </script>
 
 <style scoped>
+/* keep your existing styles; .chip assumed available globally */
 </style>

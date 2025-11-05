@@ -7,7 +7,7 @@
         href="#hero"
         class="font-semibold tracking-wide rounded px-2 py-1 -mx-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
       >
-        Your Name
+        Tegar.
       </a>
       <ul class="hidden sm:flex gap-8 text-sm">
         <li v-for="item in items" :key="item.href">
