@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "hi-tegar",
+    "prod": "hi-tegar"
+  },
+  "targets": {},
+  "etags": {}
+}
