@@ -115,7 +115,7 @@ const projects: Project[] = [
     repo: '#',
     image: '/assets/vscode/vscode-banner.png',
     images: [
-      'assets/vscode/image.png',
+      'assets/vscode/vscode-banner.png',
     ],
   },
   {
@@ -249,7 +249,6 @@ const projects: Project[] = [
     images: [
       '/assets/nucard/nucard-1.png',
       '/assets/nucard/nucard-2.png',
-      '/assets/nucard/nucard-3.png',
     ],
   },
 ]
