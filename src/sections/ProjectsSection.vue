@@ -129,7 +129,7 @@ const sourceProjects: Omit<Project, 'id'>[] = [
     ],
   },
   {
-    title: 'Stationary POS — Retail Point-of-Sale System',
+    title: 'Stationary POS - Retail Point-of-Sale System',
     description:
       'A Windows-based POS solution featuring transaction processing, purchase journals, stock management, secondary customer display, and multi-payment support. Built with Flutter using Clean Architecture, BLoC Cubit, and real-time WebSocket integration.',
     tech: [
@@ -149,7 +149,7 @@ const sourceProjects: Omit<Project, 'id'>[] = [
     ],
   },
   {
-    title: 'EAA Pad — Self-Checkout Ordering App',
+    title: 'EAA Pad - Self-Checkout Ordering App',
     description:
       'A Windows-based self-checkout app for food and beverage ordering with full accessibility support including voice guidance and visual markers. Built using Flutter with Clean Architecture and BLoC Cubit.',
     tech: [
@@ -169,7 +169,7 @@ const sourceProjects: Omit<Project, 'id'>[] = [
     ],
   },
   {
-    title: 'ANKER Store App — Flexible Retail Commerce Solution',
+    title: 'ANKER Store App - Flexible Retail Commerce Solution',
     description:
       'A scalable retail store app with seamless backend integration and headless architecture. Runs on any device including mobile, tablets, checkout, and self-checkout terminals.',
     tech: [
@@ -188,7 +188,7 @@ const sourceProjects: Omit<Project, 'id'>[] = [
     ],
   },
   {
-    title: 'Excel Translator — Excel to Localization Files(Flutter Package)',
+    title: 'Excel Translator - Excel to Localization Files(Flutter Package)',
     description:
       'Convert Excel translation sheets into localization files for Flutter apps automatically. Simple, fast, and consistent.',
     tech: [
