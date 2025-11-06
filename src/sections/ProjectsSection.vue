@@ -95,6 +95,25 @@ import ImageLightbox from '@/components/ImageLightbox.vue'
 
 const sourceProjects: Omit<Project, 'id'>[] = [
   {
+    title: 'ANKER Store App — Flexible Retail Commerce Solution',
+    description:
+      'A scalable retail store app with seamless backend integration and headless architecture. Runs on any device including mobile, tablets, checkout, and self-checkout terminals.',
+    tech: [
+      "Flutter",
+      "Headless Architecture",
+      "Cloud Deployment",
+      "POS Integration",
+    ],
+    link: '#',
+    repo: '#',
+    image: '/assets/anker/anker-1.png',
+    images: [
+      '/assets/anker/anker-1.png',
+      '/assets/anker/anker-2.png',
+      '/assets/anker/anker-3.png',
+    ],
+  },
+  {
     title: 'Excel Translator — Excel to Localization Files(Flutter Package)',
     description:
       'Convert Excel translation sheets into localization files for Flutter apps automatically. Simple, fast, and consistent.',
