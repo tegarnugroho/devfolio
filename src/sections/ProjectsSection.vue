@@ -35,22 +35,43 @@
           <li v-for="t in p.tech" :key="t" class="chip">{{ t }}</li>
         </ul>
         <div class="mt-4 flex gap-4 text-sm items-center">
-          <a v-if="p.link" :href="p.link" target="_blank" rel="noopener"
-            class="inline-flex items-center gap-1 hover:opacity-80">
+          <a
+            :href="isValid(p.link) ? p.link : undefined"
+            target="_blank"
+            rel="noopener"
+            :aria-disabled="!isValid(p.link)"
+            :tabindex="isValid(p.link) ? 0 : -1"
+            :title="!isValid(p.link) ? 'Live unavailable' : undefined"
+            :class="[
+              'inline-flex items-center gap-1',
+              isValid(p.link) ? 'hover:opacity-80' : 'opacity-40 cursor-not-allowed'
+            ]"
+          >
             Live
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
               class="transition-transform group-hover:translate-x-0.5">
-              <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                stroke-linejoin="round" />
+              <path d="M14 4h6v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20 4L10 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5 8v9a2 2 0 0 0 2 2h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </a>
-          <a v-if="p.repo" :href="p.repo" target="_blank" rel="noopener"
-            class="inline-flex items-center gap-1 hover:opacity-80">
+          <a
+            :href="isValid(p.repo) ? p.repo : undefined"
+            target="_blank"
+            rel="noopener"
+            :aria-disabled="!isValid(p.repo)"
+            :tabindex="isValid(p.repo) ? 0 : -1"
+            :title="!isValid(p.repo) ? 'Code unavailable' : undefined"
+            :class="[
+              'inline-flex items-center gap-1',
+              isValid(p.repo) ? 'hover:opacity-80' : 'opacity-40 cursor-not-allowed'
+            ]"
+          >
             Code
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
               class="transition-transform group-hover:translate-x-0.5">
-              <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                stroke-linejoin="round" />
+              <path d="M8 6l-6 6 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </a>
         </div>
@@ -91,7 +112,7 @@ const projects: Project[] = [
       "Dark Mode",
       "Web Development",],
     link: 'https://tegar-nugroho.web.app/',
-    repo: 'https://github.com/tegarnugroho',
+    repo: '#',
     image: '/assets/vscode/vscode-banner.png',
     images: [
       'assets/vscode/image.png',
@@ -107,8 +128,8 @@ const projects: Project[] = [
       "KYC Integration",
       "Payment Gateway",
       "Security",],
-    link: 'https://danafix.com/',
-    repo: 'https://github.com/tegarnugroho',
+    link: '#',
+    repo: '#',
     image: '/assets/danafix/danafix-banner.png',
     images: [
       '/assets/danafix/danafix.png',
@@ -126,7 +147,7 @@ const projects: Project[] = [
       "Email Marketing",
       "Event Management",],
     link: 'https://tribelio.com/',
-    repo: 'https://github.com/tegarnugroho',
+    repo: '#',
     image: 'assets/tribelio/tribelio-banner.jpeg',
     images: [
       'assets/tribelio/tribelio-1.webp',
@@ -146,7 +167,7 @@ const projects: Project[] = [
       "Team Collaboration",
       "Analytics",],
     link: 'https://cicle.app/tentang/',
-    repo: 'https://github.com/tegarnugroho',
+    repo: '#',
     image: '/assets/cicle/cicle-banner.png',
     images: [
       '/assets/cicle/cicle-1.webp',
@@ -166,7 +187,7 @@ const projects: Project[] = [
       "Payment Integration",
       "Booking System",],
     link: 'https://iziloh.com/',
-    repo: 'https://github.com/tegarnugroho',
+    repo: '#',
     image: '/assets/iziloh/iziloh-banner.jpg',
     images: [
       '/assets/iziloh/iziloh-1.webp',
@@ -186,7 +207,7 @@ const projects: Project[] = [
       "Payment Integration",
       "Booking System",],
     link: 'http://waroongretjeh.dev.ittron.co.id/',
-    repo: 'https://github.com/tegarnugroho',
+    repo: '#',
     image: '/assets/waroong-retjeh/waroong-retjeh-banner.png',
     images: [
       '/assets/waroong-retjeh/waroong-retjeh-1.png',
@@ -205,7 +226,7 @@ const projects: Project[] = [
       "Payment Integration",
       "Booking System",],
     link: '#',
-    repo: 'https://github.com/tegarnugroho',
+    repo: '#',
     image: '/assets/flambe/flambe-1.png',
     images: [
       '/assets/flambe/flambe-1.png',
@@ -223,7 +244,7 @@ const projects: Project[] = [
       "Payment Integration",
       "Booking System",],
     link: '#',
-    repo: 'https://github.com/tegarnugroho',
+    repo: '#',
     image: '/assets/nucard/nucard-1.png',
     images: [
       '/assets/nucard/nucard-1.png',
@@ -283,6 +304,11 @@ function openLightbox(p: Project) {
   lightboxImages.value = imgs
   lightboxStart.value = 0
   lightboxOpen.value = true
+}
+
+// helpers
+function isValid(v?: string) {
+  return !!v && v !== '#'
 }
 </script>
 
