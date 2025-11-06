@@ -8,8 +8,8 @@
 
         <div class="absolute inset-0 flex items-center justify-center p-4 select-none" @click.self="close">
           <!-- Prev button -->
-          <button
-            class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/15 hover:bg-white/25 text-white shadow-lg backdrop-blur-md border border-white/20 pointer-events-auto"
+          <button v-if="hasMany"
+            class="nav-btn safe-left absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 grid place-items-center rounded-full bg-white/15 hover:bg-white/25 text-white shadow-lg backdrop-blur-md border border-white/20 pointer-events-auto"
             @click.stop="prev"
             aria-label="Previous image"
           >
@@ -33,14 +33,14 @@
                 :src="images[current]"
                 :alt="`Image ${current + 1} of ${images.length}`"
                 decoding="async" draggable="false" @dragstart.prevent
-                class="lightbox-img max-h-[85vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 select-none no-save"
+                class="lightbox-img z-10 max-h-[85vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 select-none no-save"
               />
             </transition>
           </figure>
 
           <!-- Next button -->
-          <button
-            class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/15 hover:bg-white/25 text-white shadow-lg backdrop-blur-md border border-white/20 pointer-events-auto"
+          <button v-if="hasMany"
+            class="nav-btn safe-right absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 grid place-items-center rounded-full bg-white/15 hover:bg-white/25 text-white shadow-lg backdrop-blur-md border border-white/20 pointer-events-auto"
             @click.stop="next"
             aria-label="Next image"
           >
@@ -51,7 +51,7 @@
 
           <!-- Close button -->
           <button
-            class="absolute top-3 right-3 p-2 rounded-lg bg-white/15 hover:bg-white/25 text-white shadow backdrop-blur-md border border-white/20 pointer-events-auto"
+            class="absolute top-3 right-3 z-20 p-2 rounded-lg bg-white/15 hover:bg-white/25 text-white shadow backdrop-blur-md border border-white/20 pointer-events-auto"
             @click.stop="close"
             aria-label="Close"
           >
@@ -61,7 +61,7 @@
           </button>
 
           <!-- Dots -->
-          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 pointer-events-auto">
+          <div v-if="hasMany" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 pointer-events-auto">
             <button
               v-for="(img, i) in images"
               :key="i"
@@ -73,7 +73,7 @@
           </div>
 
           <!-- Counter badge -->
-          <div class="absolute bottom-3 right-3 text-white text-xs bg-black/45 px-3 py-1.5 rounded-full pointer-events-none">
+          <div v-if="hasMany" class="absolute bottom-3 right-3 z-20 text-white text-xs bg-black/45 px-3 py-1.5 rounded-full pointer-events-none">
             {{ current + 1 }} / {{ images.length }}
           </div>
         </div>
@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, ref } from 'vue'
+import { onMounted, onUnmounted, watch, ref, computed } from 'vue'
 
 const props = defineProps<{
   modelValue: boolean
@@ -99,6 +99,7 @@ const emit = defineEmits<{
 const current = ref(props.startIndex ?? 0)
 const lastDirection = ref<'left' | 'right'>('left')
 const transitionName = ref('slide-left')
+const hasMany = computed(() => (props.images?.length ?? 0) > 1)
 
 watch(() => props.modelValue, (open) => {
   if (open) current.value = props.startIndex ?? 0
@@ -191,6 +192,15 @@ watch(current, (idx) => {
 .lightbox-img { will-change: transform, opacity; backface-visibility: hidden; transform: translateZ(0); }
 
 .no-save { user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
+
+/* Safe area support for notches (iOS) */
+@supports (padding: env(safe-area-inset-left)) {
+  .safe-left { left: calc(0.75rem + env(safe-area-inset-left)); }
+  .safe-right { right: calc(0.75rem + env(safe-area-inset-right)); }
+}
+
+/* Ensure consistent tap target and layering */
+.nav-btn { -webkit-tap-highlight-color: transparent; }
 
 @media (prefers-reduced-motion: reduce) {
   .slide-left-enter-active, .slide-left-leave-active,
