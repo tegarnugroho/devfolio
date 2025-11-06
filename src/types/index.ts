@@ -6,6 +6,7 @@ export interface Project {
   link?: string
   repo?: string
   image?: string
+  images?: string[]
 }
 
 export interface Skill {
