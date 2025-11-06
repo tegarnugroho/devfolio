@@ -8,7 +8,7 @@
           class="relative z-0 aspect-[16/9] w-full overflow-hidden rounded border border-black/10 dark:border-white/10 mb-4 text-left select-none"
           @click="openLightbox(p)" @contextmenu.prevent :aria-label="`Open images for ${p.title}`">
           <img v-if="p.image" :src="p.image" :alt="`${p.title} screenshot`" loading="lazy" draggable="false" @dragstart.prevent
-            class="absolute inset-0 z-0 h-full w-full object-cover filter grayscale transition-transform duration-300 group-hover:scale-[1.02] no-save select-none" />
+            class="absolute inset-0 z-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02] no-save select-none" />
           <div v-else
             class="absolute inset-0 z-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.06)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.06)_50%,rgba(0,0,0,0.06)_75%,transparent_75%,transparent)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.12)_50%,rgba(255,255,255,0.12)_75%,transparent_75%,transparent)] bg-[size:14px_14px]" />
           <!-- Hover overlay with eye icon -->
