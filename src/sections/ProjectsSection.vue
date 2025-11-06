@@ -2,34 +2,30 @@
   <section id="projects" class="py-20 border-t border-black/10 dark:border-white/10">
     <h2 v-reveal class="text-2xl font-semibold tracking-tight">Projects</h2>
     <div class="mt-8 grid sm:grid-cols-2 gap-6">
-      <article v-for="(p, idx) in pagedProjects" :key="p.id" v-reveal="{ delay: idx * 80 }" class="card p-5 group relative">
-        <button type="button" class="relative z-0 aspect-[16/9] w-full overflow-hidden rounded border border-black/10 dark:border-white/10 mb-4 text-left"
-                @click="openLightbox(p)"
-                :aria-label="`Open images for ${p.title}`">
-          <img
-            v-if="p.image"
-            :src="p.image"
-            :alt="`${p.title} screenshot`"
-            loading="lazy"
-            class="absolute inset-0 z-0 h-full w-full object-cover filter grayscale transition-transform duration-300 group-hover:scale-[1.02]"
-          />
-          <div
-            v-else
-            class="absolute inset-0 z-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.06)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.06)_50%,rgba(0,0,0,0.06)_75%,transparent_75%,transparent)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.12)_50%,rgba(255,255,255,0.12)_75%,transparent_75%,transparent)] bg-[size:14px_14px]"
-          />
+      <article v-for="(p, idx) in pagedProjects" :key="p.id" v-reveal="{ delay: idx * 80 }"
+        class="card p-5 group relative">
+        <button type="button"
+          class="relative z-0 aspect-[16/9] w-full overflow-hidden rounded border border-black/10 dark:border-white/10 mb-4 text-left"
+          @click="openLightbox(p)" :aria-label="`Open images for ${p.title}`">
+          <img v-if="p.image" :src="p.image" :alt="`${p.title} screenshot`" loading="lazy"
+            class="absolute inset-0 z-0 h-full w-full object-cover filter grayscale transition-transform duration-300 group-hover:scale-[1.02]" />
+          <div v-else
+            class="absolute inset-0 z-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.06)_25%,transparent_25%,transparent_50%,rgba(0,0,0,0.06)_50%,rgba(0,0,0,0.06)_75%,transparent_75%,transparent)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.12)_50%,rgba(255,255,255,0.12)_75%,transparent_75%,transparent)] bg-[size:14px_14px]" />
           <!-- Hover overlay with eye icon -->
-          <div class="absolute inset-0 z-10 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
+          <div
+            class="absolute inset-0 z-10 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
             <div class="opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all">
               <div class="rounded-full bg-white/80 dark:bg-white/70 text-black p-2 shadow-md">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.6" fill="none"/>
-                  <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.6"
+                    fill="none" />
+                  <circle cx="12" cy="12" r="3" fill="currentColor" />
                 </svg>
               </div>
             </div>
           </div>
           <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[11px] px-2 py-0.5 rounded"
-               v-if="(p.images && p.images.length > 1)">
+            v-if="(p.images && p.images.length > 1)">
             {{ p.images.length }} images
           </div>
         </button>
@@ -61,23 +57,15 @@
       </article>
     </div>
     <div class="mt-8 flex items-center justify-between">
-      <button
-        class="btn btn-ghost disabled:opacity-40"
-        @click="prevPage"
-        :disabled="page === 1"
-        aria-label="Previous page"
-      >
+      <button class="btn btn-ghost disabled:opacity-40" @click="prevPage" :disabled="page === 1"
+        aria-label="Previous page">
         ‹ Prev
       </button>
       <div class="text-sm opacity-70">
         Page {{ page }} of {{ totalPages }}
       </div>
-      <button
-        class="btn btn-ghost disabled:opacity-40"
-        @click="nextPage"
-        :disabled="page === totalPages"
-        aria-label="Next page"
-      >
+      <button class="btn btn-ghost disabled:opacity-40" @click="nextPage" :disabled="page === totalPages"
+        aria-label="Next page">
         Next ›
       </button>
     </div>
@@ -104,11 +92,9 @@ const projects: Project[] = [
       "Web Development",],
     link: 'https://tegar-nugroho.web.app/',
     repo: 'https://github.com/tegarnugroho',
-    image: 'https://images.unsplash.com/photo-1641736494173-e7d5775121b2?q=80&w=1170&auto=format&fit=crop',
+    image: '/assets/vscode/vscode-banner.png',
     images: [
-      'https://images.unsplash.com/photo-1641736494173-e7d5775121b2?q=80&w=1600&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=1600&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1600&auto=format&fit=crop',
+      'assets/vscode/image.png',
     ],
   },
   {
@@ -123,11 +109,10 @@ const projects: Project[] = [
       "Security",],
     link: 'https://danafix.com/',
     repo: 'https://github.com/tegarnugroho',
-    image: 'https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=1170&auto=format&fit=crop',
+    image: '/assets/danafix/danafix-banner.png',
     images: [
-      'https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=1600&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1553729459-efe14ef6055d?q=80&w=1600&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1563013544-824ae1b704d3?q=80&w=1600&auto=format&fit=crop',
+      '/assets/danafix/danafix.png',
+      '/assets/danafix/danafix-2.png',
     ],
   },
   {
@@ -142,11 +127,12 @@ const projects: Project[] = [
       "Event Management",],
     link: 'https://tribelio.com/',
     repo: 'https://github.com/tegarnugroho',
-    image: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=1170&auto=format&fit=crop',
+    image: 'assets/tribelio/tribelio-banner.jpeg',
     images: [
-      'https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=1600&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1600&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1555421689-43cad7100751?q=80&w=1600&auto=format&fit=crop',
+      'assets/tribelio/tribelio-1.webp',
+      'assets/tribelio/tribelio-2.webp',
+      'assets/tribelio/tribelio-3.webp',
+      'assets/tribelio/tribelio-4.webp',
     ],
   },
   {
@@ -161,11 +147,88 @@ const projects: Project[] = [
       "Analytics",],
     link: 'https://cicle.app/tentang/',
     repo: 'https://github.com/tegarnugroho',
-    image: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&h=400&fit=crop&q=80',
+    image: '/assets/cicle/cicle-banner.png',
     images: [
-      'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=1600&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1529336953121-ad357a5e6f8b?q=80&w=1600&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1600&auto=format&fit=crop',
+      '/assets/cicle/cicle-1.webp',
+      '/assets/cicle/cicle-2.webp',
+      '/assets/cicle/cicle-3.webp',
+      '/assets/cicle/cicle-4.webp',
+    ],
+  },
+  {
+    id: 'p5',
+    title: 'IZILOH - Innovative Laundry App',
+    description: 'A laundry service app offering scheduling, real-time tracking, and secure payments for a seamless user experience.',
+    tech: [
+      "Flutter",
+      "Real-time Tracking",
+      "Push Notifications",
+      "Payment Integration",
+      "Booking System",],
+    link: 'https://iziloh.com/',
+    repo: 'https://github.com/tegarnugroho',
+    image: '/assets/iziloh/iziloh-banner.jpg',
+    images: [
+      '/assets/iziloh/iziloh-1.webp',
+      '/assets/iziloh/iziloh-2.webp',
+      '/assets/iziloh/iziloh-3.webp',
+      '/assets/iziloh/iziloh-4.webp',
+    ],
+  },
+  {
+    id: 'p6',
+    title: 'Waroong Retjeh - Restaurant App',
+    description: 'A restaurant app offering online ordering, table reservation, and menu management for a seamless dining experience.',
+    tech: [
+      "Flutter",
+      "Real-time Tracking",
+      "Push Notifications",
+      "Payment Integration",
+      "Booking System",],
+    link: 'http://waroongretjeh.dev.ittron.co.id/',
+    repo: 'https://github.com/tegarnugroho',
+    image: '/assets/waroong-retjeh/waroong-retjeh-banner.png',
+    images: [
+      '/assets/waroong-retjeh/waroong-retjeh-1.png',
+      '/assets/waroong-retjeh/waroong-retjeh-2.png',
+      '/assets/waroong-retjeh/waroong-retjeh-3.png',
+    ],
+  },
+  {
+    id: 'p6',
+    title: 'Flambe - Food Delivery App',
+    description: 'A food delivery app offering online ordering, real-time tracking, and secure payments for a seamless user experience.',
+    tech: [
+      "Flutter",
+      "Real-time Tracking",
+      "Push Notifications",
+      "Payment Integration",
+      "Booking System",],
+    link: '#',
+    repo: 'https://github.com/tegarnugroho',
+    image: '/assets/flambe/flambe-1.png',
+    images: [
+      '/assets/flambe/flambe-1.png',
+      '/assets/flambe/flambe-2.png',
+    ],
+  },
+  {
+    id: 'p7',
+    title: 'NU Card - Electronic Wallet App',
+    description: 'A digital wallet app offering secure payments, transaction tracking, and financial management tools for users.',
+    tech: [
+      "Flutter",
+      "KYC Integration",
+      "Push Notifications",
+      "Payment Integration",
+      "Booking System",],
+    link: '#',
+    repo: 'https://github.com/tegarnugroho',
+    image: '/assets/nucard/nucard-1.png',
+    images: [
+      '/assets/nucard/nucard-1.png',
+      '/assets/nucard/nucard-2.png',
+      '/assets/nucard/nucard-3.png',
     ],
   },
 ]
