@@ -6,12 +6,12 @@
         <div class="absolute inset-0 bg-black/70" @click="close"></div>
         <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_60%)]"></div>
 
-        <div class="absolute inset-0 flex items-center justify-center p-4 select-none">
+        <div class="absolute inset-0 flex items-center justify-center p-4 select-none" @click.self="close">
           <!-- Prev button -->
           <button
             class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/15 hover:bg-white/25 text-white shadow-lg backdrop-blur-md border border-white/20 pointer-events-auto"
-            @click.stop="prev"
-            aria-label="Previous image"
+            @click.stop="close"
+            aria-label="Close gallery"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -21,6 +21,7 @@
           <!-- Image container with transition and swipe -->
           <figure
             class="relative max-w-[96vw] max-h-[85vh] w-full flex items-center justify-center select-none"
+            @click.self="close"
             @touchstart.passive="onTouchStart"
             @touchend.passive="onTouchEnd"
             @contextmenu.prevent
@@ -40,8 +41,8 @@
           <!-- Next button -->
           <button
             class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/15 hover:bg-white/25 text-white shadow-lg backdrop-blur-md border border-white/20 pointer-events-auto"
-            @click.stop="next"
-            aria-label="Next image"
+            @click.stop="close"
+            aria-label="Close gallery"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
