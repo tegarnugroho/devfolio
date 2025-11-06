@@ -1,6 +1,6 @@
 <template>
   <header
-    class="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur border-b border-black/10 dark:border-white/10 supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-black/70 transition-colors"
+    class="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur border-b border-black/10 dark:border-white/10 supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-black/70 transition-colors relative"
   >
     <nav class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
       <a
@@ -47,7 +47,10 @@
         </button>
       </div>
     </nav>
-    <div v-if="open" class="sm:hidden border-t border-black/10 dark:border-white/10">
+    <div
+      v-if="open"
+      class="sm:hidden absolute inset-x-0 top-full z-40 bg-white/90 dark:bg-black/90 backdrop-blur border-t border-b border-black/10 dark:border-white/10"
+    >
       <ul class="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-2">
         <li v-for="item in items" :key="item.href" @click="open = false">
           <a
