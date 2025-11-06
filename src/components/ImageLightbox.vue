@@ -20,9 +20,10 @@
 
           <!-- Image container with transition and swipe -->
           <figure
-            class="relative max-w-[96vw] max-h-[85vh] w-full flex items-center justify-center"
+            class="relative max-w-[96vw] max-h-[85vh] w-full flex items-center justify-center select-none"
             @touchstart.passive="onTouchStart"
             @touchend.passive="onTouchEnd"
+            @contextmenu.prevent
           >
             <transition :name="transitionName" mode="out-in">
               <img
@@ -30,8 +31,8 @@
                 :key="current"
                 :src="images[current]"
                 :alt="`Image ${current + 1} of ${images.length}`"
-                decoding="async"
-                class="lightbox-img max-h-[85vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10"
+                decoding="async" draggable="false" @dragstart.prevent
+                class="lightbox-img max-h-[85vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 select-none no-save"
               />
             </transition>
           </figure>
@@ -187,6 +188,8 @@ watch(current, (idx) => {
 .slide-right-leave-to  { opacity: 0; transform: translateX(24px) scale(0.996); }
 
 .lightbox-img { will-change: transform, opacity; backface-visibility: hidden; transform: translateZ(0); }
+
+.no-save { user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .slide-left-enter-active, .slide-left-leave-active,
