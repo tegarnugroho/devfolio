@@ -10,8 +10,8 @@
           <!-- Prev button -->
           <button
             class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/15 hover:bg-white/25 text-white shadow-lg backdrop-blur-md border border-white/20 pointer-events-auto"
-            @click.stop="close"
-            aria-label="Close gallery"
+            @click.stop="prev"
+            aria-label="Previous image"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -41,8 +41,8 @@
           <!-- Next button -->
           <button
             class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/15 hover:bg-white/25 text-white shadow-lg backdrop-blur-md border border-white/20 pointer-events-auto"
-            @click.stop="close"
-            aria-label="Close gallery"
+            @click.stop="next"
+            aria-label="Next image"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
