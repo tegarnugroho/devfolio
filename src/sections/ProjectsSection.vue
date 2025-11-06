@@ -95,42 +95,6 @@ import ImageLightbox from '@/components/ImageLightbox.vue'
 
 const sourceProjects: Omit<Project, 'id'>[] = [
   {
-    title: 'ANKER Store App — Flexible Retail Commerce Solution',
-    description:
-      'A scalable retail store app with seamless backend integration and headless architecture. Runs on any device including mobile, tablets, checkout, and self-checkout terminals.',
-    tech: [
-      "Flutter",
-      "Headless Architecture",
-      "Cloud Deployment",
-      "POS Integration",
-    ],
-    link: '#',
-    repo: '#',
-    image: '/assets/anker/anker-1.png',
-    images: [
-      '/assets/anker/anker-1.png',
-      '/assets/anker/anker-2.png',
-      '/assets/anker/anker-3.png',
-    ],
-  },
-  {
-    title: 'Excel Translator — Excel to Localization Files(Flutter Package)',
-    description:
-      'Convert Excel translation sheets into localization files for Flutter apps automatically. Simple, fast, and consistent.',
-    tech: [
-      "Dart",
-      "Flutter",
-      "Localization",
-      "Excel Parser",
-    ],
-    link: 'https://pub.dev/packages/excel_translator',
-    repo: 'https://github.com/tegarnugroho/excel_translator',
-    image: '/assets/excel-translator/image.png',
-    images: [
-      '/assets/excel-translator/image.png',
-    ],
-  },
-  {
     title: 'Table Parser - Flutter Package',
     description:
       'Parse structured data from table formats into usable models for Dart & Flutter. Efficient and reliable.',
@@ -162,6 +126,82 @@ const sourceProjects: Omit<Project, 'id'>[] = [
     image: '/assets/vscode/vscode-banner.png',
     images: [
       'assets/vscode/vscode-banner.png',
+    ],
+  },
+  {
+    title: 'Stationary POS — Retail Point-of-Sale System',
+    description:
+      'A Windows-based POS solution featuring transaction processing, purchase journals, stock management, secondary customer display, and multi-payment support. Built with Flutter using Clean Architecture, BLoC Cubit, and real-time WebSocket integration.',
+    tech: [
+      "Flutter for Windows",
+      "BLoC Cubit",
+      "Clean Architecture",
+      "WebSocket",
+      "CI/CD",
+    ],
+    link: '#',
+    repo: '#',
+    image: '/assets/engelhorn/1.png',
+    images: [
+      '/assets/engelhorn/1.png',
+      '/assets/engelhorn/2.png',
+      '/assets/engelhorn/3.png',
+    ],
+  },
+  {
+    title: 'EAA Pad — Self-Checkout Ordering App',
+    description:
+      'A Windows-based self-checkout app for food and beverage ordering with full accessibility support including voice guidance and visual markers. Built using Flutter with Clean Architecture and BLoC Cubit.',
+    tech: [
+      "Flutter for Windows",
+      "BLoC Cubit",
+      "Clean Architecture",
+      "Accessibility",
+      "CI/CD",
+    ],
+    link: '#',
+    repo: '#',
+    image: '/assets/eaapad/eaapad-3.png',
+    images: [
+      '/assets/eaapad/eaapad-1.png',
+      '/assets/eaapad/eaapad-2.png',
+      '/assets/eaapad/eaapad-3.png',
+    ],
+  },
+  {
+    title: 'ANKER Store App — Flexible Retail Commerce Solution',
+    description:
+      'A scalable retail store app with seamless backend integration and headless architecture. Runs on any device including mobile, tablets, checkout, and self-checkout terminals.',
+    tech: [
+      "Flutter",
+      "Headless Architecture",
+      "Cloud Deployment",
+      "POS Integration",
+    ],
+    link: '#',
+    repo: '#',
+    image: '/assets/anker/anker-2.png',
+    images: [
+      '/assets/anker/anker-1.png',
+      '/assets/anker/anker-2.png',
+      '/assets/anker/anker-3.png',
+    ],
+  },
+  {
+    title: 'Excel Translator — Excel to Localization Files(Flutter Package)',
+    description:
+      'Convert Excel translation sheets into localization files for Flutter apps automatically. Simple, fast, and consistent.',
+    tech: [
+      "Dart",
+      "Flutter",
+      "Localization",
+      "Excel Parser",
+    ],
+    link: 'https://pub.dev/packages/excel_translator',
+    repo: 'https://github.com/tegarnugroho/excel_translator',
+    image: '/assets/excel-translator/image.png',
+    images: [
+      '/assets/excel-translator/image.png',
     ],
   },
   {
