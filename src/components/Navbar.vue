@@ -1,6 +1,6 @@
 <template>
   <header
-    class="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur border-b border-black/10 dark:border-white/10 supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-black/70 transition-colors relative"
+    class="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur border-b border-black/10 dark:border-white/10 supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-black/70 transition-colors"
   >
     <nav class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
       <a
@@ -36,13 +36,22 @@
         <button
           class="sm:hidden h-9 w-9 grid place-items-center rounded border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
           @click="open = !open"
-          aria-label="Toggle navigation"
+          :aria-label="open ? 'Close navigation' : 'Open navigation'"
           :aria-expanded="open"
         >
           <span class="relative block h-[14px] w-5">
-            <span class="absolute left-0 top-0 h-px w-full bg-current" />
-            <span class="absolute left-0 top-[6px] h-px w-full bg-current" />
-            <span class="absolute left-0 top-[12px] h-px w-full bg-current" />
+            <span
+              class="absolute left-0 top-0 h-px w-full bg-current transition-all duration-200"
+              :class="open ? 'top-[6px] rotate-45' : ''"
+            />
+            <span
+              class="absolute left-0 top-[6px] h-px w-full bg-current transition-all duration-200"
+              :class="open ? 'opacity-0' : 'opacity-100'"
+            />
+            <span
+              class="absolute left-0 top-[12px] h-px w-full bg-current transition-all duration-200"
+              :class="open ? 'top-[6px] -rotate-45' : ''"
+            />
           </span>
         </button>
       </div>
