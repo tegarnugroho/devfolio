@@ -1,5 +1,5 @@
 <template>
-  <section id="projects" class="py-20 border-t border-black/10 dark:border-white/10">
+  <section id="projects" class="scroll-mt-16 sm:scroll-mt-20 md:scroll-mt-24 pt-24 md:pt-28 pb-20 border-t border-black/5 dark:border-white/5">
     <h2 v-reveal class="text-2xl font-semibold tracking-tight">Projects</h2>
     <div class="mt-8 grid sm:grid-cols-2 gap-6">
       <ProjectCard

@@ -1,5 +1,5 @@
 <template>
-  <section id="skills" class="py-20 border-t border-black/10 dark:border-white/10">
+  <section id="skills" class="scroll-mt-16 sm:scroll-mt-20 md:scroll-mt-24 pt-24 md:pt-28 pb-20 border-t border-black/5 dark:border-white/5">
     <div class="mb-8">
       <span v-reveal class="text-[11px] tracking-[0.18em] uppercase opacity-60">Skills</span>
       <h2 v-reveal="{ delay: 60 }" class="mt-1 text-2xl font-semibold tracking-tight">What I Use</h2>
