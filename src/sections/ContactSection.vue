@@ -1,5 +1,5 @@
 <template>
-  <section id="contact" class="scroll-mt-16 sm:scroll-mt-20 md:scroll-mt-24 pt-24 md:pt-28 pb-20 border-t border-black/5 dark:border-white/5">
+  <section id="contact" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
     <div class="grid gap-8 lg:grid-cols-3">
       <div>
         <span v-reveal class="text-[11px] tracking-[0.18em] uppercase opacity-60">Contact</span>

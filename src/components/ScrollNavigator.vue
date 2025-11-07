@@ -93,9 +93,17 @@ function updateSizes() {
   )
 }
 
+function getAnchorOffset(): number {
+  const first = sections.value[0]
+  if (!first) return 64
+  const cs = getComputedStyle(first)
+  const v = parseFloat(cs.scrollMarginTop || '0')
+  return Number.isFinite(v) && v > 0 ? v : 64
+}
+
 function updateCurrentIndex() {
   // Anchor reference offset from top (align with sticky header spacing)
-  const anchorOffset = 96
+  const anchorOffset = getAnchorOffset()
   let bestIdx = 0
   let bestScore = Number.POSITIVE_INFINITY
   for (let i = 0; i < sections.value.length; i++) {

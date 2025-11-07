@@ -8,7 +8,7 @@
   }
   section[id] {
     /* Ensure anchor jumps land below the sticky header */
-    scroll-margin-top: 88px;
+    scroll-margin-top: 56px;
   }
   body {
     @apply transition-colors duration-300;
