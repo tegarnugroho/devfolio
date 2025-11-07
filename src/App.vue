@@ -22,7 +22,9 @@ import AboutSection from './sections/AboutSection.vue'
 import SkillsSection from './sections/SkillsSection.vue'
 import ProjectsSection from './sections/ProjectsSection.vue'
 import ContactSection from './sections/ContactSection.vue'
+import { useScrollHash } from '@/composables/useScrollHash'
 
+useScrollHash('main section[id]')
 const year = new Date().getFullYear()
 </script>
 
