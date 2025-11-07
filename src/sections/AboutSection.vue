@@ -1,5 +1,5 @@
 <template>
-  <section id="about" class="py-20 border-t border-black/10 dark:border-white/10">
+  <section id="about" class="mt-10 sm:mt-12 md:mt-14 scroll-mt-36 sm:scroll-mt-40 md:scroll-mt-48 py-20 border-t border-black/10 dark:border-white/10">
     <h2 v-reveal class="text-2xl font-semibold tracking-tight">About</h2>
 
     <div class="mt-8 grid gap-6 sm:grid-cols-[220px_1fr] sm:items-start">

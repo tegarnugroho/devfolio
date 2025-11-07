@@ -1,5 +1,5 @@
 <template>
-  <section id="hero" class="relative min-h-screen flex items-center">
+  <section id="hero" class="relative min-h-[calc(100vh-130px)] flex items-center">
     <div class="absolute inset-0 -z-10 pointer-events-none">
       <div class="absolute inset-0 opacity-[0.10] dark:opacity-[0.12] bg-[radial-gradient(ellipse_at_top,_rgba(0,0,0,0.6),_transparent_55%)] dark:bg-[radial-gradient(ellipse_at_top,_rgba(255,255,255,0.6),_transparent_55%)]" />
       <div class="absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent_85%)] bg-[linear-gradient(to_right,rgba(0,0,0,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.08)_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[size:28px_28px] animate-grid-pan" />
@@ -23,7 +23,10 @@
           <span>Contact</span>
         </a>
       </div>
+      
     </div>
+
+    
   </section>
 </template>
 
