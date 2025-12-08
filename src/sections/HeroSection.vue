@@ -6,7 +6,12 @@
     </div>
     <div class="w-full">
       <h1 v-reveal class="text-5xl sm:text-7xl font-extrabold leading-[1.05] tracking-tight">
-        Tegar.
+        <span class="letter" style="animation-delay: 0s">T</span>
+        <span class="letter" style="animation-delay: 0.1s">e</span>
+        <span class="letter" style="animation-delay: 0.2s">g</span>
+        <span class="letter" style="animation-delay: 0.3s">a</span>
+        <span class="letter" style="animation-delay: 0.4s">r</span>
+        <span class="letter" style="animation-delay: 0.5s">.</span>
         <span class="block text-base sm:text-lg font-normal mt-3 opacity-70">Flutter Developer</span>
       </h1>
       <p v-reveal="{delay: 120}" class="mt-5 text-lg sm:text-xl max-w-2xl opacity-85">
@@ -33,4 +38,15 @@
 <script setup lang="ts"></script>
 
 <style scoped>
+.letter {
+  opacity: 0;
+  animation: fadeIn 0.5s ease-in-out forwards;
+  display: inline-block;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
 </style>

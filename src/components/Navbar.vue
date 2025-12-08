@@ -7,7 +7,12 @@
         href="#hero"
         class="font-semibold tracking-wide rounded px-2 py-1 -mx-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
       >
-        Tegar.
+        <span class="letter" style="animation-delay: 0s">T</span>
+        <span class="letter" style="animation-delay: 0.1s">e</span>
+        <span class="letter" style="animation-delay: 0.2s">g</span>
+        <span class="letter" style="animation-delay: 0.3s">a</span>
+        <span class="letter" style="animation-delay: 0.4s">r</span>
+        <span class="letter" style="animation-delay: 0.5s">.</span>
       </a>
       <ul class="hidden sm:flex gap-8 text-sm">
         <li v-for="item in items" :key="item.href">
@@ -99,4 +104,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.letter {
+  opacity: 0;
+  animation: fadeIn 0.5s ease-in-out forwards;
+  display: inline-block;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
 </style>
