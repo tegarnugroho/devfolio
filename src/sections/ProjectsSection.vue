@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import type { Project } from '@/types'
 import ImageLightbox from '@/components/ImageLightbox.vue'
 import ProjectCard from '@/components/ProjectCard.vue'
@@ -46,10 +46,26 @@ function slugify(s: string) {
     .replace(/(^-|-$)+/g, '')
 }
 
+// Fisher-Yates shuffle algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
 const projects: Project[] = sourceProjects.map((p: Omit<Project, 'id'>, idx: number) => ({
   ...p,
   id: `${slugify(p.title) || 'project'}-${idx}`,
 }))
+
+// Shuffle projects on component mount
+onMounted(() => {
+  const shuffledProjects = shuffleArray(projects)
+  projects.splice(0, projects.length, ...shuffledProjects)
+})
 
 const page = ref(1)
 const isSm = useMediaQuery('(min-width: 640px)')
