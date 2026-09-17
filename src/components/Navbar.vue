@@ -3,9 +3,10 @@
     class="graphite-navbar sticky top-0 z-50"
     @keydown.esc="closeMenu"
   >
-    <nav class="nav-inner mx-auto flex items-center justify-between">
+    <nav ref="navElement" class="nav-inner relative mx-auto flex items-center justify-between">
       <a
         href="#hero"
+        @pointerenter="launchPlane"
         class="font-semibold tracking-wide rounded px-2 py-1 -mx-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
       >
         <span class="letter" style="animation-delay: 0s">T</span>
@@ -13,8 +14,15 @@
         <span class="letter" style="animation-delay: 0.2s">g</span>
         <span class="letter" style="animation-delay: 0.3s">a</span>
         <span class="letter" style="animation-delay: 0.4s">r</span>
-        <span class="letter" style="animation-delay: 0.5s">.</span>
+        <span ref="brandPeriod" class="letter" style="animation-delay: 0.5s">.</span>
       </a>
+      <div v-if="planeFlying" class="brand-flight" :style="flightStyle" aria-hidden="true">
+        <svg class="flight-trail" width="100%" height="100%" fill="none">
+          <defs><mask id="brand-trail-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%"><path class="trail-reveal" :d="flightPath" pathLength="1" stroke="white" stroke-width="4" stroke-dasharray="1" stroke-dashoffset="1" /></mask></defs>
+          <path :d="flightPath" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 5" stroke-linecap="round" mask="url(#brand-trail-mask)" />
+        </svg>
+        <svg class="paper-plane" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="m3 10 18-7-7 18-3-8-8-3Zm8 3 10-10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </div>
       <ul class="nav-links hidden md:flex gap-8 text-sm">
         <li v-for="item in items" :key="item.href">
           <a
@@ -102,6 +110,46 @@ const items = [
   { href: '#contact', label: 'Contact' },
 ] as const
 
+const navElement = ref<HTMLElement | null>(null)
+const brandPeriod = ref<HTMLElement | null>(null)
+const planeFlying = ref(false)
+const flightPath = ref('')
+const flightStyle = ref<Record<string, string>>({})
+let flightTimer: ReturnType<typeof setTimeout> | undefined
+function launchPlane(event: PointerEvent) {
+  if (planeFlying.value || event.pointerType !== 'mouse' ||
+      !window.matchMedia('(hover: hover) and (pointer: fine)').matches ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const nav = navElement.value, period = brandPeriod.value
+  if (!nav || !period) return
+  const bounds = nav.getBoundingClientRect(), dot = period.getBoundingClientRect()
+  const origin = dot.left + dot.width / 2 - bounds.left
+  const links = nav.querySelector('.nav-links')?.getBoundingClientRect()
+  const distance = Math.min(400, (links?.left ?? bounds.right - 80) - bounds.left - origin - 24)
+  if (distance < 40) return
+  const brand = period.parentElement!.getBoundingClientRect()
+  const left = Math.max(14 - bounds.left, brand.left - bounds.left - 40)
+  const start = origin - left, center = dot.top + dot.height / 2 - bounds.top
+  const end = start + distance
+  const radiusX = (start - 16) / 2
+  const radiusY = Math.max(12, Math.min(center - 14, bounds.height - center - 14))
+  const middle = start - radiusX
+  const bend = 0.5522847498 // Cubic approximation of each ellipse quadrant.
+  const lower = center + radiusY, upper = center - radiusY
+  // Shared tangents keep the oval loop and rightward exit continuously rounded.
+  flightPath.value = `M ${start} ${center}
+    C ${start} ${center + bend * radiusY}, ${middle + bend * radiusX} ${lower}, ${middle} ${lower}
+    C ${middle - bend * radiusX} ${lower}, 16 ${center + bend * radiusY}, 16 ${center}
+    C 16 ${center - bend * radiusY}, ${middle - bend * radiusX} ${upper}, ${middle} ${upper}
+    C ${middle + radiusX} ${upper}, ${end - Math.min(80, distance * .35)} ${center - 8}, ${end} ${center - 8}`.replace(/\s+/g, ' ').trim()
+  flightStyle.value = {
+    left: `${left}px`, top: '0px', height: `${bounds.height}px`,
+    width: `${end + 20}px`, maxWidth: `calc(100% - ${left}px)`,
+    '--flight-path': `path("${flightPath.value}")`,
+  }
+  planeFlying.value = true
+  flightTimer = setTimeout(() => { planeFlying.value = false }, 2300)
+}
 const open = ref(false)
 const menuButton = ref<HTMLButtonElement | null>(null)
 function closeMenu() { open.value = false; menuButton.value?.focus() }
@@ -174,10 +222,30 @@ onMounted(() => {
   window.addEventListener('scroll', updateActive, { passive: true })
   window.addEventListener('resize', onResize)
 })
-onBeforeUnmount(() => { disposed = true; clearTimeout(commitTimer); clearTimeout(settleTimer); activeTransition?.skipTransition(); settleTheme(); window.removeEventListener('scroll', updateActive); window.removeEventListener('resize', onResize) })
+onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout(commitTimer); clearTimeout(settleTimer); activeTransition?.skipTransition(); settleTheme(); window.removeEventListener('scroll', updateActive); window.removeEventListener('resize', onResize) })
 </script>
 
 <style scoped>
+.brand-flight { position: absolute; overflow: hidden; pointer-events: none; color: var(--primary); z-index: 1; }
+.flight-trail { position: absolute; inset: 0; opacity: 0; animation: brand-trail 2300ms linear both; }
+.paper-plane { position: absolute; left: 0; top: 0; offset-path: var(--flight-path); offset-rotate: auto 45deg; opacity: 0; animation: flight-travel 1800ms cubic-bezier(.55,0,.85,.45) both, brand-plane 2300ms linear both; }
+@keyframes flight-travel { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+@keyframes brand-plane {
+  0% { opacity: 0; transform: scale(.65); }
+  12% { opacity: .85; transform: scale(1); }
+  82% { opacity: .85; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+.trail-reveal { animation: trail-draw 1800ms cubic-bezier(.55,0,.85,.45) both; }
+@keyframes trail-draw { to { stroke-dashoffset: 0; } }
+@keyframes brand-trail {
+  0% { opacity: 0; }
+  12% { opacity: .32; }
+  82% { opacity: .32; }
+  100% { opacity: 0; }
+}
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .brand-flight { display: none; } }
+
 .theme-sky { position: relative; overflow: hidden; isolation: isolate; }
 .theme-sky svg { position: absolute; transition: none; }
 .sky-sun, .sky-moon { opacity: 0; transform: translateY(30px); }
