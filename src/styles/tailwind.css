@@ -42,9 +42,9 @@ footer.max-w-5xl { padding-inline: var(--section-inset); }
 .mobile-navigation { background: var(--secondary-background); border-block: 1px solid var(--border); }
 .graphite-hero { position: relative; isolation: isolate; min-height: calc(100svh - 80px); display: flex; align-items: center; padding: 96px var(--section-inset) 140px; }
 /* Grid dissolves before the right-hand motto; light remains independent. */
-.hero-atmosphere { position: absolute; inset: 0 -5vw; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 73% 9%,var(--illumination),transparent 45%),linear-gradient(135deg,var(--background),var(--secondary-background)); }
+.hero-atmosphere { position: absolute; inset: 0 -5vw; z-index: -1; pointer-events: none; --sky-background: var(--background); --sky-secondary: var(--secondary-background); background: radial-gradient(ellipse at 73% 9%,var(--illumination),transparent 45%),linear-gradient(135deg,var(--sky-background),var(--sky-secondary)); }
 .hero-atmosphere::before { content: ''; position: absolute; inset: 0 12.5% 0 8%; background-image: linear-gradient(to right,var(--grid) 1px,transparent 1px),linear-gradient(to bottom,var(--grid) 1px,transparent 1px); background-size: 48px 48px; -webkit-mask-image: linear-gradient(to right,transparent,black 12%,black 78%,transparent),linear-gradient(to bottom,black,black 58%,transparent 100%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to right,transparent,black 12%,black 78%,transparent),linear-gradient(to bottom,black,black 58%,transparent 100%); mask-composite: intersect; }
-.hero-atmosphere::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 58% 30%,transparent 30%,var(--background) 95%),linear-gradient(to top,var(--background),transparent 24%); }
+.hero-atmosphere::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 58% 30%,transparent 30%,var(--sky-background) 95%),linear-gradient(to top,var(--sky-background),transparent 24%); }
 .hero-copy { max-width: 530px; }
 .hero-eyebrow { color: var(--label); font-family: ui-monospace,SFMono-Regular,Consolas,monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .35em; margin-bottom: 20px; }
 .hero-copy h1 { font-size: clamp(76px,7.4vw,112px); font-weight: 800; letter-spacing: -.055em; line-height: 1.06; }
@@ -116,4 +116,55 @@ footer.max-w-5xl { padding-inline: var(--section-inset); }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* Typed colors interpolate the hero's gradients and grid without image overlays. */
+@property --sky-background { syntax: '<color>'; inherits: true; initial-value: #f2f2f2; }
+@property --sky-secondary { syntax: '<color>'; inherits: true; initial-value: #e7e8e9; }
+@property --grid { syntax: '<color>'; inherits: true; initial-value: rgba(0,0,0,.055); }
+@property --illumination { syntax: '<color>'; inherits: true; initial-value: rgba(0,0,0,.08); }
+:root.theme-fallback {
+  transition: --grid 220ms cubic-bezier(.22,1,.36,1), --illumination 220ms cubic-bezier(.22,1,.36,1);
+}
+:root.theme-fallback :where(body, header, nav, main, section, article, figure, footer, button, a, p, h1, h2, h3, span, li, ul, div, svg, path, circle),
+:root.theme-fallback :where(a, span, p, div)::before,
+:root.theme-fallback :where(a, span, p, div)::after {
+  transition: background-color 220ms cubic-bezier(.22,1,.36,1), color 220ms cubic-bezier(.22,1,.36,1), border-color 220ms cubic-bezier(.22,1,.36,1), fill 220ms cubic-bezier(.22,1,.36,1), stroke 220ms cubic-bezier(.22,1,.36,1), box-shadow 220ms cubic-bezier(.22,1,.36,1) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root.theme-fallback { transition-duration: 100ms !important; }
+  :root.theme-fallback :where(body, header, nav, main, section, article, figure, footer, button, a, p, h1, h2, h3, span, li, ul, div, svg, path, circle),
+  :root.theme-fallback :where(a, span, p, div)::before,
+  :root.theme-fallback :where(a, span, p, div)::after { transition-duration: 100ms !important; }
+}
+
+:root.theme-fallback .hero-atmosphere {
+  transition: --sky-background 220ms cubic-bezier(.22,1,.36,1), --sky-secondary 220ms cubic-bezier(.22,1,.36,1) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root.theme-fallback .hero-atmosphere { transition-duration: 100ms !important; }
+}
+
+/* Capture complete themes; only the new snapshot's spatial boundary moves. */
+:root.theme-radial *, :root.theme-radial *::before, :root.theme-radial *::after,
+:root.theme-radial { transition: none !important; }
+:root.theme-radial .theme-sky { view-transition-name: theme-toggle; }
+:root.theme-radial::view-transition-group(root),
+:root.theme-radial::view-transition-group(theme-toggle) { animation: none; }
+:root.theme-radial::view-transition-image-pair(root),
+:root.theme-radial::view-transition-image-pair(theme-toggle) { isolation: auto; }
+:root.theme-radial::view-transition-old(root),
+:root.theme-radial::view-transition-new(root),
+:root.theme-radial::view-transition-new(theme-toggle) {
+  animation: none; mix-blend-mode: normal; opacity: 1;
+}
+:root.theme-radial::view-transition-old(root) { z-index: 1; }
+:root.theme-radial::view-transition-new(root) {
+  z-index: 2; animation: theme-reveal 740ms cubic-bezier(.76,0,.24,1) both;
+}
+:root.theme-radial::view-transition-group(theme-toggle) { z-index: 3; }
+:root.theme-radial::view-transition-old(theme-toggle) { display: none; }
+@keyframes theme-reveal {
+  from { clip-path: circle(0px at var(--theme-x) var(--theme-y)); }
+  to { clip-path: circle(var(--theme-radius) at var(--theme-x) var(--theme-y)); }
 }

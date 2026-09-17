@@ -30,14 +30,18 @@
       <div class="flex items-center gap-3">
         <button
           @click="toggleTheme"
+          ref="themeButton"
+          :aria-disabled="transitioning"
+          :class="[theme === 'light' ? 'sky-day' : 'sky-night', direction, { 'sky-changing': transitioning }]"
           :aria-label="`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`"
-          class="h-9 w-9 grid place-items-center rounded-full border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
+          class="theme-sky h-9 w-9 grid place-items-center rounded-full border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
         >
-          <svg v-if="theme === 'dark'" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <span class="sky-horizon" aria-hidden="true"></span>
+          <svg class="sky-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M12 4v2M12 18v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/>
           </svg>
-          <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <svg class="sky-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
@@ -88,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 
 const items = [
@@ -109,9 +113,59 @@ function updateActive() {
 }
 const { get, toggle } = useTheme()
 const theme = ref<'light' | 'dark'>(get())
-
+const transitioning = ref(false)
+const direction = ref('')
+const themeButton = ref<HTMLButtonElement | null>(null)
+type ThemeViewTransition = { ready: Promise<void>; finished: Promise<void>; updateCallbackDone: Promise<void>; skipTransition(): void }
+let activeTransition: ThemeViewTransition | undefined
+let commitTimer: ReturnType<typeof setTimeout> | undefined
+let settleTimer: ReturnType<typeof setTimeout> | undefined
+let disposed = false
+function settleTheme() {
+  transitioning.value = false
+  direction.value = ''
+  const root = document.documentElement
+  root.classList.remove('theme-radial', 'theme-fallback')
+  for (const property of ['--theme-x', '--theme-y', '--theme-radius']) root.style.removeProperty(property)
+  activeTransition = undefined
+}
 function toggleTheme() {
-  theme.value = toggle()
+  if (transitioning.value) return
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const root = document.documentElement
+  const start = (document as Document & { startViewTransition?: (update: () => Promise<void>) => ThemeViewTransition }).startViewTransition
+  transitioning.value = true
+  direction.value = theme.value === 'dark' ? 'sky-sunrise' : 'sky-sunset'
+  if (reduced || !start || !themeButton.value) {
+    root.classList.add('theme-fallback')
+    commitTimer = setTimeout(() => { theme.value = toggle() }, reduced ? 0 : 100)
+    settleTimer = setTimeout(settleTheme, reduced ? 120 : 820)
+    return
+  }
+  const rect = themeButton.value.getBoundingClientRect()
+  const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2
+  const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+  root.style.setProperty('--theme-x', `${x}px`)
+  root.style.setProperty('--theme-y', `${y}px`)
+  root.style.setProperty('--theme-radius', `${Math.ceil(radius)}px`)
+  root.classList.add('theme-radial')
+  commitTimer = setTimeout(async () => {
+    let committed = false
+    try {
+      activeTransition = start.call(document, async () => {
+        if (disposed) return
+        theme.value = toggle()
+        committed = true
+        await nextTick()
+      })
+      // A skipped capture still applies its update callback; never toggle twice.
+      void activeTransition.ready.catch(() => {})
+      await activeTransition.updateCallbackDone
+      await activeTransition.finished
+    } catch {
+      if (!committed && !disposed) theme.value = toggle()
+    } finally { if (!disposed) settleTheme() }
+  }, 100)
 }
 
 onMounted(() => {
@@ -120,10 +174,29 @@ onMounted(() => {
   window.addEventListener('scroll', updateActive, { passive: true })
   window.addEventListener('resize', onResize)
 })
-onBeforeUnmount(() => { window.removeEventListener('scroll', updateActive); window.removeEventListener('resize', onResize) })
+onBeforeUnmount(() => { disposed = true; clearTimeout(commitTimer); clearTimeout(settleTimer); activeTransition?.skipTransition(); settleTheme(); window.removeEventListener('scroll', updateActive); window.removeEventListener('resize', onResize) })
 </script>
 
 <style scoped>
+.theme-sky { position: relative; overflow: hidden; isolation: isolate; }
+.theme-sky svg { position: absolute; transition: none; }
+.sky-sun, .sky-moon { opacity: 0; transform: translateY(30px); }
+.sky-day .sky-sun, .sky-night .sky-moon { opacity: 1; transform: translateY(0); }
+.sky-horizon { position: absolute; inset: 72% 16% auto; height: 1px; background: currentColor; opacity: 0; }
+.theme-sky::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; background: linear-gradient(to bottom,transparent,var(--surface)); }
+.sky-changing { animation: sky-press 120ms ease-out; }
+.sky-changing::before, .sky-changing .sky-horizon { animation: sky-horizon 800ms ease; }
+.sky-sunset .sky-sun, .sky-sunrise .sky-moon { animation: celestial-set 360ms cubic-bezier(.4,0,.7,1) both; }
+.sky-sunset .sky-moon, .sky-sunrise .sky-sun { animation: celestial-rise 440ms 220ms cubic-bezier(.22,1,.36,1) both; }
+@keyframes celestial-set { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(30px); } }
+@keyframes celestial-rise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sky-horizon { 0%,100% { opacity: 0; } 40%,65% { opacity: .16; } }
+@keyframes sky-press { 50% { transform: scale(.94); } }
+@media (prefers-reduced-motion: reduce) {
+  .theme-sky svg { transform: none; transition: opacity 100ms !important; }
+  .sky-changing, .sky-changing svg, .sky-changing::before, .sky-changing .sky-horizon { animation: none !important; }
+}
+
 @media (max-width: 767px), (pointer: coarse) {
   .nav-inner button { min-width: 44px; min-height: 44px; }
   .mobile-navigation { max-height: calc(100svh - 80px); overflow-y: auto; padding-bottom: env(safe-area-inset-bottom); }
