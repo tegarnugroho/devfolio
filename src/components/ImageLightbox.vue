@@ -1,209 +1,153 @@
 <template>
   <teleport to="body">
-    <transition name="fade">
-      <div v-if="modelValue" class="fixed inset-0 z-50">
-        <!-- Backdrop with subtle gradient -->
-        <div class="absolute inset-0 bg-black/70" @click="close"></div>
-        <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_60%)]"></div>
-
-        <div class="absolute inset-0 flex items-center justify-center p-4 select-none" @click.self="close">
-          <!-- Prev button -->
-          <button v-if="hasMany"
-            class="nav-btn safe-left absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 grid place-items-center rounded-full bg-white/15 hover:bg-white/25 text-white shadow-lg backdrop-blur-md border border-white/20 pointer-events-auto"
-            @click.stop="prev"
-            aria-label="Previous image"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-
-          <!-- Image container with transition and swipe -->
-          <figure
-            class="relative max-w-[96vw] max-h-[85vh] w-full flex items-center justify-center select-none"
-            @click.self="close"
-            @touchstart.passive="onTouchStart"
-            @touchend.passive="onTouchEnd"
-            @contextmenu.prevent
-          >
-            <transition :name="transitionName" mode="out-in">
-              <img
-                v-if="images.length"
-                :key="current"
-                :src="images[current]"
-                :alt="`Image ${current + 1} of ${images.length}`"
-                decoding="async" draggable="false" @dragstart.prevent
-                class="lightbox-img z-10 max-h-[85vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 select-none no-save"
-              />
-            </transition>
-          </figure>
-
-          <!-- Next button -->
-          <button v-if="hasMany"
-            class="nav-btn safe-right absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 grid place-items-center rounded-full bg-white/15 hover:bg-white/25 text-white shadow-lg backdrop-blur-md border border-white/20 pointer-events-auto"
-            @click.stop="next"
-            aria-label="Next image"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-
-          <!-- Close button -->
-          <button
-            class="absolute top-3 right-3 z-20 p-2 rounded-lg bg-white/15 hover:bg-white/25 text-white shadow backdrop-blur-md border border-white/20 pointer-events-auto"
-            @click.stop="close"
-            aria-label="Close"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-
-          <!-- Dots -->
-          <div v-if="hasMany" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 pointer-events-auto">
-            <button
-              v-for="(img, i) in images"
-              :key="i"
-              class="h-2.5 w-2.5 rounded-full border border-white/50"
-              :class="i === current ? 'bg-white' : 'bg-white/30 hover:bg-white/50'"
-              @click.stop="go(i)"
-              :aria-label="`Go to image ${i+1}`"
-            />
-          </div>
-
-          <!-- Counter badge -->
-          <div v-if="hasMany" class="absolute bottom-3 right-3 z-20 text-white text-xs bg-black/45 px-3 py-1.5 rounded-full pointer-events-none">
-            {{ current + 1 }} / {{ images.length }}
+    <transition name="showcase">
+      <div v-if="modelValue" class="showcase-backdrop" @click.self="close" @keydown="onKey">
+        <div ref="dialog" class="showcase-dialog" role="dialog" aria-modal="true" aria-labelledby="showcase-title" tabindex="-1">
+          <header class="showcase-bar">
+            <span class="counter" aria-live="polite">{{ pad(current + 1) }} / {{ pad(images.length) }}</span>
+            <div class="showcase-controls"><template v-if="hasMany"><button @click="prev" aria-label="Previous image">←</button><button @click="next" aria-label="Next image">→</button><span class="control-divider" aria-hidden="true"></span></template><button ref="closeButton" class="close-button" @click="close" aria-label="Close project dialog">×</button></div>
+          </header>
+          <div class="showcase-body">
+            <div class="showcase-gallery">
+              <figure class="gallery-canvas" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd" @contextmenu.prevent>
+                <transition name="image-fade" mode="out-in"><img v-if="images.length" :key="images[current]" :src="images[current]" :alt="`${project?.title ?? 'Project'} screenshot ${current + 1} of ${images.length}`" decoding="async" draggable="false" @dragstart.prevent /></transition>
+              </figure>
+              <div v-if="hasMany" class="gallery-thumbnails" aria-label="Gallery images"><button v-for="(image, index) in images" :key="index" :class="{ selected: current === index }" :aria-label="`View image ${index + 1}`" :aria-pressed="current === index" @click="go(index)"><img :src="image" alt="" loading="lazy" draggable="false" /></button></div>
+            </div>
+            <div v-if="project" class="showcase-information">
+              <p class="metadata">{{ project.tech[0] }}</p>
+              <h2 id="showcase-title">{{ titleParts[0] }}</h2>
+              <p v-if="titleParts[1]" class="subtitle">{{ titleParts[1] }}</p>
+              <section class="description"><h3>Project description</h3><p>{{ project.description }}</p></section>
+              <section class="stack"><h3>Tech stack</h3><ul><li v-for="tech in project.tech" :key="tech">{{ tech }}</li></ul></section>
+              <div v-if="validUrl(project.link) || validUrl(project.repo)" class="showcase-actions"><a v-if="validUrl(project.link)" :href="project.link" target="_blank" rel="noopener noreferrer" class="primary-action">View Project <span aria-hidden="true">↗</span></a><a v-if="validUrl(project.repo)" :href="project.repo" target="_blank" rel="noopener noreferrer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-14-2 16" stroke="currentColor" stroke-width="1.5" /></svg>View Code</a></div>
+            </div>
+            <h2 v-else id="showcase-title" class="sr-only">Project gallery</h2>
           </div>
         </div>
       </div>
     </transition>
   </teleport>
-  
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, ref, computed } from 'vue'
-
-const props = defineProps<{
-  modelValue: boolean
-  images: string[]
-  startIndex?: number
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void
-}>()
-
-const current = ref(props.startIndex ?? 0)
-const lastDirection = ref<'left' | 'right'>('left')
-const transitionName = ref('slide-left')
-const hasMany = computed(() => (props.images?.length ?? 0) > 1)
-
-watch(() => props.modelValue, (open) => {
-  if (open) current.value = props.startIndex ?? 0
+import { onBeforeUnmount, watch, ref, computed, nextTick } from 'vue'
+import type { Project } from '@/types'
+const props = defineProps<{ modelValue: boolean; images: string[]; startIndex?: number; project?: Project | null }>()
+const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>()
+const current = ref(0)
+const dialog = ref<HTMLElement | null>(null)
+const closeButton = ref<HTMLButtonElement | null>(null)
+const hasMany = computed(() => props.images.length > 1)
+const titleParts = computed(() => {
+  const title = props.project?.title ?? 'Project gallery'
+  const separator = title.indexOf(' - ')
+  return separator < 0 ? [title, ''] : [title.slice(0, separator), title.slice(separator + 3)]
 })
-
-function close() {
-  emit('update:modelValue', false)
+const pad = (value: number) => String(value).padStart(2, '0')
+const validUrl = (value?: string) => !!value && /^https?:\/\//i.test(value)
+let previousFocus: HTMLElement | null = null
+let previousOverflow = ''
+let inertElements: { element: HTMLElement; inert: boolean }[] = []
+let locked = false
+function restorePage() {
+  if (!locked) return
+  document.body.style.overflow = previousOverflow
+  inertElements.forEach(({ element, inert }) => { element.inert = inert })
+  inertElements = []
+  locked = false
+  previousFocus?.focus({ preventScroll: true })
 }
-
-function next() {
-  if (!props.images?.length) return
-  lastDirection.value = 'left'
-  transitionName.value = 'slide-left'
-  current.value = (current.value + 1) % props.images.length
-}
-
-function prev() {
-  if (!props.images?.length) return
-  lastDirection.value = 'right'
-  transitionName.value = 'slide-right'
-  current.value = (current.value - 1 + props.images.length) % props.images.length
-}
-
-function go(i: number) {
-  if (!props.images?.length) return
-  if (i === current.value) return
-  lastDirection.value = i > current.value ? 'left' : 'right'
-  transitionName.value = lastDirection.value === 'left' ? 'slide-left' : 'slide-right'
-  current.value = i
-}
-
-function onKey(e: KeyboardEvent) {
+watch(() => props.modelValue, async open => {
+  if (!open) { restorePage(); return }
+  current.value = Math.max(0, Math.min(props.startIndex ?? 0, props.images.length - 1))
+  previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+  previousOverflow = document.body.style.overflow
+  document.body.style.overflow = 'hidden'
+  locked = true
+  await nextTick()
   if (!props.modelValue) return
-  if (e.key === 'Escape') close()
-  else if (e.key === 'ArrowRight') next()
-  else if (e.key === 'ArrowLeft') prev()
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', onKey)
-})
-onUnmounted(() => {
-  window.removeEventListener('keydown', onKey)
-})
-
-// Basic swipe
-let touchStartX = 0
-function onTouchStart(e: TouchEvent) {
-  touchStartX = e.changedTouches[0]?.clientX ?? 0
-}
-function onTouchEnd(e: TouchEvent) {
-  const x = e.changedTouches[0]?.clientX ?? 0
-  const dx = x - touchStartX
-  if (Math.abs(dx) > 40) {
-    if (dx < 0) next()
-    else prev()
-  }
-}
-
-// Preload adjacent images for smoother transitions
-watch(current, (idx) => {
-  const len = props.images?.length ?? 0
-  if (!len) return
-  const nextIdx = (idx + 1) % len
-  const prevIdx = (idx - 1 + len) % len
-  const preload = (url?: string) => {
-    if (!url) return
-    const img = new Image()
-    img.src = url
-  }
-  preload(props.images?.[nextIdx])
-  preload(props.images?.[prevIdx])
+  inertElements = Array.from(document.body.children).filter((element): element is HTMLElement => element instanceof HTMLElement && !element.contains(dialog.value)).map(element => ({ element, inert: element.inert }))
+  inertElements.forEach(({ element }) => { element.inert = true })
+  closeButton.value?.focus({ preventScroll: true })
 }, { immediate: true })
+function close() { emit('update:modelValue', false) }
+function next() { if (props.images.length) current.value = (current.value + 1) % props.images.length }
+function prev() { if (props.images.length) current.value = (current.value - 1 + props.images.length) % props.images.length }
+function go(index: number) { current.value = index }
+function onKey(event: KeyboardEvent) {
+  if (event.key === 'Escape') { event.preventDefault(); close() }
+  else if (event.key === 'ArrowRight') { event.preventDefault(); next() }
+  else if (event.key === 'ArrowLeft') { event.preventDefault(); prev() }
+  else if (event.key === 'Tab') {
+    const controls = Array.from(dialog.value?.querySelectorAll<HTMLElement>('button, a[href]') ?? [])
+    const first = controls[0], last = controls[controls.length - 1]
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+  }
+}
+let touchX = 0
+let touchY = 0
+function onTouchStart(event: TouchEvent) { touchX = event.changedTouches[0]?.clientX ?? 0; touchY = event.changedTouches[0]?.clientY ?? 0 }
+function onTouchEnd(event: TouchEvent) {
+  const dx = (event.changedTouches[0]?.clientX ?? 0) - touchX
+  const dy = (event.changedTouches[0]?.clientY ?? 0) - touchY
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { if (dx < 0) next(); else prev() }
+}
+watch([current, () => props.images], () => {
+  if (!props.modelValue || !props.images.length) return
+  for (const offset of [-1, 1]) { const image = new Image(); image.src = props.images[(current.value + offset + props.images.length) % props.images.length] }
+})
+onBeforeUnmount(restorePage)
 </script>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active { transition: opacity 0.15s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-
-/* Slide transitions */
-.slide-left-enter-active, .slide-left-leave-active,
-.slide-right-enter-active, .slide-right-leave-active {
-  transition: opacity 220ms cubic-bezier(.22,.61,.36,1), transform 220ms cubic-bezier(.22,.61,.36,1);
+.showcase-backdrop { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.72); padding: 40px; }
+.showcase-dialog { width: min(1120px,100%); max-height: calc(100dvh - 80px); overflow: auto; background: var(--secondary-background); color: var(--primary); border: 1px solid var(--strong-border); border-radius: 7px; box-shadow: 0 16px 48px rgba(0,0,0,.2); overscroll-behavior: contain; }
+.showcase-bar { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 28px; background: var(--secondary-background); }
+.counter { font-family: ui-monospace,monospace; font-size: 12px; color: var(--secondary); letter-spacing: .06em; }
+.showcase-controls { display: flex; align-items: center; gap: 12px; }
+.showcase-controls button { display: grid; place-items: center; width: 48px; height: 38px; border: 1px solid var(--strong-border); border-radius: 4px; font-size: 21px; background: transparent; }
+.showcase-controls button:hover { border-color: var(--secondary); }
+.control-divider { height: 24px; width: 1px; background: var(--strong-border); margin-inline: 10px; }
+.showcase-controls .close-button { border-color: transparent; width: 36px; font-size: 28px; }
+.showcase-body { display: grid; grid-template-columns: minmax(0,1.8fr) minmax(0,1fr); gap: 40px; padding: 0 28px 36px; }
+.showcase-gallery, .showcase-information { min-width: 0; }
+.gallery-canvas { height: clamp(260px,48vh,470px); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; }
+.gallery-canvas img { width: 100%; height: 100%; object-fit: contain; }
+.gallery-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-block: 22px 4px; }
+.gallery-thumbnails button { flex: 0 0 116px; height: 82px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); overflow: hidden; opacity: .6; transition: opacity 220ms,border-color 220ms; }
+.gallery-thumbnails button.selected { border-color: var(--primary); opacity: 1; }
+.gallery-thumbnails button:hover { opacity: 1; }
+.gallery-thumbnails img { width: 100%; height: 100%; object-fit: contain; }
+.metadata, .showcase-information h3 { font-family: ui-monospace,monospace; text-transform: uppercase; letter-spacing: .15em; font-size: 10px; color: var(--secondary); }
+.showcase-information h2 { font-size: 30px; line-height: 1.2; font-weight: 500; margin-top: 12px; overflow-wrap: anywhere; }
+.subtitle { color: var(--secondary); font-size: 15px; margin-top: 10px; }
+.description { margin-top: 26px; }
+.description p { font-size: 14px; line-height: 1.65; color: var(--secondary); margin-top: 12px; }
+.stack { padding-top: 20px; margin-top: 24px; border-top: 1px solid var(--border); }
+.stack ul { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.stack li { font-size: 11px; color: var(--secondary); border: 1px solid var(--strong-border); border-radius: 3px; padding: 3px 9px; }
+.showcase-actions { display: flex; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border); padding-top: 18px; margin-top: 24px; }
+.showcase-actions a { display: inline-flex; align-items: center; justify-content: center; gap: 12px; flex: 1 1 130px; border: 1px solid var(--strong-border); border-radius: 4px; padding: 12px 16px; font-size: 12px; }
+.showcase-actions a:hover { border-color: var(--secondary); }
+.showcase-actions .primary-action { background: var(--button); color: var(--button-text); }
+.showcase-actions .primary-action:hover { background: var(--button-hover); }
+.showcase-enter-active, .showcase-leave-active { transition: opacity 220ms; }
+.showcase-enter-active .showcase-dialog, .showcase-leave-active .showcase-dialog { transition: transform 220ms; }
+.showcase-enter-from, .showcase-leave-to { opacity: 0; }
+.showcase-enter-from .showcase-dialog, .showcase-leave-to .showcase-dialog { transform: scale(.98); }
+.image-fade-enter-active, .image-fade-leave-active { transition: opacity 120ms; }
+.image-fade-enter-from, .image-fade-leave-to { opacity: 0; }
+@media (max-width: 800px) {
+  .showcase-backdrop { padding: 12px; }
+  .showcase-dialog { max-height: calc(100dvh - 24px); }
+  .showcase-bar { padding: 16px 18px; }
+  .showcase-body { grid-template-columns: 1fr; gap: 26px; padding: 0 18px 26px; }
+  .gallery-canvas { height: clamp(220px,42dvh,420px); }
+  .gallery-thumbnails { padding-top: 14px; }
+  .gallery-thumbnails button { flex-basis: 92px; height: 64px; }
 }
-.slide-left-enter-from { opacity: 0; transform: translateX(24px) scale(0.996); }
-.slide-left-leave-to   { opacity: 0; transform: translateX(-24px) scale(0.996); }
-.slide-right-enter-from{ opacity: 0; transform: translateX(-24px) scale(0.996); }
-.slide-right-leave-to  { opacity: 0; transform: translateX(24px) scale(0.996); }
-
-.lightbox-img { will-change: transform, opacity; backface-visibility: hidden; transform: translateZ(0); }
-
-.no-save { user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
-
-/* Safe area support for notches (iOS) */
-@supports (padding: env(safe-area-inset-left)) {
-  .safe-left { left: calc(0.75rem + env(safe-area-inset-left)); }
-  .safe-right { right: calc(0.75rem + env(safe-area-inset-right)); }
-}
-
-/* Ensure consistent tap target and layering */
-.nav-btn { -webkit-tap-highlight-color: transparent; }
-
-@media (prefers-reduced-motion: reduce) {
-  .slide-left-enter-active, .slide-left-leave-active,
-  .slide-right-enter-active, .slide-right-leave-active { transition-duration: 0ms; }
-}
+@media (max-width: 400px) { .showcase-actions { flex-direction: column; } .showcase-actions a { flex: auto; } .showcase-controls { gap: 8px; } .control-divider { margin-inline: 3px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
 </style>

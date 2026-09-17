@@ -23,7 +23,7 @@
         Next ›
       </button>
     </div>
-    <ImageLightbox v-model="lightboxOpen" :images="lightboxImages" :start-index="lightboxStart" />
+    <ImageLightbox v-model="lightboxOpen" :project="selectedProject" :images="lightboxImages" :start-index="lightboxStart" />
   </section>
 </template>
 
@@ -89,6 +89,7 @@ function prevPage() {
 }
 
 // Lightbox state
+const selectedProject = ref<Project | null>(null)
 const lightboxOpen = ref(false)
 const lightboxImages = ref<string[]>([])
 const lightboxStart = ref(0)
@@ -96,6 +97,7 @@ const lightboxStart = ref(0)
 function openLightbox(p: Project) {
   const imgs = p.images && p.images.length ? p.images : (p.image ? [p.image] : [])
   if (!imgs.length) return
+  selectedProject.value = p
   lightboxImages.value = imgs
   lightboxStart.value = 0
   lightboxOpen.value = true
