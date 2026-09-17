@@ -67,12 +67,12 @@ footer.max-w-5xl { padding-inline: var(--section-inset); }
 
 .hero-motto, .hero-location { font-family: ui-monospace,monospace; font-size: 9px; text-transform: uppercase; letter-spacing: .22em; line-height: 1.9; color: var(--muted); }
 .hero-motto { position: absolute; right: 0; top: 44%; opacity: .55; }
-.hero-location { position: absolute; bottom: 36px; left: 0; }
+.hero-location { position: absolute; bottom: 36px; left: var(--section-inset); }
 .hero-location::after { content: ''; display: block; margin-top: 14px; width: 32px; height: 1px; background: var(--muted); }
 .graphite-scroll button { background: transparent; border-color: var(--strong-border); color: var(--secondary); backdrop-filter: none; transition: border-color 250ms,color 250ms; }
 .graphite-scroll button:hover { background: transparent; border-color: var(--secondary); color: var(--primary); }
 .project-card > button { background: var(--surface); border-color: var(--border); }
-.project-card > button img { filter: grayscale(1); }
+:root.dark .project-card > button img { filter: grayscale(1); }
 
 .project-card > p { color: var(--secondary); opacity: 1; }
 .contact-list { border-top: 1px solid var(--border); }

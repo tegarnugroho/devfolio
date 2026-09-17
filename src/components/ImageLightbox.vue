@@ -1,16 +1,16 @@
 <template>
   <teleport to="body">
-    <transition name="showcase">
+    <transition name="showcase" @after-enter="refreshZoomBounds">
       <div v-if="modelValue" class="showcase-backdrop" @click.self="close" @keydown="onKey">
-        <div ref="dialog" class="showcase-dialog" role="dialog" aria-modal="true" aria-labelledby="showcase-title" tabindex="-1">
+        <div ref="dialog" class="showcase-dialog" role="dialog" aria-modal="true" aria-labelledby="showcase-title" tabindex="-1" @scroll.passive="refreshZoomBounds">
           <header class="showcase-bar">
             <span class="counter" aria-live="polite">{{ pad(current + 1) }} / {{ pad(images.length) }}</span>
             <div class="showcase-controls"><template v-if="hasMany"><button @click="prev" aria-label="Previous image">←</button><button @click="next" aria-label="Next image">→</button><span class="control-divider" aria-hidden="true"></span></template><button ref="closeButton" class="close-button" @click="close" aria-label="Close project dialog">×</button></div>
           </header>
           <div class="showcase-body">
             <div class="showcase-gallery">
-              <figure class="gallery-canvas" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd" @contextmenu.prevent>
-                <transition name="image-fade" mode="out-in"><img v-if="images.length" :key="images[current]" :src="images[current]" :alt="`${project?.title ?? 'Project'} screenshot ${current + 1} of ${images.length}`" decoding="async" draggable="false" @dragstart.prevent /></transition>
+              <figure ref="galleryCanvas" class="gallery-canvas" @pointerenter="onZoomEnter" @pointermove="onZoomMove" @pointerleave="resetZoom" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd" @contextmenu.prevent>
+                <transition name="image-fade" mode="out-in"><img ref="mainImage" @load="cacheImageBounds" v-if="images.length" :key="images[current]" :src="images[current]" :alt="`${project?.title ?? 'Project'} screenshot ${current + 1} of ${images.length}`" decoding="async" draggable="false" @dragstart.prevent /></transition>
               </figure>
               <div v-if="hasMany" class="gallery-thumbnails" aria-label="Gallery images"><button v-for="(image, index) in images" :key="index" :class="{ selected: current === index }" :aria-label="`View image ${index + 1}`" :aria-pressed="current === index" @click="go(index)"><img :src="image" alt="" loading="lazy" draggable="false" /></button></div>
             </div>
@@ -38,6 +38,57 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>()
 const current = ref(0)
 const dialog = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
+// Update only the image DOM layer while tracking the pointer.
+const galleryCanvas = ref<HTMLElement | null>(null)
+const mainImage = ref<HTMLImageElement | null>(null)
+let zoomFrame = 0
+let zoomBounds: { left: number; top: number; width: number; height: number; offsetX: number; offsetY: number } | null = null
+let zoomPointer = { x: 0, y: 0 }
+let zoomObserver: ResizeObserver | null = null
+function cacheImageBounds() {
+  const canvas = galleryCanvas.value, image = mainImage.value
+  zoomBounds = null
+  if (!canvas || !image?.naturalWidth || !image.naturalHeight) return
+  const rect = canvas.getBoundingClientRect()
+  const ratio = Math.min(canvas.clientWidth / image.naturalWidth, canvas.clientHeight / image.naturalHeight)
+  const width = image.naturalWidth * ratio, height = image.naturalHeight * ratio
+  const offsetX = (canvas.clientWidth - width) / 2, offsetY = (canvas.clientHeight - height) / 2
+  zoomBounds = { left: rect.left + canvas.clientLeft + offsetX, top: rect.top + canvas.clientTop + offsetY, width, height, offsetX, offsetY }
+}
+function resetZoom() {
+  cancelAnimationFrame(zoomFrame)
+  zoomFrame = 0
+  if (mainImage.value) {
+    mainImage.value.style.transform = 'scale(1)'
+    mainImage.value.style.transformOrigin = '50% 50%'
+  }
+  if (galleryCanvas.value) galleryCanvas.value.style.cursor = ''
+}
+function onZoomEnter(event: PointerEvent) { cacheImageBounds(); onZoomMove(event) }
+function onZoomMove(event: PointerEvent) {
+  if (event.pointerType !== 'mouse' || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+  zoomPointer = { x: event.clientX, y: event.clientY }
+  if (zoomFrame) return
+  zoomFrame = requestAnimationFrame(() => {
+    zoomFrame = 0
+    const bounds = zoomBounds, image = mainImage.value
+    if (!bounds || !image || zoomPointer.x < bounds.left || zoomPointer.x > bounds.left + bounds.width || zoomPointer.y < bounds.top || zoomPointer.y > bounds.top + bounds.height) { resetZoom(); return }
+    const x = Math.max(0, Math.min(1, (zoomPointer.x - bounds.left) / bounds.width))
+    const y = Math.max(0, Math.min(1, (zoomPointer.y - bounds.top) / bounds.height))
+    // The element includes contain letterboxing, so add that offset to the focal point.
+    image.style.transformOrigin = `${bounds.offsetX + x * bounds.width}px ${bounds.offsetY + y * bounds.height}px`
+    image.style.transform = 'scale(2.2)'
+    galleryCanvas.value!.style.cursor = 'zoom-in'
+  })
+}
+function refreshZoomBounds() { resetZoom(); cacheImageBounds() }
+watch(galleryCanvas, canvas => {
+  zoomObserver?.disconnect()
+  if (canvas) { zoomObserver = new ResizeObserver(refreshZoomBounds); zoomObserver.observe(canvas) }
+}, { flush: 'post' })
+watch(mainImage, refreshZoomBounds, { flush: 'post' })
+watch(current, () => { resetZoom(); zoomBounds = null }, { flush: 'sync' })
+watch(() => props.modelValue, open => { if (!open) { resetZoom(); zoomBounds = null } })
 const hasMany = computed(() => props.images.length > 1)
 const titleParts = computed(() => {
   const title = props.project?.title ?? 'Project gallery'
@@ -98,7 +149,7 @@ watch([current, () => props.images], () => {
   if (!props.modelValue || !props.images.length) return
   for (const offset of [-1, 1]) { const image = new Image(); image.src = props.images[(current.value + offset + props.images.length) % props.images.length] }
 })
-onBeforeUnmount(restorePage)
+onBeforeUnmount(() => { resetZoom(); zoomObserver?.disconnect(); restorePage() })
 </script>
 
 <style scoped>
@@ -114,7 +165,7 @@ onBeforeUnmount(restorePage)
 .showcase-body { display: grid; grid-template-columns: minmax(0,1.8fr) minmax(0,1fr); gap: 40px; padding: 0 28px 36px; }
 .showcase-gallery, .showcase-information { min-width: 0; }
 .gallery-canvas { height: clamp(260px,48vh,470px); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; }
-.gallery-canvas img { width: 100%; height: 100%; object-fit: contain; }
+.gallery-canvas img { width: 100%; height: 100%; object-fit: contain; image-rendering: auto; transform-origin: 50% 50%; transition: transform 220ms ease; }
 .gallery-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-block: 22px 4px; }
 .gallery-thumbnails button { flex: 0 0 116px; height: 82px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); overflow: hidden; opacity: .6; transition: opacity 220ms,border-color 220ms; }
 .gallery-thumbnails button.selected { border-color: var(--primary); opacity: 1; }

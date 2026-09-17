@@ -22,6 +22,16 @@ defineEmits<{ (e: 'open'): void }>()
 function isValid(value?: string) { return !!value && /^https?:\/\//i.test(value) }
 </script>
 <style scoped>
+:global(html:not(.dark) .project-card) { background: var(--background); border-color: var(--border); }
+:global(html:not(.dark) .project-media img) { filter: none; }
+:global(html:not(.dark) .media-count) , :global(html:not(.dark) .media-hint) { background: rgba(247,248,250,.94); font-size: 11px; }
+:global(html:not(.dark) .project-tags li) { background: var(--secondary-background); font-size: 12px; }
+:global(html:not(.dark) .project-actions a) { color: var(--primary); }
+@media (hover: hover) and (pointer: fine) {
+  :global(html:not(.dark) .project-card:hover) { background: var(--secondary-background); }
+  :global(html:not(.dark) .project-media:hover img) { filter: brightness(1.025); }
+}
+
 .project-card { display: flex; flex-direction: column; padding: 20px; min-width: 0; border-radius: 5px; transition: border-color 250ms,background-color 250ms; }
 .project-media { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: var(--surface); }
 .project-media img { width: 100%; height: 100%; object-fit: contain; transition: transform 350ms cubic-bezier(.22,1,.36,1),filter 350ms; }

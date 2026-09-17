@@ -107,6 +107,17 @@ function openLightbox(p: Project) {
 </script>
 
 <style scoped>
+:global(html:not(.dark) #projects) {
+  --background: #f7f8fa; --secondary-background: #f4f6f8; --surface: #edf0f4;
+  --primary: #10161f; --secondary: #626c7a; --label: #788291;
+  --border: #d9dde4; --strong-border: #cfd5df; --grid: rgba(98,108,122,.045);
+  color: var(--primary);
+}
+:global(html:not(.dark) .projects-heading) { font-size: clamp(32px,3.2vw,48px); }
+:global(html:not(.dark) .projects-pagination button) { color: var(--secondary); }
+:global(html:not(.dark) .projects-pagination button:last-child) { background: #505966; border-color: #505966; color: #f7f8fa; }
+:global(html:not(.dark) .projects-pagination button:last-child:hover:enabled) { background: #39434f; border-color: #39434f; }
+
 #projects { position: relative; isolation: isolate; }
 #projects::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(to right,var(--grid) 1px,transparent 1px),linear-gradient(to bottom,var(--grid) 1px,transparent 1px); background-size: 40px 40px; opacity: .45; mask-image: radial-gradient(ellipse at 55% 30%,black,transparent 70%); }
 .projects-header { display: flex; align-items: center; justify-content: space-between; gap: 36px; margin-bottom: 28px; }

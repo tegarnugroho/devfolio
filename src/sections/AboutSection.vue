@@ -6,7 +6,7 @@
     <div class="about-layout mt-8 grid sm:grid-cols-[220px_1fr]">
       <div class="flex flex-col items-center sm:items-start">
         <div v-reveal="{ delay: 80 }" class="portrait-wrapper">
-          <div ref="comparison" class="portrait-comparison" role="slider" tabindex="0" aria-label="Portrait comparison: drag left or right" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(position)" :aria-valuetext="`${Math.round(position)} percent normal portrait`" @pointerdown="startDrag" @pointermove="drag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="dragging = false" @keydown="onKey" @contextmenu.prevent>
+          <div ref="comparison" class="portrait-comparison" :class="{ 'effect-dominant': position < 40 }" role="slider" tabindex="0" aria-label="Portrait comparison: drag left or right" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(position)" :aria-valuetext="`${Math.round(position)} percent normal portrait`" @pointerdown="startDrag" @pointermove="drag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="dragging = false" @keydown="onKey" @contextmenu.prevent>
             <img class="portrait-normal" src="/assets/user.png" alt="Tegar Nugroho" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
             <img class="portrait-effect" :style="{ clipPath }" src="/assets/user-cute.png" alt="Alternate illustration of Tegar Nugroho" loading="eager" decoding="async" draggable="false" @dragstart.prevent />
             <svg v-show="position > 0 && position < 100" class="portrait-divider" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line :x1="topEdge" y1="0" :x2="bottomEdge" y2="100" vector-effect="non-scaling-stroke" /></svg>
@@ -44,12 +44,14 @@
         </p>
       </div>
     </div>
+    <FlamingKunaiCursor :target="comparison" :active="position < 40" />
   </section>
   
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
+import FlamingKunaiCursor from '@/components/FlamingKunaiCursor.vue'
 const comparison = ref<HTMLElement | null>(null)
 const position = ref(100)
 const dragging = ref(false)
@@ -124,6 +126,8 @@ onBeforeUnmount(() => { disposed = true; cancelAnimationFrame(frame); observer?.
 .portrait-comparison img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; transition: transform 450ms cubic-bezier(.22,1,.36,1); }
 .portrait-effect { transform: none; }
 .portrait-comparison { cursor: ew-resize; touch-action: pan-y; }
+@media (hover: hover) and (pointer: fine) { .portrait-comparison.effect-dominant { cursor: url('/assets/cursors/flame-kunai.svg') 4 2, ew-resize; } }
+.portrait-comparison.flame-cursor-active { cursor: none; }
 .portrait-divider { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .portrait-divider line { stroke: var(--primary); stroke-opacity: .85; stroke-width: 1.5px; }
 .portrait-handle { position: absolute; top: 50%; width: 38px; height: 38px; display: grid; place-items: center; transform: translate(-50%,-50%); border-radius: 50%; border: 1px solid var(--strong-border); background: var(--background); color: var(--primary); font-size: 23px; line-height: 1; pointer-events: none; }
