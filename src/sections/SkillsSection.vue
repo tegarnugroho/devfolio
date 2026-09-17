@@ -54,6 +54,13 @@ const matrix: MatrixRow[] = [
 </script>
 
 <style scoped>
+:global(html:not(.dark) #skills) {
+  --secondary-background: #f7f8fa; --surface: #f0f3f6;
+  --primary: #10161f; --secondary: #626c7a; --label: #788291;
+  --border: #d9dde4; --strong-border: #cfd5df;
+}
+:global(html:not(.dark) #skills .capability-tags li) { background: #f4f6f8; }
+
 #skills { position: relative; isolation: isolate; padding-bottom: 56px; }
 #skills::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(to right,var(--grid) 1px,transparent 1px),linear-gradient(to bottom,var(--grid) 1px,transparent 1px); background-size: 40px 40px; opacity: .45; mask-image: radial-gradient(ellipse at 55% 45%,black,transparent 70%); }
 #skills > div > span { font-family: ui-monospace,monospace; color: var(--secondary); opacity: 1; }

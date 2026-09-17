@@ -10,8 +10,8 @@
     <p class="project-description">{{ project.description }}</p>
     <ul class="project-tags"><li v-for="tech in project.tech" :key="tech">{{ tech }}</li></ul>
     <div v-if="isValid(project.link) || isValid(project.repo)" class="project-actions">
-      <a v-if="isValid(project.link)" :href="project.link" target="_blank" rel="noopener noreferrer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m10 13 4-4m-6 7-2 2a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0m2 1 2-2a4 4 0 0 1 6 6l-5 5a4 4 0 0 1-6 0" /></svg>Live <span aria-hidden="true">↗</span></a>
-      <a v-if="isValid(project.repo)" :href="project.repo" target="_blank" rel="noopener noreferrer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-14-2 16" /></svg>Code <span aria-hidden="true">↗</span></a>
+      <a v-if="isValid(project.link)" :href="project.link" target="_blank" rel="noopener noreferrer"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 .1l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7M14 11a5 5 0 0 0-7-.1l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7" /></svg>Live <span aria-hidden="true">↗</span></a>
+      <a v-if="isValid(project.repo)" :href="project.repo" target="_blank" rel="noopener noreferrer"><svg width="19" height="19" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8.01 8.01 0 0 0 5.47 7.59c.4.08.55-.17.55-.38v-1.49c-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.03 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.19c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" /></svg>Code <span aria-hidden="true">↗</span></a>
     </div>
   </article>
 </template>
@@ -48,7 +48,7 @@ function isValid(value?: string) { return !!value && /^https?:\/\//i.test(value)
 .project-actions { display: flex; flex-wrap: wrap; gap: 26px; margin-top: auto; border-top: 1px solid var(--border); padding-top: 12px; }
 .project-actions a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--secondary); font-size: 12px; }
 .project-actions a span { transition: transform 250ms; }
-@media (hover: hover) and (pointer: fine) { .project-card:hover { border-color: var(--strong-border); background: var(--surface); } .project-media:hover img { transform: scale(1.02); filter: grayscale(1) brightness(1.08); } .project-media:hover .media-hint, .project-media:focus-visible .media-hint { opacity: 1; } .project-actions a:hover { color: var(--primary); } .project-actions a:hover span { transform: translate(2px,-2px); } }
+@media (hover: hover) and (pointer: fine) { .project-card:hover { border-color: var(--strong-border); background: var(--surface); } .project-media:hover img { transform: scale(1.02); filter: brightness(1.08); } .project-media:hover .media-hint, .project-media:focus-visible .media-hint { opacity: 1; } .project-actions a:hover { color: var(--primary); } .project-actions a:hover span { transform: translate(2px,-2px); } }
 @media (max-width: 767px) { .project-card { padding: 16px; } .project-title { font-size: 19px; } .project-tags { gap: 6px; } .project-tags li { font-size: 12px; } .project-description { font-size: 15px; } }
 @media (hover: none) { .media-hint { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .project-card, .project-media img, .media-hint, .project-actions a span { transition: none; } .project-media:hover img, .project-actions a:hover span { transform: none; } }
