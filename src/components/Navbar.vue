@@ -1,6 +1,6 @@
 <template>
   <header
-    class="graphite-navbar sticky top-0 z-50"
+    class="graphite-navbar sticky top-0 z-[60]"
     @keydown.esc="closeMenu"
   >
     <nav ref="navElement" class="nav-inner relative mx-auto flex items-center justify-between">
@@ -74,44 +74,63 @@
         </button>
       </div>
     </nav>
-    <div
-      id="mobile-navigation"
-      v-if="open"
-      class="mobile-navigation md:hidden absolute inset-x-0 top-full z-40"
-    >
-      <ul class="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-2">
-        <li v-for="item in items" :key="item.href" @click="open = false">
-          <a
-            :href="item.href"
-            :class="{ 'nav-active': active === item.href }"
-            :aria-current="active === item.href ? 'location' : undefined"
-            class="block py-2 px-2 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-          >
-            {{ item.label }}
-          </a>
-        </li>
-      </ul>
-    </div>
+    <Transition name="mobile-menu">
+      <div id="mobile-navigation" v-if="open" :inert="!open" :aria-hidden="!open" class="mobile-navigation md:hidden absolute top-full z-40">
+        <div class="mobile-menu-heading"><span>{{ portfolioContent.navigation.menuHeading }}</span><span>{{ String(Math.max(0, items.findIndex(item => item.href === active)) + 1).padStart(2, '0') }} / {{ String(items.length).padStart(2, '0') }}</span></div>
+        <ul class="mobile-menu-sections">
+          <li v-for="(item, index) in items" :key="item.href" :style="{ '--row-index': index }" class="mobile-menu-row">
+            <a :href="item.href" @click="open = false" :class="{ selected: active === item.href || (active === '#hero' && index === 0) }" :aria-current="active === item.href ? 'location' : undefined">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path :d="menuIcons[item.href]" /></svg>
+              <span>{{ item.label }}</span><span class="mobile-menu-number">{{ String(index + 1).padStart(2, '0') }}</span>
+            </a>
+          </li>
+        </ul>
+        <div class="mobile-menu-social">
+          <p>{{ portfolioContent.navigation.connectHeading }}</p>
+          <ul><li v-for="(contact, index) in menuContacts" :key="contact.type" class="mobile-menu-row" :style="{ '--row-index': index + items.length }">
+            <a :href="contact.href" :target="contact.type === 'email' ? undefined : '_blank'" rel="noopener noreferrer" @click="open = false">
+              <svg width="20" height="20" viewBox="0 0 24 24" :fill="contact.type === 'email' ? 'none' : 'currentColor'" aria-hidden="true"><path :d="socialIcons[contact.type]" :stroke="contact.type === 'email' ? 'currentColor' : undefined" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              <span>{{ contact.label }}</span><span class="mobile-social-arrow" aria-hidden="true">↗</span>
+            </a>
+          </li></ul>
+        </div>
+        <div class="mobile-menu-motto mobile-menu-row" style="--row-index: 7"><svg class="mobile-menu-dots" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle v-for="dot in 9" :key="dot" :cx="4 + ((dot - 1) % 3) * 8" :cy="4 + Math.floor((dot - 1) / 3) * 8" r="1.6" /></svg><span>{{ portfolioContent.navigation.menuMotto }}</span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m3 10 18-7-7 18-3-8-8-3Zm8 3 10-10" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
+      </div>
+    </Transition>
   </header>
 </template>
 
 <script setup lang="ts">
+import { useFirstVisibleFlight } from '@/composables/useFirstVisibleFlight'
 import { portfolioContent } from '@/content/portfolioContent'
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 
 const items = portfolioContent.navigation.items
+const menuContacts = [...portfolioContent.contact.items].sort((a, b) => ['github', 'linkedin', 'email'].indexOf(a.type) - ['github', 'linkedin', 'email'].indexOf(b.type))
+const menuIcons: Record<string, string> = {
+  '#about': 'm3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9',
+  '#skills': 'M16 6a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM3 21v-2a7 7 0 0 1 7-7h4a7 7 0 0 1 7 7v2Z',
+  '#projects': 'M3 7V4h7l3 3h8v14H3ZM3 10h18',
+  '#contact': 'M3 5h18v14H3Zm0 0 9 7 9-7',
+}
+const socialIcons = {
+  github: 'M12 1a11 11 0 0 0-3.48 21.44c.55.1.75-.24.75-.53v-2.04c-3.07.67-3.72-1.3-3.72-1.3-.5-1.28-1.22-1.62-1.22-1.62-1-.68.08-.67.08-.67 1.1.08 1.68 1.13 1.68 1.13.98 1.68 2.58 1.19 3.21.91.1-.71.38-1.19.7-1.46-2.45-.28-5.03-1.23-5.03-5.45 0-1.2.43-2.18 1.13-2.95-.11-.28-.49-1.4.11-2.91 0 0 .92-.3 3.03 1.13A10.53 10.53 0 0 1 12 5.31c.93 0 1.86.13 2.74.37 2.1-1.43 3.02-1.13 3.02-1.13.6 1.51.22 2.63.11 2.91.7.77 1.13 1.75 1.13 2.95 0 4.23-2.58 5.17-5.04 5.45.4.34.75 1.01.75 2.04v4.01c0 .29.2.64.76.53A11 11 0 0 0 12 1Z',
+  linkedin: 'M3 2h18a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1Zm3 7v10h3V9Zm1.5-5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3ZM11 9v10h3v-5c0-3 3-3 3 0v5h3v-6c0-5-5-5-6-3V9Z',
+  email: 'M3 5h18v14H3Zm0 0 9 7 9-7',
+}
 
 const navElement = ref<HTMLElement | null>(null)
 const brandPeriod = ref<HTMLElement | null>(null)
 const planeFlying = ref(false)
 const flightPath = ref('')
 const flightStyle = ref<Record<string, string>>({})
+useFirstVisibleFlight(navElement, () => launchPlane())
 let flightTimer: ReturnType<typeof setTimeout> | undefined
-function launchPlane(event: PointerEvent | MouseEvent) {
+function launchPlane(event?: PointerEvent | MouseEvent) {
   const touchLayout = window.matchMedia('(hover: none), (pointer: coarse)').matches
   if (planeFlying.value || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  if (event.type === 'click' ? !touchLayout : touchLayout || !('pointerType' in event) || event.pointerType !== 'mouse') return
+  if (event && (event.type === 'click' ? !touchLayout : touchLayout || !('pointerType' in event) || event.pointerType !== 'mouse')) return
   const nav = navElement.value, period = brandPeriod.value
   if (!nav || !period) return
   const bounds = nav.getBoundingClientRect(), dot = period.getBoundingClientRect()
@@ -159,6 +178,7 @@ function launchPlane(event: PointerEvent | MouseEvent) {
 const open = ref(false)
 const menuButton = ref<HTMLButtonElement | null>(null)
 function closeMenu() { open.value = false; menuButton.value?.focus() }
+function onOutsidePointer(event: PointerEvent) { if (open.value && !navElement.value?.parentElement?.contains(event.target as Node)) open.value = false }
 function onResize() { if (window.innerWidth >= 768) open.value = false }
 const active = ref('#hero')
 function updateActive() {
@@ -227,8 +247,9 @@ onMounted(() => {
   updateActive()
   window.addEventListener('scroll', updateActive, { passive: true })
   window.addEventListener('resize', onResize)
+  window.addEventListener('pointerdown', onOutsidePointer)
 })
-onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout(commitTimer); clearTimeout(settleTimer); activeTransition?.skipTransition(); settleTheme(); window.removeEventListener('scroll', updateActive); window.removeEventListener('resize', onResize) })
+onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout(commitTimer); clearTimeout(settleTimer); activeTransition?.skipTransition(); settleTheme(); window.removeEventListener('scroll', updateActive); window.removeEventListener('resize', onResize); window.removeEventListener('pointerdown', onOutsidePointer) })
 </script>
 
 <style scoped>
@@ -273,8 +294,7 @@ onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout
 
 @media (max-width: 767px), (pointer: coarse) {
   .nav-inner button { min-width: 44px; min-height: 44px; }
-  .mobile-navigation { max-height: calc(100svh - 80px); overflow-y: auto; padding-bottom: env(safe-area-inset-bottom); }
-  .mobile-navigation a { display: flex; align-items: center; min-height: 44px; border-top: 1px solid var(--border); }
+
 }
 
 .letter {
@@ -287,4 +307,27 @@ onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout
     opacity: 1;
   }
 }
+
+.mobile-navigation { inset-inline: 12px; margin-top: 8px; padding: 22px 16px 16px; border: 1px solid var(--strong-border); border-radius: 18px; background: linear-gradient(145deg,var(--secondary-background),var(--background)); box-shadow: 0 20px 65px #0005,inset 0 1px 0 var(--border); max-height: calc(100svh - 96px - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; transform-origin: top right; }
+.mobile-menu-heading { display: flex; justify-content: space-between; padding: 8px 10px 18px; font: 10px ui-monospace,monospace; text-transform: uppercase; letter-spacing: .14em; color: var(--label); }
+.mobile-menu-sections a { display: flex; align-items: center; gap: 20px; padding: 16px; border-radius: 13px; color: var(--primary); font-size: 17px; font-weight: 500; min-height: 58px; }
+.mobile-menu-sections a.selected { background: var(--surface); box-shadow: inset 0 1px 0 var(--border); }
+.mobile-navigation svg { flex-shrink: 0; }
+.mobile-menu-number { margin-left: auto; font: 12px ui-monospace,monospace; color: var(--label); }
+.mobile-menu-social { margin: 22px 6px 24px; padding-top: 24px; border-top: 1px solid var(--border); }
+.mobile-menu-social p { padding-inline: 4px; margin-bottom: 18px; text-transform: uppercase; font: 10px ui-monospace,monospace; letter-spacing: .16em; color: var(--label); }
+.mobile-menu-social a { display: flex; align-items: center; gap: 18px; min-height: 46px; padding: 10px 10px; font-size: 15px; color: var(--secondary); border-radius: 10px; }
+.mobile-social-arrow { margin-left: auto; }
+.mobile-menu-motto { display: flex; align-items: center; gap: 18px; padding: 16px; border-radius: 14px; border: 1px solid var(--border); background: linear-gradient(120deg,var(--surface),transparent); color: var(--secondary); font-size: 12px; min-height: 66px; }
+.mobile-menu-motto svg { margin-left: auto; }
+.mobile-menu-dots { font-size: 30px; line-height: 1; }
+.mobile-navigation a:focus-visible { outline: 2px solid var(--secondary); outline-offset: -2px; }
+.mobile-menu-enter-active { transition: opacity 280ms ease,transform 420ms cubic-bezier(.16,1,.3,1),filter 320ms ease; }
+.mobile-menu-leave-active { transition: opacity 220ms ease,transform 280ms cubic-bezier(.4,0,1,1),filter 220ms ease; pointer-events: none; }
+.mobile-menu-enter-from,.mobile-menu-leave-to { opacity: 0; transform: translateY(-14px) scale(.94); filter: blur(7px); }
+.mobile-menu-enter-active .mobile-menu-row { animation: menu-row-in 420ms cubic-bezier(.16,1,.3,1) both; animation-delay: calc(var(--row-index) * 35ms + 55ms); }
+.mobile-menu-leave-active .mobile-menu-row { transition: opacity 140ms ease,transform 180ms ease; opacity: 0; transform: translateY(-6px); }
+@keyframes menu-row-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .mobile-menu-enter-active,.mobile-menu-leave-active,.mobile-menu-row { transition: none !important; animation: none !important; } .mobile-menu-enter-from,.mobile-menu-leave-to { transform: none; filter: none; } }
+
 </style>

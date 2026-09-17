@@ -21,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import { useFirstVisibleFlight } from '@/composables/useFirstVisibleFlight'
 import { portfolioContent } from '@/content/portfolioContent'
 import { ref, computed, onBeforeUnmount } from 'vue'
 
@@ -32,11 +33,12 @@ const period = ref<HTMLElement | null>(null)
 const flying = ref(false)
 const path = ref('')
 const flightPathStyle = computed(() => `path("${path.value}")`)
+useFirstVisibleFlight(heading, () => launchPlane())
 let timer: ReturnType<typeof setTimeout> | undefined
-function launchPlane(event: PointerEvent | MouseEvent) {
+function launchPlane(event?: PointerEvent | MouseEvent) {
   const touchLayout = matchMedia('(hover: none), (pointer: coarse)').matches
   if (flying.value || matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  if (event.type === 'click' ? !touchLayout : touchLayout || !('pointerType' in event) || event.pointerType !== 'mouse') return
+  if (event && (event.type === 'click' ? !touchLayout : touchLayout || !('pointerType' in event) || event.pointerType !== 'mouse')) return
   if (!hero.value || !heading.value || !period.value) return
   const bounds = hero.value.getBoundingClientRect(), word = heading.value.getBoundingClientRect(), dot = period.value.getBoundingClientRect()
   const x = dot.left + dot.width / 2 - bounds.left, y = dot.top + dot.height / 2 - bounds.top
