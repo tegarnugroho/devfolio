@@ -136,19 +136,32 @@ function launchPlane(event: PointerEvent) {
   const middle = start - radiusX
   const bend = 0.5522847498 // Cubic approximation of each ellipse quadrant.
   const lower = center + radiusY, upper = center - radiusY
-  // Shared tangents keep the oval loop and rightward exit continuously rounded.
+  const base = start + Math.min(32, distance * .12)
+  const scale = Math.min(.58, (end - base - 16) / 244, (bounds.height - 32) / 100)
+  const writingTop = (bounds.height - 82 * scale) / 2
+  const point = (horizontal: number, vertical: number) => `${base + horizontal * scale} ${writingTop + vertical * scale}`
+  // Draw the same connected Dev lettering as the hero, sized to the navbar gap.
   flightPath.value = `M ${start} ${center}
     C ${start} ${center + bend * radiusY}, ${middle + bend * radiusX} ${lower}, ${middle} ${lower}
     C ${middle - bend * radiusX} ${lower}, 16 ${center + bend * radiusY}, 16 ${center}
     C 16 ${center - bend * radiusY}, ${middle - bend * radiusX} ${upper}, ${middle} ${upper}
-    C ${middle + radiusX} ${upper}, ${end - Math.min(80, distance * .35)} ${center - 8}, ${end} ${center - 8}`.replace(/\s+/g, ' ').trim()
+    C ${middle + radiusX} ${upper}, ${point(-30, 95)}, ${point(0, 80)}
+    C ${point(4, 60)}, ${point(-4, 18)}, ${point(12, 0)}
+    C ${point(82, -12)}, ${point(94, 80)}, ${point(4, 80)}
+    C ${point(24, 94)}, ${point(70, 74)}, ${point(96, 48)}
+    C ${point(120, 22)}, ${point(152, 38)}, ${point(128, 54)}
+    C ${point(106, 66)}, ${point(88, 45)}, ${point(100, 62)}
+    C ${point(116, 87)}, ${point(143, 82)}, ${point(159, 47)}
+    C ${point(167, 31)}, ${point(163, 72)}, ${point(179, 82)}
+    C ${point(194, 95)}, ${point(212, 35)}, ${point(231, 42)}
+    C ${point(244, 46)}, ${end - 16} ${writingTop + 60 * scale}, ${end} ${writingTop + 32 * scale}`.replace(/\s+/g, ' ').trim()
   flightStyle.value = {
     left: `${left}px`, top: '0px', height: `${bounds.height}px`,
     width: `${end + 20}px`, maxWidth: `calc(100% - ${left}px)`,
     '--flight-path': `path("${flightPath.value}")`,
   }
   planeFlying.value = true
-  flightTimer = setTimeout(() => { planeFlying.value = false }, 2300)
+  flightTimer = setTimeout(() => { planeFlying.value = false }, 4500)
 }
 const open = ref(false)
 const menuButton = ref<HTMLButtonElement | null>(null)
@@ -227,21 +240,21 @@ onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout
 
 <style scoped>
 .brand-flight { position: absolute; overflow: hidden; pointer-events: none; color: var(--primary); z-index: 1; }
-.flight-trail { position: absolute; inset: 0; opacity: 0; animation: brand-trail 2300ms linear both; }
-.paper-plane { position: absolute; left: 0; top: 0; offset-path: var(--flight-path); offset-rotate: auto 45deg; opacity: 0; animation: flight-travel 1800ms cubic-bezier(.55,0,.85,.45) both, brand-plane 2300ms linear both; }
+.flight-trail { position: absolute; inset: 0; opacity: 0; animation: brand-trail 4500ms linear both; }
+.paper-plane { position: absolute; left: 0; top: 0; offset-path: var(--flight-path); offset-rotate: auto 45deg; opacity: 0; animation: flight-travel 3600ms cubic-bezier(.55,0,.85,.45) both, brand-plane 4500ms linear both; }
 @keyframes flight-travel { from { offset-distance: 0%; } to { offset-distance: 100%; } }
 @keyframes brand-plane {
   0% { opacity: 0; transform: scale(.65); }
   12% { opacity: .85; transform: scale(1); }
-  82% { opacity: .85; transform: scale(1); }
+  86% { opacity: .85; transform: scale(1); }
   100% { opacity: 0; transform: scale(1); }
 }
-.trail-reveal { animation: trail-draw 1800ms cubic-bezier(.55,0,.85,.45) both; }
+.trail-reveal { animation: trail-draw 3600ms cubic-bezier(.55,0,.85,.45) both; }
 @keyframes trail-draw { to { stroke-dashoffset: 0; } }
 @keyframes brand-trail {
   0% { opacity: 0; }
   12% { opacity: .32; }
-  82% { opacity: .32; }
+  86% { opacity: .32; }
   100% { opacity: 0; }
 }
 @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .brand-flight { display: none; } }
