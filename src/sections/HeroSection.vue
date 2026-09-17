@@ -4,7 +4,7 @@
 
     <div class="hero-copy">
       <p v-reveal class="hero-eyebrow">{{ content.eyebrow }}</p>
-      <h1 ref="heading" @pointerenter="launchPlane" v-reveal="{ delay: 60 }">{{ portfolioContent.site.name }}<span ref="period">{{ portfolioContent.site.brandPeriod }}</span></h1>
+      <h1 ref="heading" @pointerenter="launchPlane" @click="launchPlane" v-reveal="{ delay: 60 }">{{ portfolioContent.site.name }}<span ref="period">{{ portfolioContent.site.brandPeriod }}</span></h1>
       <p v-reveal="{ delay: 120 }" class="hero-intro">{{ content.description }}</p>
       <div v-reveal="{ delay: 180 }" class="hero-actions"><a :href="content.projectsTarget" class="btn hero-primary">{{ content.projectsLabel }} <span aria-hidden="true">→</span></a><a :href="content.contactTarget" class="hero-contact">{{ content.contactLabel }}</a></div>
     </div>
@@ -33,10 +33,10 @@ const flying = ref(false)
 const path = ref('')
 const flightPathStyle = computed(() => `path("${path.value}")`)
 let timer: ReturnType<typeof setTimeout> | undefined
-function launchPlane(event: PointerEvent) {
-  if (flying.value || event.pointerType !== 'mouse' ||
-      !matchMedia('(hover: hover) and (pointer: fine)').matches ||
-      matchMedia('(prefers-reduced-motion: reduce)').matches) return
+function launchPlane(event: PointerEvent | MouseEvent) {
+  const touchLayout = matchMedia('(hover: none), (pointer: coarse)').matches
+  if (flying.value || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  if (event.type === 'click' ? !touchLayout : touchLayout || !('pointerType' in event) || event.pointerType !== 'mouse') return
   if (!hero.value || !heading.value || !period.value) return
   const bounds = hero.value.getBoundingClientRect(), word = heading.value.getBoundingClientRect(), dot = period.value.getBoundingClientRect()
   const x = dot.left + dot.width / 2 - bounds.left, y = dot.top + dot.height / 2 - bounds.top
@@ -47,9 +47,9 @@ function launchPlane(event: PointerEvent) {
   const end = bounds.width - 28, remaining = end - middle
   if (remaining < 100) return
   // Connected handwriting lets the plane draw Dev without lifting off its trail.
-  const base = Math.min(x + 48, end - 340)
+  const base = touchLayout ? 24 : Math.min(x + 48, end - 340)
   const scale = Math.min(1.6, (end - base - 28) / 240)
-  const writingTop = Math.max(24, y - 46 * scale)
+  const writingTop = touchLayout ? y + radiusY + 16 : Math.max(24, y - 46 * scale)
   const point = (horizontal: number, vertical: number) => `${base + horizontal * scale} ${writingTop + vertical * scale}`
   path.value = `M ${x} ${y}
     C ${x} ${y + bend * radiusY}, ${middle + bend * radiusX} ${bottom}, ${middle} ${bottom}
@@ -79,5 +79,5 @@ onBeforeUnmount(() => clearTimeout(timer))
 @keyframes hero-trail-draw { to { stroke-dashoffset: 0; } }
 @keyframes hero-plane-fade { 0% { opacity: 0; transform: scale(.65); } 8%,86% { opacity: .85; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } }
 @keyframes hero-trail-fade { 0% { opacity: 0; } 8%,86% { opacity: .32; } 100% { opacity: 0; } }
-@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .hero-flight { display: none; } }
+@media (prefers-reduced-motion: reduce) { .hero-flight { display: none; } }
 </style>

@@ -93,7 +93,8 @@ footer.max-w-5xl { padding-inline: var(--section-inset); }
   .graphite-hero { min-height: calc(100svh - 72px); padding: clamp(48px,10svh,80px) 0 112px; }
   .hero-atmosphere { inset-inline: -24px; }
   .hero-atmosphere::before { opacity: .6; background-size: 40px 40px; }
-  .hero-markers, .hero-motto, .graphite-scroll { display: none; }
+  .hero-markers, .hero-motto { display: none; }
+  .graphite-scroll { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
   .hero-copy { max-width: 530px; }
   .hero-copy h1 { font-size: clamp(64px,14vw,96px); }
   .hero-eyebrow { font-size: 10px; letter-spacing: .28em; }

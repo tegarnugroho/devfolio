@@ -6,7 +6,7 @@
     <nav ref="navElement" class="nav-inner relative mx-auto flex items-center justify-between">
       <a
         :href="portfolioContent.navigation.homeTarget"
-        @pointerenter="launchPlane"
+        @pointerenter="launchPlane" @click="launchPlane"
         class="font-semibold tracking-wide rounded px-2 py-1 -mx-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
       >
         <span v-for="(letter, index) in portfolioContent.site.name" :key="index" class="letter" :style="{ animationDelay: `${index / 10}s` }">{{ letter }}</span>
@@ -108,16 +108,17 @@ const planeFlying = ref(false)
 const flightPath = ref('')
 const flightStyle = ref<Record<string, string>>({})
 let flightTimer: ReturnType<typeof setTimeout> | undefined
-function launchPlane(event: PointerEvent) {
-  if (planeFlying.value || event.pointerType !== 'mouse' ||
-      !window.matchMedia('(hover: hover) and (pointer: fine)').matches ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+function launchPlane(event: PointerEvent | MouseEvent) {
+  const touchLayout = window.matchMedia('(hover: none), (pointer: coarse)').matches
+  if (planeFlying.value || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  if (event.type === 'click' ? !touchLayout : touchLayout || !('pointerType' in event) || event.pointerType !== 'mouse') return
   const nav = navElement.value, period = brandPeriod.value
   if (!nav || !period) return
   const bounds = nav.getBoundingClientRect(), dot = period.getBoundingClientRect()
   const origin = dot.left + dot.width / 2 - bounds.left
   const links = nav.querySelector('.nav-links')?.getBoundingClientRect()
-  const distance = Math.min(400, (links?.left ?? bounds.right - 80) - bounds.left - origin - 24)
+  const destination = links?.width ? links.left : themeButton.value?.getBoundingClientRect().left ?? bounds.right - 80
+  const distance = Math.min(400, destination - bounds.left - origin - 24)
   if (distance < 40) return
   const brand = period.parentElement!.getBoundingClientRect()
   const left = Math.max(14 - bounds.left, brand.left - bounds.left - 40)
@@ -249,7 +250,7 @@ onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout
   86% { opacity: .32; }
   100% { opacity: 0; }
 }
-@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .brand-flight { display: none; } }
+@media (prefers-reduced-motion: reduce) { .brand-flight { display: none; } }
 
 .theme-sky { position: relative; overflow: hidden; isolation: isolate; }
 .theme-sky svg { position: absolute; transition: none; }
