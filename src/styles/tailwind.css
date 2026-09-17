@@ -27,7 +27,10 @@
   .chip-dot::before { content: '•'; position: absolute; left: 6px; }
 }
 /* Existing components retain their layout; tokens own the graphite treatment. */
-main.max-w-5xl, footer.max-w-5xl { max-width: none; width: 90%; padding-inline: 0; }
+main.max-w-5xl, footer.max-w-5xl { --section-inset: 9vw; max-width: none; width: 90%; padding-inline: 0; }
+/* All section content shares the hero inset, leaving the fixed index its own gutter. */
+main > section:not(#hero) { padding-inline: var(--section-inset); }
+footer.max-w-5xl { padding-inline: var(--section-inset); }
 .graphite-navbar { background: var(--background); border-bottom: 1px solid var(--border); }
 .nav-inner { max-width: none; width: 90%; padding: 22px 0; min-height: 80px; }
 .nav-inner > a { font-size: 25px; letter-spacing: -.04em; }
@@ -37,7 +40,7 @@ main.max-w-5xl, footer.max-w-5xl { max-width: none; width: 90%; padding-inline: 
 .nav-link.nav-active::after { content: ''; position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--primary); bottom: -6px; left: calc(50% - 2px); }
 .nav-inner button { border-color: var(--strong-border); background: transparent; }
 .mobile-navigation { background: var(--secondary-background); border-block: 1px solid var(--border); }
-.graphite-hero { position: relative; isolation: isolate; min-height: calc(100svh - 80px); display: flex; align-items: center; padding: 96px 9vw 140px; }
+.graphite-hero { position: relative; isolation: isolate; min-height: calc(100svh - 80px); display: flex; align-items: center; padding: 96px var(--section-inset) 140px; }
 /* Grid dissolves before the right-hand motto; light remains independent. */
 .hero-atmosphere { position: absolute; inset: 0 -5vw; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 73% 9%,var(--illumination),transparent 45%),linear-gradient(135deg,var(--background),var(--secondary-background)); }
 .hero-atmosphere::before { content: ''; position: absolute; inset: 0 12.5% 0 8%; background-image: linear-gradient(to right,var(--grid) 1px,transparent 1px),linear-gradient(to bottom,var(--grid) 1px,transparent 1px); background-size: 48px 48px; -webkit-mask-image: linear-gradient(to right,transparent,black 12%,black 78%,transparent),linear-gradient(to bottom,black,black 58%,transparent 100%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to right,transparent,black 12%,black 78%,transparent),linear-gradient(to bottom,black,black 58%,transparent 100%); mask-composite: intersect; }
@@ -80,12 +83,13 @@ main.max-w-5xl, footer.max-w-5xl { max-width: none; width: 90%; padding-inline: 
 #about .badge { border-radius: 3px; background: var(--secondary-background); border-color: var(--border); }
 #about .avatar-container:hover .hover-img { transform: scale(1.02); filter: grayscale(1); }
 @media (max-width: 800px) {
-  .graphite-hero { padding-inline: 64px 32px; }
+  main.max-w-5xl, footer.max-w-5xl { --section-inset: 64px; }
+  .graphite-hero { padding-inline: var(--section-inset); }
   .hero-motto { right: 0; font-size: 8px; }
   .hero-copy { max-width: 440px; }
 }
 @media (max-width: 639px) {
-  main.max-w-5xl, footer.max-w-5xl { width: 100%; padding-inline: 24px; }
+  main.max-w-5xl, footer.max-w-5xl { --section-inset: 0px; width: 100%; padding-inline: 24px; }
   .nav-inner { width: 100%; padding: 16px 24px; min-height: 72px; }
   .graphite-hero { min-height: calc(100svh - 72px); padding: 80px 0 124px; }
   .hero-atmosphere { inset-inline: -24px; }
