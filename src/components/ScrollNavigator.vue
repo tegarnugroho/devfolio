@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+  <div class="graphite-scroll fixed bottom-6 right-6 z-50 flex flex-col gap-2">
     <!-- Top: only Next -->
     <button
       v-if="atTop && hasNext"
@@ -129,7 +129,7 @@ function onResize() {
 
 function scrollToIndex(idx: number) {
   const el = sections.value[idx]
-  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  el?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
 }
 
 function goPrev() {
@@ -139,7 +139,7 @@ function goNext() {
   if (hasNext.value) scrollToIndex(currentIndex.value + 1)
 }
 function goTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
 }
 
 onMounted(() => {

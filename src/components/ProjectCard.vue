@@ -1,7 +1,7 @@
 <template>
   <article
     v-reveal="idx !== undefined ? { delay: idx * 80 } : undefined"
-    class="card p-5 group relative"
+    class="card project-card p-5 group relative"
   >
     <button
       type="button"

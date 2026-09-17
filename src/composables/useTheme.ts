@@ -5,8 +5,7 @@ const STORAGE_KEY = 'theme'
 export function initializeTheme() {
   try {
     const stored = (localStorage.getItem(STORAGE_KEY) as Theme | null)
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    const theme: Theme = stored ?? (prefersDark ? 'dark' : 'light')
+    const theme: Theme = stored === 'light' ? 'light' : 'dark'
     applyTheme(theme)
   } catch {
     // no-op in non-DOM contexts

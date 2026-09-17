@@ -2,10 +2,11 @@ import type { Directive } from 'vue'
 
 export const reveal: Directive<HTMLElement, { delay?: number } | undefined> = {
   mounted(el, binding) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const delay = binding.value?.delay ?? 0
-    el.style.transition = `opacity 600ms ease, transform 600ms ease`
+    el.style.transition = `opacity 350ms ease, transform 350ms ease`
     el.style.opacity = '0'
-    el.style.transform = 'translateY(12px)'
+    el.style.transform = 'translateY(8px)'
 
     const io = new IntersectionObserver(
       (entries) => {

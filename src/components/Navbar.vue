@@ -1,8 +1,9 @@
 <template>
   <header
-    class="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur border-b border-black/10 dark:border-white/10 supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-black/70 transition-colors"
+    class="graphite-navbar sticky top-0 z-50"
+    @keydown.esc="open = false"
   >
-    <nav class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+    <nav class="nav-inner mx-auto flex items-center justify-between">
       <a
         href="#hero"
         class="font-semibold tracking-wide rounded px-2 py-1 -mx-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
@@ -14,11 +15,13 @@
         <span class="letter" style="animation-delay: 0.4s">r</span>
         <span class="letter" style="animation-delay: 0.5s">.</span>
       </a>
-      <ul class="hidden sm:flex gap-8 text-sm">
+      <ul class="nav-links hidden sm:flex gap-8 text-sm">
         <li v-for="item in items" :key="item.href">
           <a
             :href="item.href"
-            class="relative inline-block py-1 px-1 -mx-1 transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white after:content-[''] after:absolute after:left-1 after:right-1 after:bottom-0 after:h-px after:bg-current after:origin-left after:scale-x-0 hover:after:scale-x-100 after:transition-transform"
+            :class="{ 'nav-active': active === item.href }"
+            :aria-current="active === item.href ? 'location' : undefined"
+            class="nav-link relative inline-block py-1 px-1 -mx-1"
           >
             {{ item.label }}
           </a>
@@ -63,12 +66,14 @@
     </nav>
     <div
       v-if="open"
-      class="sm:hidden absolute inset-x-0 top-full z-40 bg-white/90 dark:bg-black/90 backdrop-blur border-t border-b border-black/10 dark:border-white/10"
+      class="mobile-navigation sm:hidden absolute inset-x-0 top-full z-40"
     >
       <ul class="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-2">
         <li v-for="item in items" :key="item.href" @click="open = false">
           <a
             :href="item.href"
+            :class="{ 'nav-active': active === item.href }"
+            :aria-current="active === item.href ? 'location' : undefined"
             class="block py-2 px-2 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >
             {{ item.label }}
@@ -80,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 
 const items = [
@@ -91,6 +96,11 @@ const items = [
 ] as const
 
 const open = ref(false)
+const active = ref('#hero')
+function updateActive() {
+  const sections = Array.from(document.querySelectorAll<HTMLElement>('main section[id]'))
+  active.value = '#' + (sections.reverse().find(section => section.getBoundingClientRect().top <= window.innerHeight * 0.4)?.id ?? 'hero')
+}
 const { get, toggle } = useTheme()
 const theme = ref<'light' | 'dark'>(get())
 
@@ -100,13 +110,15 @@ function toggleTheme() {
 
 onMounted(() => {
   theme.value = get()
+  updateActive()
+  window.addEventListener('scroll', updateActive, { passive: true })
 })
+onBeforeUnmount(() => window.removeEventListener('scroll', updateActive))
 </script>
 
 <style scoped>
 .letter {
-  opacity: 0;
-  animation: fadeIn 0.5s ease-in-out forwards;
+  opacity: 1;
   display: inline-block;
 }
 

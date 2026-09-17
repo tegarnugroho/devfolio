@@ -7,7 +7,7 @@
         <p v-reveal="{ delay: 120 }" class="mt-3 opacity-75">Open for open-source projects and community collaboration.</p>
       </div>
       <div class="lg:col-span-2">
-        <div class="card p-5">
+        <div class="contact-list p-5">
           <ul class="divide-y divide-black/10 dark:divide-white/10">
             <ContactItem
               v-for="(c, i) in contacts"

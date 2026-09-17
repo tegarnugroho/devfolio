@@ -8,6 +8,7 @@
       <ProjectsSection />
       <ContactSection />
     </main>
+    <SectionIndex />
     <ScrollNavigator />
     <footer class="max-w-5xl mx-auto px-4 py-8 text-sm opacity-60">
       <p>&copy; {{ year }} Tegar.</p>
@@ -25,6 +26,7 @@ import ProjectsSection from './sections/ProjectsSection.vue'
 import ContactSection from './sections/ContactSection.vue'
 import { useScrollHash } from '@/composables/useScrollHash'
 import ScrollNavigator from './components/ScrollNavigator.vue'
+import SectionIndex from './components/SectionIndex.vue'
 
 useScrollHash('main section[id]')
 const year = new Date().getFullYear()
