@@ -6,7 +6,7 @@
     <div class="about-layout mt-8 grid sm:grid-cols-[220px_1fr]">
       <div class="flex flex-col items-center sm:items-start">
         <div v-reveal="{ delay: 80 }" class="portrait-wrapper">
-          <div ref="comparison" class="portrait-comparison" :class="{ 'effect-dominant': position < 40 }" role="slider" tabindex="0" aria-label="Portrait comparison: drag left or right" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(position)" :aria-valuetext="`${Math.round(position)} percent normal portrait`" @pointerdown="startDrag" @pointermove="drag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="dragging = false" @keydown="onKey" @contextmenu.prevent>
+          <div ref="comparison" class="portrait-comparison" :class="{ 'effect-hovered': overEffect }" role="slider" tabindex="0" aria-label="Portrait comparison: drag left or right" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(position)" :aria-valuetext="`${Math.round(position)} percent normal portrait`" @pointerenter="onPortraitEnter" @pointerleave="pointerPosition = null" @pointerdown="startDrag" @pointermove="drag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="dragging = false" @keydown="onKey" @contextmenu.prevent>
             <img class="portrait-normal" src="/assets/user.png" alt="Tegar Nugroho" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
             <img class="portrait-effect" :style="{ clipPath }" src="/assets/user-cute.png" alt="Alternate illustration of Tegar Nugroho" loading="eager" decoding="async" draggable="false" @dragstart.prevent />
             <svg v-show="position > 0 && position < 100" class="portrait-divider" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line :x1="topEdge" y1="0" :x2="bottomEdge" y2="100" vector-effect="non-scaling-stroke" /></svg>
@@ -44,17 +44,18 @@
         </p>
       </div>
     </div>
-    <FlamingKunaiCursor :target="comparison" :active="position < 40" />
+    <FlamingKunaiCursor :target="comparison" :active="overEffect" />
   </section>
   
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import FlamingKunaiCursor from '@/components/FlamingKunaiCursor.vue'
 const comparison = ref<HTMLElement | null>(null)
 const position = ref(100)
 const dragging = ref(false)
+const pointerPosition = ref<{ x: number; y: number } | null>(null)
 const handleVisibility = computed(() => Math.min(1, Math.min(position.value, 100 - position.value) / 18))
 const handleStyle = computed(() => ({
   left: `clamp(31px, ${position.value}%, calc(100% - 31px))`,
@@ -64,8 +65,25 @@ const handleStyle = computed(() => ({
 const topEdge = computed(() => position.value === 0 ? 0 : Math.min(100, position.value + 8))
 const bottomEdge = computed(() => position.value === 100 ? 100 : Math.max(0, position.value - 8))
 const clipPath = computed(() => `polygon(${topEdge.value}% 0,100% 0,100% 100%,${bottomEdge.value}% 100%)`)
+const overEffect = computed(() => {
+  const pointer = pointerPosition.value
+  if (!pointer || position.value === 100) return false
+  const boundary = topEdge.value + (bottomEdge.value - topEdge.value) * pointer.y
+  return pointer.x >= boundary
+})
+function trackPointer(event: PointerEvent) {
+  if (event.pointerType !== 'mouse' || !comparison.value) return
+  const bounds = comparison.value.getBoundingClientRect()
+  const x = (event.clientX - bounds.left) / bounds.width
+  const y = (event.clientY - bounds.top) / bounds.height
+  pointerPosition.value = x >= 0 && x <= 1 && y >= 0 && y <= 1 ? { x: x * 100, y } : null
+}
+function onPortraitEnter(event: PointerEvent) {
+  trackPointer(event)
+  startIntro(event)
+}
 let frame = 0
-let observer: IntersectionObserver | null = null
+let introStarted = false
 let interacted = false
 let disposed = false
 function stopIntro() { interacted = true; cancelAnimationFrame(frame) }
@@ -80,8 +98,12 @@ function startDrag(event: PointerEvent) {
   comparison.value?.focus({ preventScroll: true })
   comparison.value?.setPointerCapture(event.pointerId)
   moveToPointer(event)
+  trackPointer(event)
 }
-function drag(event: PointerEvent) { if (dragging.value) moveToPointer(event) }
+function drag(event: PointerEvent) {
+  if (dragging.value) moveToPointer(event)
+  trackPointer(event)
+}
 function endDrag(event: PointerEvent) {
   dragging.value = false
   if (comparison.value?.hasPointerCapture(event.pointerId)) comparison.value.releasePointerCapture(event.pointerId)
@@ -91,6 +113,11 @@ function onKey(event: KeyboardEvent) {
   event.preventDefault()
   stopIntro()
   position.value = event.key === 'Home' ? 0 : event.key === 'End' ? 100 : Math.max(0, Math.min(100, position.value + (event.key === 'ArrowLeft' ? -5 : 5)))
+}
+function startIntro(event: PointerEvent) {
+  if (event.pointerType !== 'mouse' || introStarted || interacted || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+  introStarted = true
+  void playIntro()
 }
 async function playIntro() {
   await Promise.all(Array.from(comparison.value?.querySelectorAll('img') ?? []).map(image => image.decode().catch(() => {})))
@@ -108,13 +135,7 @@ async function playIntro() {
   }
   frame = requestAnimationFrame(animate)
 }
-onMounted(() => {
-  observer = new IntersectionObserver(entries => {
-    if (entries.some(entry => entry.isIntersecting)) { observer?.disconnect(); void playIntro() }
-  }, { threshold: 0.6 })
-  if (comparison.value) observer.observe(comparison.value)
-})
-onBeforeUnmount(() => { disposed = true; cancelAnimationFrame(frame); observer?.disconnect() })
+onBeforeUnmount(() => { disposed = true; cancelAnimationFrame(frame) })
 </script>
 
 <style scoped>
@@ -126,7 +147,7 @@ onBeforeUnmount(() => { disposed = true; cancelAnimationFrame(frame); observer?.
 .portrait-comparison img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; transition: transform 450ms cubic-bezier(.22,1,.36,1); }
 .portrait-effect { transform: none; }
 .portrait-comparison { cursor: ew-resize; touch-action: pan-y; }
-@media (hover: hover) and (pointer: fine) { .portrait-comparison.effect-dominant { cursor: url('/assets/cursors/flame-kunai.svg') 4 2, ew-resize; } }
+@media (hover: hover) and (pointer: fine) { .portrait-comparison.effect-hovered { cursor: url('/assets/cursors/flame-kunai.svg') 4 2, ew-resize; } }
 .portrait-comparison.flame-cursor-active { cursor: none; }
 .portrait-divider { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .portrait-divider line { stroke: var(--primary); stroke-opacity: .85; stroke-width: 1.5px; }
