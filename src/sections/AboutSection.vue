@@ -8,7 +8,7 @@
         <div v-reveal="{ delay: 80 }" class="portrait-wrapper">
           <div ref="comparison" class="portrait-comparison" role="slider" tabindex="0" aria-label="Portrait comparison: drag left or right" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(position)" :aria-valuetext="`${Math.round(position)} percent normal portrait`" @pointerdown="startDrag" @pointermove="drag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="dragging = false" @keydown="onKey" @contextmenu.prevent>
             <img class="portrait-normal" src="/assets/user.png" alt="Tegar Nugroho" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
-            <img class="portrait-effect" :style="{ clipPath }" src="/assets/user-cute.png" alt="Alternate illustration of Tegar Nugroho" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
+            <img class="portrait-effect" :style="{ clipPath }" src="/assets/user-cute.png" alt="Alternate illustration of Tegar Nugroho" loading="eager" decoding="async" draggable="false" @dragstart.prevent />
             <svg v-show="position > 0 && position < 100" class="portrait-divider" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line :x1="topEdge" y1="0" :x2="bottomEdge" y2="100" vector-effect="non-scaling-stroke" /></svg>
             <span class="portrait-handle" :style="handleStyle" aria-hidden="true">‹ ›</span>
             <span class="portrait-edge portrait-edge-left" :style="{ opacity: 1 - Math.min(1, position / 18) }" aria-hidden="true">›</span>
@@ -139,6 +139,8 @@ onBeforeUnmount(() => { disposed = true; cancelAnimationFrame(frame); observer?.
 .about-copy h3 { font-weight: 600; color: var(--primary); }
 .about-copy p { color: var(--secondary); opacity: 1; line-height: 1.65; }
 .about-copy p + p { margin-top: 18px; }
-@media (max-width: 639px) { .about-layout { gap: 30px; } .portrait-wrapper, .badge { width: 192px; } }
+@media (max-width: 900px) { .about-layout { grid-template-columns: minmax(0,1fr); gap: 30px; } .about-layout > div:first-child { align-items: flex-start; } }
+@media (max-width: 767px) { .portrait-wrapper, .badge { width: 202px; } .badge { font-size: 11px; gap: 6px; } .about-copy { min-width: 0; } .about-copy h3 { font-size: 20px; } .about-copy p { font-size: 16px; } }
+@media (pointer: coarse) { .portrait-handle { width: 44px; height: 44px; } }
 @media (prefers-reduced-motion: reduce) { .portrait-comparison *, .portrait-effect { transition: none !important; } .portrait-comparison img { transform: none !important; } }
 </style>

@@ -39,6 +39,7 @@ function isValid(value?: string) { return !!value && /^https?:\/\//i.test(value)
 .project-actions a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--secondary); font-size: 12px; }
 .project-actions a span { transition: transform 250ms; }
 @media (hover: hover) and (pointer: fine) { .project-card:hover { border-color: var(--strong-border); background: var(--surface); } .project-media:hover img { transform: scale(1.02); filter: grayscale(1) brightness(1.08); } .project-media:hover .media-hint, .project-media:focus-visible .media-hint { opacity: 1; } .project-actions a:hover { color: var(--primary); } .project-actions a:hover span { transform: translate(2px,-2px); } }
-@media (max-width: 639px) { .project-card { padding: 16px; } .project-title { font-size: 19px; } .project-tags { gap: 6px; } }
+@media (max-width: 767px) { .project-card { padding: 16px; } .project-title { font-size: 19px; } .project-tags { gap: 6px; } .project-tags li { font-size: 12px; } .project-description { font-size: 15px; } }
+@media (hover: none) { .media-hint { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .project-card, .project-media img, .media-hint, .project-actions a span { transition: none; } .project-media:hover img, .project-actions a:hover span { transform: none; } }
 </style>

@@ -139,7 +139,7 @@ onBeforeUnmount(restorePage)
 .showcase-enter-from .showcase-dialog, .showcase-leave-to .showcase-dialog { transform: scale(.98); }
 .image-fade-enter-active, .image-fade-leave-active { transition: opacity 120ms; }
 .image-fade-enter-from, .image-fade-leave-to { opacity: 0; }
-@media (max-width: 800px) {
+@media (max-width: 960px) {
   .showcase-backdrop { padding: 12px; }
   .showcase-dialog { max-height: calc(100dvh - 24px); }
   .showcase-bar { padding: 16px 18px; }
@@ -148,6 +148,19 @@ onBeforeUnmount(restorePage)
   .gallery-thumbnails { padding-top: 14px; }
   .gallery-thumbnails button { flex-basis: 92px; height: 64px; }
 }
-@media (max-width: 400px) { .showcase-actions { flex-direction: column; } .showcase-actions a { flex: auto; } .showcase-controls { gap: 8px; } .control-divider { margin-inline: 3px; } }
+@media (max-width: 400px) { .showcase-actions { flex-direction: column; } .showcase-actions a { flex: auto; } .showcase-controls { gap: 6px; } .control-divider { display: none; } }
+@media (max-width: 767px) {
+  .showcase-backdrop { padding: max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)); }
+  .showcase-dialog { max-height: calc(100dvh - max(8px,env(safe-area-inset-top)) - max(8px,env(safe-area-inset-bottom))); }
+  .showcase-bar { padding: 12px 14px; gap: 8px; }
+  .showcase-controls { gap: 6px; }
+  .showcase-controls button, .showcase-controls .close-button { width: 44px; height: 44px; }
+  .control-divider { display: none; }
+  .showcase-body { padding: 0 14px 24px; }
+  .gallery-canvas { height: min(45dvh,420px); min-height: 160px; }
+  .showcase-actions a { min-height: 44px; font-size: 13px; }
+  .stack li { font-size: 12px; max-width: 100%; overflow-wrap: anywhere; }
+}
+@media (pointer: coarse) { .showcase-controls button, .showcase-controls .close-button { min-width: 44px; min-height: 44px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
 </style>

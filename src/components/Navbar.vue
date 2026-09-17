@@ -1,7 +1,7 @@
 <template>
   <header
     class="graphite-navbar sticky top-0 z-50"
-    @keydown.esc="open = false"
+    @keydown.esc="closeMenu"
   >
     <nav class="nav-inner mx-auto flex items-center justify-between">
       <a
@@ -15,7 +15,7 @@
         <span class="letter" style="animation-delay: 0.4s">r</span>
         <span class="letter" style="animation-delay: 0.5s">.</span>
       </a>
-      <ul class="nav-links hidden sm:flex gap-8 text-sm">
+      <ul class="nav-links hidden md:flex gap-8 text-sm">
         <li v-for="item in items" :key="item.href">
           <a
             :href="item.href"
@@ -42,7 +42,9 @@
           </svg>
         </button>
         <button
-          class="sm:hidden h-9 w-9 grid place-items-center rounded border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
+          class="md:hidden h-9 w-9 grid place-items-center rounded border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
+          ref="menuButton"
+          aria-controls="mobile-navigation"
           @click="open = !open"
           :aria-label="open ? 'Close navigation' : 'Open navigation'"
           :aria-expanded="open"
@@ -65,8 +67,9 @@
       </div>
     </nav>
     <div
+      id="mobile-navigation"
       v-if="open"
-      class="mobile-navigation sm:hidden absolute inset-x-0 top-full z-40"
+      class="mobile-navigation md:hidden absolute inset-x-0 top-full z-40"
     >
       <ul class="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-2">
         <li v-for="item in items" :key="item.href" @click="open = false">
@@ -96,6 +99,9 @@ const items = [
 ] as const
 
 const open = ref(false)
+const menuButton = ref<HTMLButtonElement | null>(null)
+function closeMenu() { open.value = false; menuButton.value?.focus() }
+function onResize() { if (window.innerWidth >= 768) open.value = false }
 const active = ref('#hero')
 function updateActive() {
   const sections = Array.from(document.querySelectorAll<HTMLElement>('main section[id]'))
@@ -112,11 +118,18 @@ onMounted(() => {
   theme.value = get()
   updateActive()
   window.addEventListener('scroll', updateActive, { passive: true })
+  window.addEventListener('resize', onResize)
 })
-onBeforeUnmount(() => window.removeEventListener('scroll', updateActive))
+onBeforeUnmount(() => { window.removeEventListener('scroll', updateActive); window.removeEventListener('resize', onResize) })
 </script>
 
 <style scoped>
+@media (max-width: 767px), (pointer: coarse) {
+  .nav-inner button { min-width: 44px; min-height: 44px; }
+  .mobile-navigation { max-height: calc(100svh - 80px); overflow-y: auto; padding-bottom: env(safe-area-inset-bottom); }
+  .mobile-navigation a { display: flex; align-items: center; min-height: 44px; border-top: 1px solid var(--border); }
+}
+
 .letter {
   opacity: 1;
   display: inline-block;
