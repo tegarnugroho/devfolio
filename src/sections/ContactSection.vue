@@ -2,9 +2,9 @@
   <section id="contact" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
     <div class="contact-layout">
       <div>
-        <span v-reveal class="text-[11px] tracking-[0.18em] uppercase opacity-60">Contact</span>
-        <h2 v-reveal="{ delay: 60 }" class="contact-heading">Let's Connect</h2>
-        <p v-reveal="{ delay: 120 }" class="mt-3 opacity-75">Open for open-source projects and community collaboration.</p>
+        <span v-reveal class="text-[11px] tracking-[0.18em] uppercase opacity-60">{{ content.eyebrow }}</span>
+        <h2 v-reveal="{ delay: 60 }" class="contact-heading">{{ content.title }}</h2>
+        <p v-reveal="{ delay: 120 }" class="mt-3 opacity-75">{{ content.description }}</p>
       </div>
       <div class="contact-links">
         <div class="contact-list">
@@ -23,14 +23,13 @@
 </template>
 
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import ContactItem from '@/components/ContactItem.vue'
-import type { Contact } from '@/types'
 
-const contacts: Contact[] = [
-  { type: 'email', label: 'Email', value: 'tegar@wolkk.com', href: 'mailto:tegar@wolkk.com' },
-  { type: 'linkedin', label: 'LinkedIn', value: 'linkedin.com/in/tegaranugroho', href: 'https://linkedin.com/in/tegaranugroho' },
-  { type: 'github', label: 'GitHub', value: 'github.com/tegarnugroho', href: 'https://github.com/tegarnugroho' },
-]
+const content = portfolioContent.contact
+
+
+const contacts = content.items
 </script>
 
 <style scoped>

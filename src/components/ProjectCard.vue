@@ -1,23 +1,27 @@
 <template>
   <article v-reveal="idx !== undefined ? { delay: idx * 80 } : undefined" class="card project-card">
-    <button type="button" class="project-media" @pointerenter="prefetch" @focus="prefetch" @click="$emit('open')" :aria-label="`View ${project.title} project details`" @contextmenu.prevent>
-      <img v-if="project.image" :src="project.image" :alt="`${project.title} screenshot`" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
-      <span v-else class="media-placeholder">View project details</span>
-      <span class="media-hint" aria-hidden="true">View details +</span>
-      <span v-if="project.images && project.images.length > 1" class="media-count"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="m3 17 6-6 4 4 4-5 4 7" /><circle cx="16" cy="7" r="1" /></svg>{{ project.images.length }} images</span>
+    <button type="button" class="project-media" @pointerenter="prefetch" @focus="prefetch" @click="$emit('open')" :aria-label="content.projectDetailsLabel(project.title)" @contextmenu.prevent>
+      <img v-if="project.image" :src="project.image" :alt="content.screenshotAlt(project.title)" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
+      <span v-else class="media-placeholder">{{ content.detailsLabel }}</span>
+      <span class="media-hint" aria-hidden="true">{{ content.detailsHint }}</span>
+      <span v-if="project.images && project.images.length > 1" class="media-count"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="m3 17 6-6 4 4 4-5 4 7" /><circle cx="16" cy="7" r="1" /></svg>{{ content.imageCount(project.images.length) }}</span>
     </button>
-    <h3><button class="project-title" @click="$emit('open')" :aria-label="`View ${project.title} project details`"><span>{{ project.title }}</span><span class="details-indicator" aria-hidden="true">+</span></button></h3>
+    <h3><button class="project-title" @click="$emit('open')" :aria-label="content.projectDetailsLabel(project.title)"><span>{{ project.title }}</span><span class="details-indicator" aria-hidden="true">+</span></button></h3>
     <p class="project-description">{{ project.description }}</p>
     <ul class="project-tags"><li v-for="tech in project.tech" :key="tech">{{ tech }}</li></ul>
     <div v-if="isValid(project.link) || isValid(project.repo)" class="project-actions">
-      <a v-if="isValid(project.link)" :href="project.link" target="_blank" rel="noopener noreferrer"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 .1l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7M14 11a5 5 0 0 0-7-.1l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7" /></svg>Live <span aria-hidden="true">↗</span></a>
-      <a v-if="isValid(project.repo)" :href="project.repo" target="_blank" rel="noopener noreferrer"><svg width="19" height="19" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8.01 8.01 0 0 0 5.47 7.59c.4.08.55-.17.55-.38v-1.49c-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.03 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.19c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" /></svg>Code <span aria-hidden="true">↗</span></a>
+      <a v-if="isValid(project.link)" :href="project.link" target="_blank" rel="noopener noreferrer"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 .1l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7M14 11a5 5 0 0 0-7-.1l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7" /></svg>{{ content.liveLabel }} <span aria-hidden="true">↗</span></a>
+      <a v-if="isValid(project.repo)" :href="project.repo" target="_blank" rel="noopener noreferrer"><svg width="19" height="19" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8.01 8.01 0 0 0 5.47 7.59c.4.08.55-.17.55-.38v-1.49c-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.03 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.19c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" /></svg>{{ content.codeLabel }} <span aria-hidden="true">↗</span></a>
     </div>
   </article>
 </template>
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import { loadGalleryImage } from '@/composables/galleryImages'
 import type { Project } from '@/types'
+
+const content = portfolioContent.projects
+
 const props = defineProps<{ project: Project; idx?: number }>()
 function prefetch() {
   const source = props.project.images?.[0] ?? props.project.image

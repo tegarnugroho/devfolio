@@ -2,7 +2,7 @@
   <button
     v-show="visible"
     @click="toTop"
-    aria-label="Scroll to top"
+    :aria-label="portfolioContent.navigation.topLabel"
     class="fixed bottom-6 right-6 z-50 h-11 w-11 grid place-items-center rounded-full border border-black/20 dark:border-white/20 bg-white/70 dark:bg-black/70 backdrop-blur hover:bg-white/90 dark:hover:bg-black/90 active:scale-95 transition-colors"
   >
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -12,6 +12,7 @@
 </template>
 
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 
 const visible = ref(false)

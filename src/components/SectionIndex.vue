@@ -1,5 +1,5 @@
 <template>
-  <nav class="hero-markers" aria-label="Section shortcuts">
+  <nav class="hero-markers" :aria-label="portfolioContent.navigation.shortcutsLabel">
     <a v-for="(section, index) in sections" :key="section.id" :href="`#${section.id}`"
       :aria-label="section.label" :aria-current="active === section.id ? 'location' : undefined">
       {{ String(index + 1).padStart(2, '0') }}
@@ -9,14 +9,11 @@
 </template>
 
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 
-const sections = [
-  { id: 'hero', label: 'Home' },
-  { id: 'about', label: 'About' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'contact', label: 'Contact' },
+const sections = [portfolioContent.navigation.home,
+  ...portfolioContent.navigation.items.map(item => ({ id: item.href.slice(1), label: item.label })),
 ]
 const active = ref('hero')
 let elements: HTMLElement[] = []

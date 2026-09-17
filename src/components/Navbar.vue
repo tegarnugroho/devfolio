@@ -5,16 +5,12 @@
   >
     <nav ref="navElement" class="nav-inner relative mx-auto flex items-center justify-between">
       <a
-        href="#hero"
+        :href="portfolioContent.navigation.homeTarget"
         @pointerenter="launchPlane"
         class="font-semibold tracking-wide rounded px-2 py-1 -mx-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
       >
-        <span class="letter" style="animation-delay: 0s">T</span>
-        <span class="letter" style="animation-delay: 0.1s">e</span>
-        <span class="letter" style="animation-delay: 0.2s">g</span>
-        <span class="letter" style="animation-delay: 0.3s">a</span>
-        <span class="letter" style="animation-delay: 0.4s">r</span>
-        <span ref="brandPeriod" class="letter" style="animation-delay: 0.5s">.</span>
+        <span v-for="(letter, index) in portfolioContent.site.name" :key="index" class="letter" :style="{ animationDelay: `${index / 10}s` }">{{ letter }}</span>
+        <span ref="brandPeriod" class="letter" :style="{ animationDelay: `${portfolioContent.site.name.length / 10}s` }">{{ portfolioContent.site.brandPeriod }}</span>
       </a>
       <div v-if="planeFlying" class="brand-flight" :style="flightStyle" aria-hidden="true">
         <svg class="flight-trail" width="100%" height="100%" fill="none">
@@ -41,7 +37,7 @@
           ref="themeButton"
           :aria-disabled="transitioning"
           :class="[theme === 'light' ? 'sky-day' : 'sky-night', direction, { 'sky-changing': transitioning }]"
-          :aria-label="`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`"
+          :aria-label="portfolioContent.navigation.themeLabel(theme === 'dark' ? 'light' : 'dark')"
           class="theme-sky h-9 w-9 grid place-items-center rounded-full border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
         >
           <span class="sky-horizon" aria-hidden="true"></span>
@@ -58,7 +54,7 @@
           ref="menuButton"
           aria-controls="mobile-navigation"
           @click="open = !open"
-          :aria-label="open ? 'Close navigation' : 'Open navigation'"
+          :aria-label="open ? portfolioContent.navigation.closeLabel : portfolioContent.navigation.openLabel"
           :aria-expanded="open"
         >
           <span class="relative block h-[14px] w-5">
@@ -100,15 +96,11 @@
 </template>
 
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 
-const items = [
-  { href: '#about', label: 'About' },
-  { href: '#skills', label: 'Skills' },
-  { href: '#projects', label: 'Projects' },
-  { href: '#contact', label: 'Contact' },
-] as const
+const items = portfolioContent.navigation.items
 
 const navElement = ref<HTMLElement | null>(null)
 const brandPeriod = ref<HTMLElement | null>(null)

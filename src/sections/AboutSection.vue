@@ -1,14 +1,14 @@
 <template>
   <section id="about" class="mt-10 sm:mt-12 md:mt-14 scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
-    <h2 v-reveal class="text-2xl font-semibold tracking-tight">About</h2>
-    <p v-reveal class="about-eyebrow">A little bit about me</p>
+    <h2 v-reveal class="text-2xl font-semibold tracking-tight">{{ content.title }}</h2>
+    <p v-reveal class="about-eyebrow">{{ content.eyebrow }}</p>
 
     <div class="about-layout mt-8 grid sm:grid-cols-[220px_1fr]">
       <div class="flex flex-col items-center sm:items-start">
         <div v-reveal="{ delay: 80 }" class="portrait-wrapper">
-          <div ref="comparison" class="portrait-comparison" :class="{ 'effect-hovered': overEffect }" role="slider" tabindex="0" aria-label="Portrait comparison: drag left or right" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(position)" :aria-valuetext="`${Math.round(position)} percent normal portrait`" @pointerenter="onPortraitEnter" @pointerleave="pointerPosition = null" @pointerdown="startDrag" @pointermove="drag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="dragging = false" @keydown="onKey" @contextmenu.prevent>
-            <img class="portrait-normal" src="/assets/user.png" alt="Tegar Nugroho" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
-            <img class="portrait-effect" :style="{ clipPath }" src="/assets/user-cute.png" alt="Alternate illustration of Tegar Nugroho" loading="eager" decoding="async" draggable="false" @dragstart.prevent />
+          <div ref="comparison" class="portrait-comparison" :class="{ 'effect-hovered': overEffect }" role="slider" tabindex="0" :aria-label="content.sliderLabel" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(position)" :aria-valuetext="content.sliderValue(Math.round(position))" @pointerenter="onPortraitEnter" @pointerleave="pointerPosition = null" @pointerdown="startDrag" @pointermove="drag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="dragging = false" @keydown="onKey" @contextmenu.prevent>
+            <img class="portrait-normal" :src="content.image" :alt="content.imageAlt" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
+            <img class="portrait-effect" :style="{ clipPath }" :src="content.alternateImage" :alt="content.alternateImageAlt" loading="eager" decoding="async" draggable="false" @dragstart.prevent />
             <svg v-show="position > 0 && position < 100" class="portrait-divider" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line :x1="topEdge" y1="0" :x2="bottomEdge" y2="100" vector-effect="non-scaling-stroke" /></svg>
             <span class="portrait-handle" :style="handleStyle" aria-hidden="true">‹ ›</span>
             <span class="portrait-edge portrait-edge-left" :style="{ opacity: 1 - Math.min(1, position / 18) }" aria-hidden="true">›</span>
@@ -20,27 +20,18 @@
             <path d="M3 8h18M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2m-7 5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             <rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
           </svg>
-          <span class="normal-text font-medium">Flutter Developer</span>
+          <span class="normal-text font-medium">{{ content.role }}</span>
           <span class="normal-text opacity-60">•</span>
-          <span class="normal-text">Wolkk</span>
-          <span class="hover-text absolute inset-0 flex items-center justify-center font-medium">Started in 2023</span>
+          <span class="normal-text">{{ content.company }}</span>
+          <span class="hover-text absolute inset-0 flex items-center justify-center font-medium">{{ content.startedLabel }}</span>
         </div>
       </div>
 
       <div v-reveal="{ delay: 120 }" class="about-copy">
-        <h3 class="text-lg font-semibold tracking-tight">Hi, I’m Tegar Nugroho</h3>
+        <h3 class="text-lg font-semibold tracking-tight">{{ content.greeting }}</h3>
 
-        <p class="mt-4 leading-relaxed opacity-85">
-          I’m a Flutter developer focused on building accessible, high‑performance applications.
-        </p>
-        <p class="mt-3 leading-relaxed opacity-85">
-          I favor clean architecture and maintainable code so every product feels smooth, consistent, and easy to evolve.
-        </p>
-        <p class="mt-3 leading-relaxed opacity-85">
-          I’ve shipped mobile, web, and desktop projects with a strong emphasis on performance, consistency, and scalability.
-        </p>
-        <p class="mt-3 leading-relaxed opacity-85">
-          At Wolkk (remote), I build cross‑platform solutions that combine clear design with robust engineering.
+        <p v-for="(paragraph, index) in content.paragraphs" :key="index" :class="index === 0 ? 'mt-4 leading-relaxed opacity-85' : 'mt-3 leading-relaxed opacity-85'">
+          {{ paragraph }}
         </p>
       </div>
     </div>
@@ -50,8 +41,12 @@
 </template>
 
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import { computed, onBeforeUnmount, ref } from 'vue'
 import FlamingKunaiCursor from '@/components/FlamingKunaiCursor.vue'
+
+const content = portfolioContent.about
+
 const comparison = ref<HTMLElement | null>(null)
 const position = ref(100)
 const dragging = ref(false)

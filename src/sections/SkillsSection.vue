@@ -1,13 +1,13 @@
 <template>
   <section id="skills" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
     <div class="mb-8">
-      <span v-reveal class="text-[11px] tracking-[0.18em] uppercase opacity-60">Skills</span>
-      <h2 v-reveal="{ delay: 60 }" class="mt-1 text-2xl font-semibold tracking-tight">What I Use</h2>
-      <p v-reveal="{ delay: 120 }" class="mt-3 opacity-75">Tools and technologies built for high-performance cross-platform apps with clean, sustainable architecture.</p>
+      <span v-reveal class="text-[11px] tracking-[0.18em] uppercase opacity-60">{{ content.eyebrow }}</span>
+      <h2 v-reveal="{ delay: 60 }" class="mt-1 text-2xl font-semibold tracking-tight">{{ content.title }}</h2>
+      <p v-reveal="{ delay: 120 }" class="mt-3 opacity-75">{{ content.description }}</p>
     </div>
     <ul class="capability-list">
       <li v-for="(row, i) in matrix" :key="row.label" class="capability-row">
-        <div class="capability-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path :d="row.icon" /></svg></div>
+        <div class="capability-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path :d="icons[row.icon]" /></svg></div>
         <div class="capability-copy"><h3>{{ row.label }}</h3><p>{{ row.description }}</p></div>
         <ul class="capability-tags"><li v-for="name in row.items" :key="name">{{ name }}</li></ul>
         <span class="capability-index" aria-hidden="true">{{ String(i + 1).padStart(2, '0') }}</span>
@@ -17,40 +17,18 @@
 </template>
 
 <script setup lang="ts">
-interface MatrixRow { label: string; description: string; icon: string; items: string[] }
+import { portfolioContent } from '@/content/portfolioContent'
 
-const matrix: MatrixRow[] = [
-  {
-    label: 'Languages & Platforms',
-    description: 'Core languages and platforms I use to build cross-platform applications.',
-    icon: 'M3 4h18v13H3zM8 21h8m-4-4v4',
-    items: ['Flutter', 'Dart', 'Android', 'iOS', 'Flutter Web', 'Flutter Desktop'],
-  },
-  {
-    label: 'Frameworks & State',
-    description: 'Frameworks and state management for scalable and maintainable apps.',
-    icon: 'm12 3 10 6-10 6L2 9zM2 15l10 6 10-6',
-    items: ['Riverpod', 'BLoC', 'Cubit', 'Clean Architecture', 'GetIt/Injectable'],
-  },
-  {
-    label: 'Networking',
-    description: 'Networking and real-time communication tools.',
-    icon: 'M7 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm15-7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm0 14a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM7 11l9-5M7 13l9 5',
-    items: ['Dio', 'HTTP', 'WebSocket'],
-  },
-  {
-    label: 'Data & Storage',
-    description: 'Local storage solutions and caching strategies.',
-    icon: 'M21 5c0 2-4 3-9 3S3 7 3 5s4-3 9-3 9 1 9 3ZM3 5v14c0 2 4 3 9 3s9-1 9-3V5M3 12c0 2 4 3 9 3s9-1 9-3',
-    items: ['SQLite (sqflite)', 'Hive', 'Shared Preferences', 'Local Caching'],
-  },
-  {
-    label: 'Tooling',
-    description: 'Development tools and productivity for a better workflow.',
-    icon: 'M14 6a6 6 0 0 0-7 7l-5 5a3 3 0 0 0 4 4l5-5a6 6 0 0 0 7-7l-4 4-4-4 4-4Z',
-    items: ['Git', 'CI/CD', 'Android SDK', 'VS Code', 'Jira', 'Trello'],
-  },
-]
+const content = portfolioContent.skills
+
+const matrix = content.groups
+const icons = {
+  "platforms": "M3 4h18v13H3zM8 21h8m-4-4v4",
+  "frameworks": "m12 3 10 6-10 6L2 9zM2 15l10 6 10-6",
+  "networking": "M7 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm15-7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm0 14a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM7 11l9-5M7 13l9 5",
+  "storage": "M21 5c0 2-4 3-9 3S3 7 3 5s4-3 9-3 9 1 9 3ZM3 5v14c0 2 4 3 9 3s9-1 9-3V5M3 12c0 2 4 3 9 3s9-1 9-3",
+  "tooling": "M14 6a6 6 0 0 0-7 7l-5 5a3 3 0 0 0 4 4l5-5a6 6 0 0 0 7-7l-4 4-4-4 4-4Z"
+}
 </script>
 
 <style scoped>

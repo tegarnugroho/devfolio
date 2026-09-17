@@ -11,13 +11,14 @@
     <SectionIndex />
     <ScrollNavigator />
     <footer class="portfolio-footer max-w-5xl mx-auto px-4">
-      <p>&copy; {{ year }} Tegar.</p>
+      <p>&copy; {{ year }} {{ portfolioContent.footer.owner }}</p>
     </footer>
   </div>
   
 </template>
 
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import Navbar from './components/Navbar.vue'
 import HeroSection from './sections/HeroSection.vue'
 import AboutSection from './sections/AboutSection.vue'

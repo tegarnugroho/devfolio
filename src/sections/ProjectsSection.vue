@@ -1,6 +1,6 @@
 <template>
   <section id="projects" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
-    <div class="projects-header"><div><p v-reveal class="projects-eyebrow">Projects</p><h2 v-reveal class="projects-heading">Selected Work</h2><p class="projects-intro">A collection of projects I've built, from mobile and desktop apps to web experiences.</p></div><p class="projects-note">Focused on solving real problems<br />with clean design and maintainable code.</p></div>
+    <div class="projects-header"><div><p v-reveal class="projects-eyebrow">{{ content.eyebrow }}</p><h2 v-reveal class="projects-heading">{{ content.title }}</h2><p class="projects-intro">{{ content.description }}</p></div><p class="projects-note">{{ content.note[0] }}<br />{{ content.note[1] }}</p></div>
     <div class="projects-grid">
       <ProjectCard
         v-for="(p, idx) in pagedProjects"
@@ -12,15 +12,15 @@
     </div>
     <div class="projects-pagination">
       <button class="btn btn-ghost disabled:opacity-40" @click="prevPage" :disabled="page === 1"
-        aria-label="Previous page">
-        ‹ Prev
+        :aria-label="content.previousPageLabel">
+        {{ content.previousLabel }}
       </button>
       <div class="page-count">
-        <span class="page-long">Page {{ page }} of {{ totalPages }}</span><span class="page-short">{{ page }} / {{ totalPages }}</span>
+        <span class="page-long">{{ content.pageLabel(page, totalPages) }}</span><span class="page-short">{{ page }} / {{ totalPages }}</span>
       </div>
       <button class="btn btn-ghost disabled:opacity-40" @click="nextPage" :disabled="page === totalPages"
-        aria-label="Next page">
-        Next ›
+        :aria-label="content.nextPageLabel">
+        {{ content.nextLabel }}
       </button>
     </div>
     <ImageLightbox v-model="lightboxOpen" :project="selectedProject" :images="lightboxImages" :start-index="lightboxStart" />
@@ -28,14 +28,18 @@
 </template>
 
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import { computed, ref, watch, onMounted } from 'vue'
 import type { Project } from '@/types'
 import ImageLightbox from '@/components/ImageLightbox.vue'
 import ProjectCard from '@/components/ProjectCard.vue'
-import { sourceProjects } from '@/data/projects'
 import { useMediaQuery } from '@/composables/useMediaQuery'
 
-// data now lives in src/data/projects.ts
+const content = portfolioContent.projects
+
+const sourceProjects = content.items
+
+// Content is shared by project cards and the showcase dialog.
 
 // Generate unique, stable IDs from title + index
 function slugify(s: string) {

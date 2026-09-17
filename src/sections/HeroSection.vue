@@ -3,10 +3,10 @@
     <div class="hero-atmosphere" aria-hidden="true"></div>
 
     <div class="hero-copy">
-      <p v-reveal class="hero-eyebrow">Flutter Developer</p>
-      <h1 ref="heading" @pointerenter="launchPlane" v-reveal="{ delay: 60 }">Tegar<span ref="period">.</span></h1>
-      <p v-reveal="{ delay: 120 }" class="hero-intro">I build reliable cross-platform experiences focused on performance, intuitive UI, and maintainable architecture.</p>
-      <div v-reveal="{ delay: 180 }" class="hero-actions"><a href="#projects" class="btn hero-primary">View Projects <span aria-hidden="true">→</span></a><a href="#contact" class="hero-contact">Contact</a></div>
+      <p v-reveal class="hero-eyebrow">{{ content.eyebrow }}</p>
+      <h1 ref="heading" @pointerenter="launchPlane" v-reveal="{ delay: 60 }">{{ portfolioContent.site.name }}<span ref="period">{{ portfolioContent.site.brandPeriod }}</span></h1>
+      <p v-reveal="{ delay: 120 }" class="hero-intro">{{ content.description }}</p>
+      <div v-reveal="{ delay: 180 }" class="hero-actions"><a :href="content.projectsTarget" class="btn hero-primary">{{ content.projectsLabel }} <span aria-hidden="true">→</span></a><a :href="content.contactTarget" class="hero-contact">{{ content.contactLabel }}</a></div>
     </div>
     <div v-if="flying" class="hero-flight" :style="{ '--flight-path': flightPathStyle }" aria-hidden="true">
       <svg class="hero-trail" width="100%" height="100%" fill="none">
@@ -15,13 +15,17 @@
       </svg>
       <svg class="hero-plane" width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="m3 10 18-7-7 18-3-8-8-3Zm8 3 10-10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
     </div>
-    <p class="hero-motto" aria-hidden="true">Build<br />Better<br />Things</p>
-    <p class="hero-location">Jakarta,<br />Indonesia</p>
+    <p class="hero-motto" aria-hidden="true">{{ content.motto[0] }}<br />{{ content.motto[1] }}<br />{{ content.motto[2] }}</p>
+    <p class="hero-location">{{ content.location[0] }}<br />{{ content.location[1] }}</p>
   </section>
 </template>
 
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import { ref, computed, onBeforeUnmount } from 'vue'
+
+const content = portfolioContent.hero
+
 const hero = ref<HTMLElement | null>(null)
 const heading = ref<HTMLElement | null>(null)
 const period = ref<HTMLElement | null>(null)

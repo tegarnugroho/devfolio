@@ -5,25 +5,25 @@
         <div ref="dialog" class="showcase-dialog" role="dialog" aria-modal="true" aria-labelledby="showcase-title" tabindex="-1" @scroll.passive="refreshZoomBounds">
           <header class="showcase-bar">
             <span class="counter" aria-live="polite">{{ pad(current + 1) }} / {{ pad(images.length) }}</span>
-            <div class="showcase-controls"><template v-if="hasMany"><button @click="prev" aria-label="Previous image">←</button><button @click="next" aria-label="Next image">→</button><span class="control-divider" aria-hidden="true"></span></template><button ref="closeButton" class="close-button" @click="close" aria-label="Close project dialog">×</button></div>
+            <div class="showcase-controls"><template v-if="hasMany"><button @click="prev" :aria-label="content.previousImageLabel">←</button><button @click="next" :aria-label="content.nextImageLabel">→</button><span class="control-divider" aria-hidden="true"></span></template><button ref="closeButton" class="close-button" @click="close" :aria-label="content.closeLabel">×</button></div>
           </header>
           <div class="showcase-body">
             <div class="showcase-gallery">
               <figure ref="galleryCanvas" class="gallery-canvas" @pointerenter="onZoomEnter" @pointermove="onZoomMove" @pointerleave="resetZoom" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd" @contextmenu.prevent>
-                <transition name="image-fade"><img ref="mainImage" @load="cacheImageBounds" v-if="displayedSource" :key="displayedSource" :src="displayedSource" :alt="`${project?.title ?? 'Project'} screenshot ${displayedIndex + 1} of ${images.length}`" loading="eager" fetchpriority="high" decoding="async" draggable="false" @dragstart.prevent /></transition>
-              <p v-if="imageError" class="image-error" role="status">Image unavailable. <button @click="go(current)">Retry</button></p>
+                <transition name="image-fade"><img ref="mainImage" @load="cacheImageBounds" v-if="displayedSource" :key="displayedSource" :src="displayedSource" :alt="content.screenshotAlt(project?.title ?? content.fallbackProject, displayedIndex + 1, images.length)" loading="eager" fetchpriority="high" decoding="async" draggable="false" @dragstart.prevent /></transition>
+              <p v-if="imageError" class="image-error" role="status">{{ content.unavailableLabel }} <button @click="go(current)">{{ content.retryLabel }}</button></p>
               </figure>
-              <div v-if="hasMany" class="gallery-thumbnails" aria-label="Gallery images"><button v-for="(image, index) in images" :key="index" :class="{ selected: current === index }" :aria-label="`View image ${index + 1}`" :aria-pressed="current === index" @click="go(index)"><img :src="image" alt="" loading="lazy" fetchpriority="low" decoding="async" draggable="false" /></button></div>
+              <div v-if="hasMany" class="gallery-thumbnails" :aria-label="content.galleryLabel"><button v-for="(image, index) in images" :key="index" :class="{ selected: current === index }" :aria-label="content.imageLabel(index + 1)" :aria-pressed="current === index" @click="go(index)"><img :src="image" alt="" loading="lazy" fetchpriority="low" decoding="async" draggable="false" /></button></div>
             </div>
             <div v-if="project" class="showcase-information">
               <p class="metadata">{{ project.tech[0] }}</p>
               <h2 id="showcase-title">{{ titleParts[0] }}</h2>
               <p v-if="titleParts[1]" class="subtitle">{{ titleParts[1] }}</p>
-              <section class="description"><h3>Project description</h3><p>{{ project.description }}</p></section>
-              <section class="stack"><h3>Tech stack</h3><ul><li v-for="tech in project.tech" :key="tech">{{ tech }}</li></ul></section>
-              <div v-if="validUrl(project.link) || validUrl(project.repo)" class="showcase-actions"><a v-if="validUrl(project.link)" :href="project.link" target="_blank" rel="noopener noreferrer" class="primary-action">View Project <span aria-hidden="true">↗</span></a><a v-if="validUrl(project.repo)" :href="project.repo" target="_blank" rel="noopener noreferrer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-14-2 16" stroke="currentColor" stroke-width="1.5" /></svg>View Code</a></div>
+              <section class="description"><h3>{{ content.descriptionLabel }}</h3><p>{{ project.description }}</p></section>
+              <section class="stack"><h3>{{ content.stackLabel }}</h3><ul><li v-for="tech in project.tech" :key="tech">{{ tech }}</li></ul></section>
+              <div v-if="validUrl(project.link) || validUrl(project.repo)" class="showcase-actions"><a v-if="validUrl(project.link)" :href="project.link" target="_blank" rel="noopener noreferrer" class="primary-action">{{ content.projectLabel }} <span aria-hidden="true">↗</span></a><a v-if="validUrl(project.repo)" :href="project.repo" target="_blank" rel="noopener noreferrer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-14-2 16" stroke="currentColor" stroke-width="1.5" /></svg>{{ content.codeLabel }}</a></div>
             </div>
-            <h2 v-else id="showcase-title" class="sr-only">Project gallery</h2>
+            <h2 v-else id="showcase-title" class="sr-only">{{ content.fallbackTitle }}</h2>
           </div>
         </div>
       </div>
@@ -32,9 +32,13 @@
 </template>
 
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import { onBeforeUnmount, watch, ref, computed, nextTick } from 'vue'
 import { loadGalleryImage } from '@/composables/galleryImages'
 import type { Project } from '@/types'
+
+const content = portfolioContent.showcase
+
 const props = defineProps<{ modelValue: boolean; images: string[]; startIndex?: number; project?: Project | null }>()
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>()
 const current = ref(0)
@@ -134,7 +138,7 @@ watch(current, () => { resetZoom(); zoomBounds = null }, { flush: 'sync' })
 watch(() => props.modelValue, open => { if (!open) { resetZoom(); zoomBounds = null } })
 const hasMany = computed(() => props.images.length > 1)
 const titleParts = computed(() => {
-  const title = props.project?.title ?? 'Project gallery'
+  const title = props.project?.title ?? content.fallbackTitle
   const separator = title.indexOf(' - ')
   return separator < 0 ? [title, ''] : [title.slice(0, separator), title.slice(separator + 3)]
 })

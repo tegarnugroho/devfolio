@@ -4,7 +4,7 @@
     <button
       v-if="atTop && hasNext"
       @click="goNext"
-      aria-label="Go to next section"
+      :aria-label="portfolioContent.navigation.nextSectionLabel"
       class="h-11 w-11 grid place-items-center rounded-full border border-black/20 dark:border-white/20 bg-white/70 dark:bg-black/70 backdrop-blur hover:bg-white/90 dark:hover:bg-black/90 active:scale-95 transition"
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -17,7 +17,7 @@
       <button
         v-if="hasPrev"
         @click="goPrev"
-        aria-label="Go to previous section"
+        :aria-label="portfolioContent.navigation.previousSectionLabel"
         class="h-11 w-11 grid place-items-center rounded-full border border-black/20 dark:border-white/20 bg-white/70 dark:bg-black/70 backdrop-blur hover:bg-white/90 dark:hover:bg-black/90 active:scale-95 transition"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -27,7 +27,7 @@
       <button
         v-if="hasNext"
         @click="goNext"
-        aria-label="Go to next section"
+        :aria-label="portfolioContent.navigation.nextSectionLabel"
         class="h-11 w-11 grid place-items-center rounded-full border border-black/20 dark:border-white/20 bg-white/70 dark:bg-black/70 backdrop-blur hover:bg-white/90 dark:hover:bg-black/90 active:scale-95 transition"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -41,7 +41,7 @@
       <button
         v-if="hasPrev"
         @click="goPrev"
-        aria-label="Go to previous section"
+        :aria-label="portfolioContent.navigation.previousSectionLabel"
         class="h-11 w-11 grid place-items-center rounded-full border border-black/20 dark:border-white/20 bg-white/70 dark:bg-black/70 backdrop-blur hover:bg-white/90 dark:hover:bg-black/90 active:scale-95 transition"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -50,7 +50,7 @@
       </button>
       <button
         @click="goTop"
-        aria-label="Scroll to top"
+        :aria-label="portfolioContent.navigation.topLabel"
         class="h-11 w-11 grid place-items-center rounded-full border border-black/20 dark:border-white/20 bg-white/70 dark:bg-black/70 backdrop-blur hover:bg-white/90 dark:hover:bg-black/90 active:scale-95 transition"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -62,6 +62,7 @@
 </template>
 
 <script setup lang="ts">
+import { portfolioContent } from '@/content/portfolioContent'
 import { onBeforeUnmount, onMounted, ref, computed } from 'vue'
 
 type SectionEl = HTMLElement & { id: string }
