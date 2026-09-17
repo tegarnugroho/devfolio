@@ -1,7 +1,7 @@
 <template>
   <section id="projects" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
-    <h2 v-reveal class="text-2xl font-semibold tracking-tight">Projects</h2>
-    <div class="mt-8 grid sm:grid-cols-2 gap-6">
+    <div class="projects-header"><div><p v-reveal class="projects-eyebrow">Projects</p><h2 v-reveal class="projects-heading">Selected Work</h2><p class="projects-intro">A collection of projects I've built, from mobile and desktop apps to web experiences.</p></div><p class="projects-note">Focused on solving real problems<br />with clean design and maintainable code.</p></div>
+    <div class="projects-grid">
       <ProjectCard
         v-for="(p, idx) in pagedProjects"
         :key="p.id"
@@ -10,13 +10,13 @@
         @open="openLightbox(p)"
       />
     </div>
-    <div class="mt-8 flex items-center justify-between">
+    <div class="projects-pagination">
       <button class="btn btn-ghost disabled:opacity-40" @click="prevPage" :disabled="page === 1"
         aria-label="Previous page">
         ‹ Prev
       </button>
-      <div class="text-sm opacity-70">
-        Page {{ page }} of {{ totalPages }}
+      <div class="page-count">
+        <span class="page-long">Page {{ page }} of {{ totalPages }}</span><span class="page-short">{{ page }} / {{ totalPages }}</span>
       </div>
       <button class="btn btn-ghost disabled:opacity-40" @click="nextPage" :disabled="page === totalPages"
         aria-label="Next page">
@@ -107,4 +107,20 @@ function openLightbox(p: Project) {
 </script>
 
 <style scoped>
+#projects { position: relative; isolation: isolate; }
+#projects::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(to right,var(--grid) 1px,transparent 1px),linear-gradient(to bottom,var(--grid) 1px,transparent 1px); background-size: 40px 40px; opacity: .45; mask-image: radial-gradient(ellipse at 55% 30%,black,transparent 70%); }
+.projects-header { display: flex; align-items: center; justify-content: space-between; gap: 36px; margin-bottom: 28px; }
+.projects-eyebrow { font-family: ui-monospace,monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--label); }
+.projects-heading { margin-top: 10px; font-size: clamp(32px,3vw,44px); font-weight: 600; line-height: 1.2; letter-spacing: -.035em; }
+.projects-intro { color: var(--secondary); margin-top: 12px; max-width: 680px; font-size: 14px; line-height: 1.6; }
+.projects-note { color: var(--secondary); font-size: 12px; line-height: 1.6; flex-shrink: 0; }
+.projects-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; }
+.projects-pagination { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 32px; }
+.projects-pagination button { min-height: 44px; }
+.projects-pagination button:disabled { pointer-events: none; cursor: default; }
+.page-count { color: var(--secondary); font-size: 12px; }
+.page-short { display: none; }
+@media (max-width: 1200px) { .projects-note { display: none; } }
+@media (max-width: 900px) { .projects-grid { grid-template-columns: minmax(0,1fr); } }
+@media (max-width: 639px) { .projects-grid { gap: 18px; } .projects-pagination button { padding-inline: 14px; } .page-long { display: none; } .page-short { display: inline; } }
 </style>

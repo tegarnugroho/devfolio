@@ -10,7 +10,7 @@
     </main>
     <SectionIndex />
     <ScrollNavigator />
-    <footer class="max-w-5xl mx-auto px-4 py-8 text-sm opacity-60">
+    <footer class="portfolio-footer max-w-5xl mx-auto px-4">
       <p>&copy; {{ year }} Tegar.</p>
     </footer>
   </div>
@@ -33,5 +33,7 @@ const year = new Date().getFullYear()
 </script>
 
 <style scoped>
+.portfolio-footer { border-top: 1px solid var(--border); padding-block: 22px; color: var(--secondary); font-family: ui-monospace,monospace; font-size: 11px; }
+@media (max-width: 639px) { .portfolio-footer { padding-bottom: calc(24px + env(safe-area-inset-bottom)); } .portfolio-footer p { padding-right: 48px; } }
 </style>
 
