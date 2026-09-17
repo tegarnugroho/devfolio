@@ -10,9 +10,10 @@
           <div class="showcase-body">
             <div class="showcase-gallery">
               <figure ref="galleryCanvas" class="gallery-canvas" @pointerenter="onZoomEnter" @pointermove="onZoomMove" @pointerleave="resetZoom" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd" @contextmenu.prevent>
-                <transition name="image-fade" mode="out-in"><img ref="mainImage" @load="cacheImageBounds" v-if="images.length" :key="images[current]" :src="images[current]" :alt="`${project?.title ?? 'Project'} screenshot ${current + 1} of ${images.length}`" decoding="async" draggable="false" @dragstart.prevent /></transition>
+                <transition name="image-fade"><img ref="mainImage" @load="cacheImageBounds" v-if="displayedSource" :key="displayedSource" :src="displayedSource" :alt="`${project?.title ?? 'Project'} screenshot ${displayedIndex + 1} of ${images.length}`" loading="eager" fetchpriority="high" decoding="async" draggable="false" @dragstart.prevent /></transition>
+              <p v-if="imageError" class="image-error" role="status">Image unavailable. <button @click="go(current)">Retry</button></p>
               </figure>
-              <div v-if="hasMany" class="gallery-thumbnails" aria-label="Gallery images"><button v-for="(image, index) in images" :key="index" :class="{ selected: current === index }" :aria-label="`View image ${index + 1}`" :aria-pressed="current === index" @click="go(index)"><img :src="image" alt="" loading="lazy" draggable="false" /></button></div>
+              <div v-if="hasMany" class="gallery-thumbnails" aria-label="Gallery images"><button v-for="(image, index) in images" :key="index" :class="{ selected: current === index }" :aria-label="`View image ${index + 1}`" :aria-pressed="current === index" @click="go(index)"><img :src="image" alt="" loading="lazy" fetchpriority="low" decoding="async" draggable="false" /></button></div>
             </div>
             <div v-if="project" class="showcase-information">
               <p class="metadata">{{ project.tech[0] }}</p>
@@ -32,10 +33,52 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, watch, ref, computed, nextTick } from 'vue'
+import { loadGalleryImage } from '@/composables/galleryImages'
 import type { Project } from '@/types'
 const props = defineProps<{ modelValue: boolean; images: string[]; startIndex?: number; project?: Project | null }>()
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>()
 const current = ref(0)
+const displayedSource = ref('')
+const displayedIndex = ref(0)
+const imageError = ref(false)
+let selectionVersion = 0
+let preloadVersion = 0
+let idleHandle = 0
+let idleTimer: ReturnType<typeof setTimeout> | undefined
+function cancelPreload() {
+  preloadVersion++
+  clearTimeout(idleTimer)
+  if (idleHandle) window.cancelIdleCallback?.(idleHandle)
+  idleHandle = 0
+}
+async function preloadGallery(index: number) {
+  cancelPreload()
+  const version = preloadVersion
+  const sources = props.images.slice()
+  if (!sources.length) return
+  const conservative = window.matchMedia('(pointer: coarse)').matches ||
+    !!(navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection?.saveData ||
+    /(^2g$|slow-2g)/.test((navigator as Navigator & { connection?: { effectiveType?: string } }).connection?.effectiveType ?? '')
+  const adjacent = [(index + 1) % sources.length]
+  if (!conservative) adjacent.push((index - 1 + sources.length) % sources.length)
+  await Promise.allSettled([...new Set(adjacent)].filter(i => i !== index).map(i => loadGalleryImage(sources[i])))
+  if (version !== preloadVersion || !props.modelValue || conservative) return
+  // Spread lower-priority work across idle-sized turns, never fetch other projects.
+  const remaining = sources.filter((_, i) => i !== index && !adjacent.includes(i))
+  const schedule = () => {
+    if (window.requestIdleCallback) idleHandle = window.requestIdleCallback(warmNext, { timeout: 1000 })
+    else idleTimer = setTimeout(warmNext, 150)
+  }
+  const warmNext = () => {
+    idleHandle = 0
+    if (version !== preloadVersion || !props.modelValue) return
+    const source = remaining.shift()
+    if (source) void loadGalleryImage(source, 'low').catch(() => {}).finally(() => {
+      if (version === preloadVersion && props.modelValue) schedule()
+    })
+  }
+  schedule()
+}
 const dialog = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
 // Update only the image DOM layer while tracking the pointer.
@@ -110,8 +153,17 @@ function restorePage() {
   previousFocus?.focus({ preventScroll: true })
 }
 watch(() => props.modelValue, async open => {
-  if (!open) { restorePage(); return }
+  if (!open) { selectionVersion++; cancelPreload(); imageError.value = false; restorePage(); return }
   current.value = Math.max(0, Math.min(props.startIndex ?? 0, props.images.length - 1))
+  selectionVersion++
+  imageError.value = false
+  displayedIndex.value = current.value
+  displayedSource.value = props.images[current.value] ?? ''
+  const openingVersion = selectionVersion
+  if (displayedSource.value) void loadGalleryImage(displayedSource.value).catch(() => {
+    if (openingVersion === selectionVersion && props.modelValue) imageError.value = true
+  })
+  void preloadGallery(current.value)
   previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
   previousOverflow = document.body.style.overflow
   document.body.style.overflow = 'hidden'
@@ -123,9 +175,28 @@ watch(() => props.modelValue, async open => {
   closeButton.value?.focus({ preventScroll: true })
 }, { immediate: true })
 function close() { emit('update:modelValue', false) }
-function next() { if (props.images.length) current.value = (current.value + 1) % props.images.length }
-function prev() { if (props.images.length) current.value = (current.value - 1 + props.images.length) % props.images.length }
-function go(index: number) { current.value = index }
+function next() { if (props.images.length) void go((current.value + 1) % props.images.length) }
+function prev() { if (props.images.length) void go((current.value - 1 + props.images.length) % props.images.length) }
+async function go(index: number) {
+  const source = props.images[index]
+  if (!source || !props.modelValue) return
+  const version = ++selectionVersion
+  current.value = index
+  imageError.value = false
+  const ready = loadGalleryImage(source)
+  void preloadGallery(index)
+  try {
+    await ready
+    if (version !== selectionVersion || !props.modelValue || props.images[index] !== source) return
+    resetZoom()
+    displayedIndex.value = index
+    displayedSource.value = source
+    await nextTick()
+    refreshZoomBounds()
+  } catch {
+    if (version === selectionVersion && props.modelValue) imageError.value = true
+  }
+}
 function onKey(event: KeyboardEvent) {
   if (event.key === 'Escape') { event.preventDefault(); close() }
   else if (event.key === 'ArrowRight') { event.preventDefault(); next() }
@@ -145,11 +216,7 @@ function onTouchEnd(event: TouchEvent) {
   const dy = (event.changedTouches[0]?.clientY ?? 0) - touchY
   if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { if (dx < 0) next(); else prev() }
 }
-watch([current, () => props.images], () => {
-  if (!props.modelValue || !props.images.length) return
-  for (const offset of [-1, 1]) { const image = new Image(); image.src = props.images[(current.value + offset + props.images.length) % props.images.length] }
-})
-onBeforeUnmount(() => { resetZoom(); zoomObserver?.disconnect(); restorePage() })
+onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomObserver?.disconnect(); restorePage() })
 </script>
 
 <style scoped>
@@ -164,8 +231,8 @@ onBeforeUnmount(() => { resetZoom(); zoomObserver?.disconnect(); restorePage() }
 .showcase-controls .close-button { border-color: transparent; width: 36px; font-size: 28px; }
 .showcase-body { display: grid; grid-template-columns: minmax(0,1.8fr) minmax(0,1fr); gap: 40px; padding: 0 28px 36px; }
 .showcase-gallery, .showcase-information { min-width: 0; }
-.gallery-canvas { height: clamp(260px,48vh,470px); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; }
-.gallery-canvas img { width: 100%; height: 100%; object-fit: contain; image-rendering: auto; transform-origin: 50% 50%; transition: transform 220ms ease; }
+.gallery-canvas { position: relative; height: clamp(260px,48vh,470px); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; }
+.gallery-canvas img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: auto; transform-origin: 50% 50%; transition: transform 220ms ease; }
 .gallery-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-block: 22px 4px; }
 .gallery-thumbnails button { flex: 0 0 116px; height: 82px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); overflow: hidden; opacity: .6; transition: opacity 220ms,border-color 220ms; }
 .gallery-thumbnails button.selected { border-color: var(--primary); opacity: 1; }
@@ -188,7 +255,9 @@ onBeforeUnmount(() => { resetZoom(); zoomObserver?.disconnect(); restorePage() }
 .showcase-enter-active .showcase-dialog, .showcase-leave-active .showcase-dialog { transition: transform 220ms; }
 .showcase-enter-from, .showcase-leave-to { opacity: 0; }
 .showcase-enter-from .showcase-dialog, .showcase-leave-to .showcase-dialog { transform: scale(.98); }
-.image-fade-enter-active, .image-fade-leave-active { transition: opacity 120ms; }
+.image-fade-enter-active, .image-fade-leave-active { transition: opacity 180ms; }
+.image-error { position: absolute; bottom: 12px; z-index: 1; padding: 5px 8px; background: var(--secondary-background); color: var(--secondary); font-size: 12px; }
+.image-error button { text-decoration: underline; margin-left: 6px; }
 .image-fade-enter-from, .image-fade-leave-to { opacity: 0; }
 @media (max-width: 960px) {
   .showcase-backdrop { padding: 12px; }

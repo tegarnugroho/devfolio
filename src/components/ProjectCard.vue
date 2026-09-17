@@ -1,6 +1,6 @@
 <template>
   <article v-reveal="idx !== undefined ? { delay: idx * 80 } : undefined" class="card project-card">
-    <button type="button" class="project-media" @click="$emit('open')" :aria-label="`View ${project.title} project details`" @contextmenu.prevent>
+    <button type="button" class="project-media" @pointerenter="prefetch" @focus="prefetch" @click="$emit('open')" :aria-label="`View ${project.title} project details`" @contextmenu.prevent>
       <img v-if="project.image" :src="project.image" :alt="`${project.title} screenshot`" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
       <span v-else class="media-placeholder">View project details</span>
       <span class="media-hint" aria-hidden="true">View details +</span>
@@ -16,8 +16,13 @@
   </article>
 </template>
 <script setup lang="ts">
+import { loadGalleryImage } from '@/composables/galleryImages'
 import type { Project } from '@/types'
-defineProps<{ project: Project; idx?: number }>()
+const props = defineProps<{ project: Project; idx?: number }>()
+function prefetch() {
+  const source = props.project.images?.[0] ?? props.project.image
+  if (source) void loadGalleryImage(source, 'low').catch(() => {})
+}
 defineEmits<{ (e: 'open'): void }>()
 function isValid(value?: string) { return !!value && /^https?:\/\//i.test(value) }
 </script>
