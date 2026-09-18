@@ -200,12 +200,12 @@ export const projectsContent = {
         "Booking System",],
       link: 'https://iziloh.com/',
       repo: '#',
-      image: '/assets/iziloh/iziloh-banner.jpg',
+      image: '/assets/iziloh/iziloh-banner.png',
       images: [
-        '/assets/iziloh/iziloh-1.webp',
-        '/assets/iziloh/iziloh-2.webp',
-        '/assets/iziloh/iziloh-3.webp',
-        '/assets/iziloh/iziloh-4.webp',
+        '/assets/iziloh/iziloh-1.png',
+        '/assets/iziloh/iziloh-2.png',
+        '/assets/iziloh/iziloh-3.png',
+        '/assets/iziloh/iziloh-4.png',
       ],
     },
     {
