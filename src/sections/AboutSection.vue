@@ -137,7 +137,13 @@ onBeforeUnmount(() => { disposed = true; cancelAnimationFrame(frame) })
 .about-eyebrow { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: .16em; color: var(--secondary); }
 .about-eyebrow { text-transform: uppercase; color: var(--label); margin-top: 10px; font-size: 9px; }
 .about-layout { gap: 38px; align-items: center; margin-top: 36px; }
-.portrait-wrapper { width: 202px; max-width: 100%; }
+.portrait-wrapper { width: 202px; max-width: 100%; position: relative; z-index: 1; }
+.portrait-wrapper::before, .portrait-wrapper::after { content: ""; position: absolute; inset: -1px; border-radius: 6px; padding: 2px; background: conic-gradient(from var(--beam-angle, 0deg), transparent 75%, #00e5ff 90%, #0077ff 100%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 2; }
+.portrait-wrapper::after { filter: blur(4px); z-index: 1; }
+.portrait-wrapper:hover::before, .portrait-wrapper:hover::after { opacity: 1; animation: spin-beam 2.5s linear infinite; }
+@property --beam-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes spin-beam { to { --beam-angle: 360deg; } }
+@media (prefers-reduced-motion: reduce) { .portrait-wrapper:hover::before, .portrait-wrapper:hover::after { animation: none; background: linear-gradient(135deg, #00e5ff, #0077ff); } }
 .portrait-comparison { position: relative; display: block; width: 100%; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--strong-border); border-radius: 5px; background: var(--secondary-background); }
 .portrait-comparison img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; transition: transform 450ms cubic-bezier(.22,1,.36,1); }
 .portrait-effect { transform: none; }
