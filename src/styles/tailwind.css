@@ -227,3 +227,24 @@ footer.max-w-5xl { padding-inline: var(--section-inset); }
   .portfolio-footer { font-size: 14px; }
   .portfolio-footer .footer-clue { font-size: 12px; }
 }
+
+/* Section dividers share the viewport gutter with the fixed timeline. */
+@media (min-width: 1600px) {
+  main > section[id]:not(#hero), footer.portfolio-footer {
+    position: relative;
+    border-top-color: transparent;
+  }
+  main > section[id]:not(#hero)::after, footer.portfolio-footer::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    width: 90vw;
+    height: 1px;
+    transform: translateX(-50%);
+    background: rgb(0 0 0 / .1);
+    pointer-events: none;
+  }
+  .dark main > section[id]:not(#hero)::after { background: rgb(255 255 255 / .1); }
+  footer.portfolio-footer::after { background: var(--border); }
+}
