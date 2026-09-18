@@ -160,12 +160,12 @@ export const projectsContent = {
         "Event Management",],
       link: 'https://tribelio.com/',
       repo: '#',
-      image: 'assets/tribelio/tribelio-banner.jpeg',
+      image: 'assets/tribelio/tribelio-banner.png',
       images: [
-        'assets/tribelio/tribelio-1.webp',
-        'assets/tribelio/tribelio-2.webp',
-        'assets/tribelio/tribelio-3.webp',
-        'assets/tribelio/tribelio-4.webp',
+        'assets/tribelio/tribelio-1.png',
+        'assets/tribelio/tribelio-2.png',
+        'assets/tribelio/tribelio-3.png',
+        'assets/tribelio/tribelio-4.png',
       ],
     },
     {
