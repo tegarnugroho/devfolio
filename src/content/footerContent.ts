@@ -1,1 +1,2 @@
-export const footerContent = { owner: 'Tegar.', clue: 'There is more than meets the eye.' }
+// English source content lives in the centralized locale dictionary.
+export { footerContent } from '../locales/en'

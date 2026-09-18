@@ -1,4 +1,2 @@
-export const blueprintContent = {
-  title: 'Blueprint', status: 'Active', exitLabel: 'Exit Blueprint',
-  viewportLabel: 'Viewport', breakpointLabel: 'Breakpoint', scrollLabel: 'Scroll', gridLabel: 'Grid',
-}
+// English source content lives in the centralized locale dictionary.
+export { blueprintContent } from '../locales/en'

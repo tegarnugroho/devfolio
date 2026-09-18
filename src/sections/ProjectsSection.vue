@@ -48,22 +48,25 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled
 }
 
-const projects: Project[] = [...publishedProjects]
+const order = ref(publishedProjects.map(project => project.id))
+const projects = computed<Project[]>(() => order.value.map(id => {
+  const index = Number(id.slice(id.lastIndexOf('-') + 1))
+  return { ...content.items[index], id }
+}))
 
 // Shuffle projects on component mount
 onMounted(() => {
-  const shuffledProjects = shuffleArray(projects)
-  projects.splice(0, projects.length, ...shuffledProjects)
+  order.value = shuffleArray(order.value)
 })
 
 const page = ref(1)
 const isSm = useMediaQuery('(min-width: 640px)')
 
 const pageSize = computed(() => (isSm.value ? 2 : 1))
-const totalPages = computed(() => Math.max(1, Math.ceil(projects.length / pageSize.value)))
+const totalPages = computed(() => Math.max(1, Math.ceil(projects.value.length / pageSize.value)))
 const pagedProjects = computed(() => {
   const start = (page.value - 1) * pageSize.value
-  return projects.slice(start, start + pageSize.value)
+  return projects.value.slice(start, start + pageSize.value)
 })
 
 watch(totalPages, (tp) => {
@@ -80,7 +83,8 @@ function prevPage() {
 watch(pagedProjects, async () => { await nextTick(); window.dispatchEvent(new Event('blueprint-layout')) })
 
 // Lightbox state
-const selectedProject = ref<Project | null>(null)
+const selectedId = ref<string | null>(null)
+const selectedProject = computed(() => projects.value.find(project => project.id === selectedId.value) ?? null)
 const lightboxOpen = ref(false)
 const lightboxImages = ref<string[]>([])
 const lightboxStart = ref(0)
@@ -88,7 +92,7 @@ const lightboxStart = ref(0)
 function openLightbox(p: Project) {
   const imgs = p.images && p.images.length ? p.images : (p.image ? [p.image] : [])
   if (!imgs.length) return
-  selectedProject.value = p
+  selectedId.value = p.id
   lightboxImages.value = imgs
   lightboxStart.value = 0
   lightboxOpen.value = true

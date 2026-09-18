@@ -1,6 +1,6 @@
 <template>
   <nav ref="markers" class="hero-markers" :aria-label="portfolioContent.navigation.shortcutsLabel">
-    <a v-for="(section, index) in sections" :key="section.id" :href="`#${section.id}`"
+    <a v-for="(section, index) in sections" :key="section.id" :href="sectionHref(section.id)"
       :aria-label="section.label" :aria-current="active === section.id ? 'location' : undefined">
       {{ String(index + 1).padStart(2, '0') }}
     </a>
@@ -10,12 +10,13 @@
 
 <script setup lang="ts">
 import { portfolioContent } from '@/content/portfolioContent'
+import { sectionHref } from '@/composables/useTranslation'
 import { navigationTarget } from '@/composables/useSectionNavigation'
-import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch, nextTick, computed } from 'vue'
 
-const sections = [portfolioContent.navigation.home,
+const sections = computed(() => [portfolioContent.navigation.home,
   ...portfolioContent.navigation.items.map(item => ({ id: item.href.slice(1), label: item.label })),
-]
+])
 const active = ref('hero')
 const markers = ref<HTMLElement | null>(null)
 const indicator = ref({ transform: 'translateY(34px)', opacity: 0 })
@@ -24,7 +25,7 @@ function measureIndicator() {
   const link = container?.querySelector<HTMLElement>('a')
   if (!container || !link || !container.getClientRects().length) return
   const gap = parseFloat(getComputedStyle(container).rowGap) || 0
-  const index = sections.findIndex(section => section.id === active.value)
+  const index = sections.value.findIndex(section => section.id === active.value)
   indicator.value = { transform: `translateY(${index * (link.offsetHeight + gap) + 34}px)`, opacity: 1 }
 }
 watch(active, () => { void nextTick(measureIndicator) })
@@ -43,7 +44,7 @@ function scheduleUpdate() {
 }
 function onResize() { scheduleUpdate(); measureIndicator() }
 onMounted(() => {
-  elements = sections.map(section => document.getElementById(section.id)).filter((element): element is HTMLElement => element !== null)
+  elements = sections.value.map(section => document.getElementById(section.id)).filter((element): element is HTMLElement => element !== null)
   updateActive()
   measureIndicator()
   window.addEventListener('scroll', scheduleUpdate, { passive: true })

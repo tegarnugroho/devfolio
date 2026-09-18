@@ -1,4 +1,5 @@
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useTranslation } from './useTranslation'
 import { portfolioContent } from '@/content/portfolioContent'
 
 export interface BlogPost {
@@ -64,5 +65,7 @@ export function useWritingPosts() {
     }
   })
   onBeforeUnmount(() => { disposed = true; controller.abort(); clearTimeout(timeout) })
-  return { posts, loading, failed }
+  const { locale } = useTranslation()
+  const localizedPosts = computed(() => posts.value.map(post => ({ ...post, dateLabel: post.date ? new Intl.DateTimeFormat(locale.value, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${post.date}T00:00:00Z`)).toUpperCase() : '' })))
+  return { posts: localizedPosts, loading, failed }
 }

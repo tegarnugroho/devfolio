@@ -1,36 +1,26 @@
-import { siteContent } from './siteContent'
-import { navigationContent } from './navigationContent'
-import { heroContent } from './heroContent'
-import { aboutContent } from './aboutContent'
-import { skillsContent } from './skillsContent'
-import { projectsContent } from './projectsContent'
-import { showcaseContent } from './showcaseContent'
-import { contactContent } from './contactContent'
-import { footerContent } from './footerContent'
-import { writingContent } from './writingContent'
-import { blueprintContent } from './blueprintContent'
+import { reactive } from 'vue'
+import { en } from '../locales/en'
 
 export type { NavItemContent, SkillGroupContent } from './contentModels'
 
-// Static content is recursively frozen; runtime UI state remains in components.
-function freezeContent<T extends object>(value: T): T {
-  Object.values(value).forEach(child => {
-    if (child !== null && typeof child === 'object') freezeContent(child)
-  })
-  return Object.freeze(value)
+function clone<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(clone) as T
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, clone(child)])) as T
+  return value
 }
 
-// Each section owns its copy in a separate content file.
-export const portfolioContent = freezeContent({
-  site: siteContent,
-  navigation: navigationContent,
-  hero: heroContent,
-  about: aboutContent,
-  skills: skillsContent,
-  projects: projectsContent,
-  showcase: showcaseContent,
-  contact: contactContent,
-  footer: footerContent,
-  blueprint: blueprintContent,
-  writing: writingContent,
-})
+// Keep section and array references stable when translations change.
+export const portfolioContent = reactive(clone(en))
+
+export function applyTranslations(dictionary: typeof en) {
+  function sync(target: Record<string, unknown>, source: Record<string, unknown>) {
+    for (const [key, value] of Object.entries(source)) {
+      const current = target[key]
+      if (value && typeof value === 'object' && current && typeof current === 'object') {
+        sync(current as Record<string, unknown>, value as Record<string, unknown>)
+      } else target[key] = value
+    }
+    if (Array.isArray(target) && Array.isArray(source)) target.length = source.length
+  }
+  sync(portfolioContent, dictionary)
+}

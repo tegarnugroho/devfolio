@@ -5,7 +5,7 @@
   >
     <nav data-blueprint="NAVIGATION" ref="navElement" class="nav-inner relative mx-auto flex items-center justify-between">
       <a
-        :href="portfolioContent.navigation.homeTarget"
+        :href="sectionHref('hero')"
         @pointerenter="launchPlane" @click="launchPlane"
         class="font-semibold tracking-wide rounded px-2 py-1 -mx-2 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
       >
@@ -22,7 +22,7 @@
       <ul ref="desktopLinks" class="nav-links relative hidden md:flex gap-8 text-sm">
         <li v-for="item in items" :key="item.href">
           <a
-            :href="item.href"
+            :href="sectionHref(item.href.slice(1))"
             :class="{ 'nav-active': active === item.href }"
             :aria-current="active === item.href ? 'location' : undefined"
             class="nav-link relative inline-block py-1 px-1 -mx-1"
@@ -33,6 +33,9 @@
         <li class="nav-travel-indicator" aria-hidden="true" :style="desktopIndicator"><span></span></li>
       </ul>
       <div class="flex items-center gap-3">
+        <div class="language-switcher" :aria-label="portfolioContent.language.label" role="group">
+          <a v-for="code in languageCodes" :key="code" :href="languageHref(code)" :lang="code" :aria-label="portfolioContent.language[code]" :aria-current="locale === code ? 'true' : undefined" @click="switchLanguage($event, code)">{{ code.toUpperCase() }}</a>
+        </div>
         <button
           @click="onThemeClick" @pointerdown="startHold" @pointermove="moveHold" @pointerup="cancelHold" @pointercancel="cancelHold" @pointerleave="cancelHold" @contextmenu.prevent
           ref="themeButton"
@@ -81,7 +84,7 @@
         <div class="mobile-menu-heading"><span>{{ portfolioContent.navigation.menuHeading }}</span><span>{{ String(Math.max(0, items.findIndex(item => item.href === active)) + 1).padStart(2, '0') }} / {{ String(items.length).padStart(2, '0') }}</span></div>
         <ul ref="mobileLinks" class="mobile-menu-sections">
           <li v-for="(item, index) in items" :key="item.href" :style="{ '--row-index': index }" class="mobile-menu-row">
-            <a :href="item.href" @click="open = false" :class="{ selected: active === item.href }" :aria-current="active === item.href ? 'location' : undefined">
+            <a :href="sectionHref(item.href.slice(1))" @click="open = false" :class="{ selected: active === item.href }" :aria-current="active === item.href ? 'location' : undefined">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path :d="menuIcons[item.href]" /></svg>
               <span>{{ item.label }}</span><span class="mobile-menu-number">{{ String(index + 1).padStart(2, '0') }}</span>
             </a>
@@ -108,14 +111,26 @@ import { useFirstVisibleFlight } from '@/composables/useFirstVisibleFlight'
 import { useBlueprintHold } from '@/composables/useBlueprint'
 import { portfolioContent } from '@/content/portfolioContent'
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { computed } from 'vue'
+import { useTranslation, type Locale } from '@/composables/useTranslation'
 import { navigationTarget } from '@/composables/useSectionNavigation'
 import { useTheme } from '@/composables/useTheme'
 import { themeRevealFallback } from '@/composables/themeRevealFallback'
 
 const { progressVisible, startHold, moveHold, cancelHold, allowThemeClick } = useBlueprintHold()
 
+const { locale, setLocale, sectionHref } = useTranslation()
+const languageCodes: Locale[] = ['en', 'id']
+function switchLanguage(event: MouseEvent, code: Locale) {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  event.preventDefault()
+  void setLocale(code)
+}
+function languageHref(code: Locale) { return sectionHref(active.value.slice(1), code) }
+watch(locale, () => { void nextTick(measureIndicators) })
+
 const items = portfolioContent.navigation.items
-const menuContacts = [...portfolioContent.contact.items].sort((a, b) => ['github', 'linkedin', 'email'].indexOf(a.type) - ['github', 'linkedin', 'email'].indexOf(b.type))
+const menuContacts = computed(() => [...portfolioContent.contact.items].sort((a, b) => ['github', 'linkedin', 'email'].indexOf(a.type) - ['github', 'linkedin', 'email'].indexOf(b.type)))
 const menuIcons: Record<string, string> = {
   '#about': 'm3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9',
   '#skills': 'M16 6a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM3 21v-2a7 7 0 0 1 7-7h4a7 7 0 0 1 7 7v2Z',
@@ -331,6 +346,11 @@ onBeforeUnmount(() => { indicatorObserver?.disconnect(); dotAnimations.forEach(a
 </script>
 
 <style scoped>
+.language-switcher { display: flex; align-items: center; font-family: ui-monospace,monospace; font-size: 10px; color: var(--secondary); }
+.language-switcher a { padding: 6px 3px; opacity: .55; transition: opacity 180ms; }
+.language-switcher a + a::before { content: '/'; margin-right: 6px; color: var(--muted); }
+.language-switcher a[aria-current], .language-switcher a:hover { opacity: 1; color: var(--primary); }
+
 .brand-flight { position: absolute; overflow: hidden; pointer-events: none; color: var(--primary); z-index: 1; }
 .flight-trail { position: absolute; inset: 0; opacity: 0; animation: brand-trail 4500ms linear both; }
 .paper-plane { position: absolute; left: 0; top: 0; offset-path: var(--flight-path); offset-rotate: auto 45deg; opacity: 0; animation: flight-travel 3600ms cubic-bezier(.55,0,.85,.45) both, brand-plane 4500ms linear both; }

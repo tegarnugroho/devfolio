@@ -6,11 +6,11 @@
           <svg class="blueprint-guides" width="100%" height="100%"><path :d="guides" /></svg>
           <div v-if="section" class="blueprint-section" :style="{ left: `${Math.max(12, section.x)}px`, top: `${Math.max(headerHeight + 8, section.y + 8)}px` }">{{ section.label }}</div>
           <div v-for="(node, index) in visibleNodes" :key="`${node.label}-${index}`" class="blueprint-bound" :class="{ emphasized: hovered === node.element }" :style="{ left: `${node.x}px`, top: `${node.y}px`, width: `${node.width}px`, height: `${node.height}px` }">
-            <span v-if="index < (mobile ? 2 : 4)" class="blueprint-label">{{ node.label }}</span>
+            <span v-if="index < (mobile ? 2 : 4)" class="blueprint-label">{{ label(node.label) }}</span>
             <span v-if="index < 3" class="blueprint-dimension">{{ Math.round(node.width) }} × {{ Math.round(node.height) }}</span>
           </div>
           <div v-if="spacing" class="blueprint-spacing" :style="{ left: `${spacing.x}px`, top: `${spacing.y}px`, height: `${spacing.height}px` }"><span>{{ Math.round(spacing.height) }}px</span></div>
-          <div v-if="inspection && !mobile" class="blueprint-inspection" :style="{ left: `${Math.max(12, Math.min(width - 225, inspection.x))}px`, top: `${Math.max(headerHeight + 36, Math.min(height - 130, inspection.y + inspection.height + 10))}px` }"><strong>{{ inspection.label }}</strong><span v-if="inspection.text">“{{ inspection.text }}”</span><span>{{ Math.round(inspection.width) }} × {{ Math.round(inspection.height) }}</span><span v-if="inspection.font">{{ inspection.font }}</span><span>X {{ Math.round(inspection.x) }} / Y {{ Math.round(inspection.y + scrollY) }}</span></div>
+          <div v-if="inspection && !mobile" class="blueprint-inspection" :style="{ left: `${Math.max(12, Math.min(width - 225, inspection.x))}px`, top: `${Math.max(headerHeight + 36, Math.min(height - 130, inspection.y + inspection.height + 10))}px` }"><strong>{{ label(inspection.label) }}</strong><span v-if="inspection.text">“{{ inspection.text }}”</span><span>{{ Math.round(inspection.width) }} × {{ Math.round(inspection.height) }}</span><span v-if="inspection.font">{{ inspection.font }}</span><span>X {{ Math.round(inspection.x) }} / Y {{ Math.round(inspection.y + scrollY) }}</span></div>
           <div class="blueprint-readout"><span>{{ content.viewportLabel }} <b>{{ width }} × {{ height }}</b></span><span>{{ content.breakpointLabel }} <b>{{ breakpoint }}</b></span><span v-if="!mobile">{{ content.scrollLabel }} <b>{{ scrollPercent }}%</b></span><span v-if="!mobile && grid">{{ content.gridLabel }} <b>{{ grid }}</b></span></div>
         </div>
       </Transition>
@@ -26,6 +26,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch 
 import { blueprintEnabled } from '@/composables/useBlueprint'
 import { portfolioContent } from '@/content/portfolioContent'
 const content = portfolioContent.blueprint
+function label(value: string) { return content.labels[value as keyof typeof content.labels] ?? value }
 interface Bounds { element: HTMLElement; label: string; x: number; y: number; width: number; height: number; fixed: boolean; font: string; text: string }
 const nodes = shallowRef<Bounds[]>([])
 const sectionNodes = shallowRef<Bounds[]>([])
@@ -36,7 +37,7 @@ const observed = new Set<HTMLElement>()
 let frame = 0
 let exitTimer: ReturnType<typeof setTimeout> | undefined
 const mobile = computed(() => width.value < 768)
-const breakpoint = computed(() => mobile.value ? 'MOBILE' : width.value < 1024 ? 'TABLET' : 'DESKTOP')
+const breakpoint = computed(() => mobile.value ? content.mobileLabel : width.value < 1024 ? content.tabletLabel : content.desktopLabel)
 const positioned = computed(() => nodes.value.map(node => ({ ...node, y: node.y - (node.fixed ? 0 : scrollY.value) })))
 const visibleNodes = computed(() => {
   const modal = positioned.value.some(node => node.label === 'MODAL')
@@ -71,7 +72,7 @@ function measure() {
   width.value = window.innerWidth; height.value = window.innerHeight
   headerHeight.value = document.querySelector('header.graphite-navbar')?.getBoundingClientRect().height ?? 80
   nodes.value = Array.from(document.querySelectorAll<HTMLElement>('[data-blueprint]')).filter(element => element.getClientRects().length && !element.closest('[inert]')).map(element => bounds(element, element.dataset.blueprint!))
-  sectionNodes.value = Array.from(document.querySelectorAll<HTMLElement>('main > section[id]')).map((element, index) => bounds(element, `${String(index + 1).padStart(2, '0')} / ${element.id.toUpperCase()}`))
+  sectionNodes.value = Array.from(document.querySelectorAll<HTMLElement>('main > section[id]')).map((element, index) => bounds(element, `${String(index + 1).padStart(2, '0')} / ${(portfolioContent.navigation.items.find(item => item.href === `#${element.id}`)?.label ?? portfolioContent.navigation.home.label).toUpperCase()}`))
   const elements = new Set([...nodes.value, ...sectionNodes.value].map(node => node.element))
   observed.forEach(element => { if (!elements.has(element)) { observer?.unobserve(element); observed.delete(element) } })
   elements.forEach(element => { if (!observed.has(element)) { observer?.observe(element); observed.add(element) } })

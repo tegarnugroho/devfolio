@@ -6,7 +6,7 @@
       <p v-reveal class="hero-eyebrow">{{ content.eyebrow }}</p>
       <h1 data-blueprint="HERO_TITLE" ref="heading" @pointerenter="launchPlane" @click="launchPlane" v-reveal="{ delay: 60 }">{{ portfolioContent.site.name }}<span ref="period">{{ portfolioContent.site.brandPeriod }}</span></h1>
       <p v-reveal="{ delay: 120 }" data-blueprint="HERO_DESCRIPTION" class="hero-intro">{{ content.description }}</p>
-      <div v-reveal="{ delay: 180 }" data-blueprint="PRIMARY_CTA" class="hero-actions"><a :href="content.projectsTarget" class="btn hero-primary">{{ content.projectsLabel }} <span aria-hidden="true">→</span></a><a :href="content.contactTarget" class="hero-contact">{{ content.contactLabel }}</a></div>
+      <div v-reveal="{ delay: 180 }" data-blueprint="PRIMARY_CTA" class="hero-actions"><a :href="sectionHref('projects')" class="btn hero-primary">{{ content.projectsLabel }} <span aria-hidden="true">→</span></a><a :href="sectionHref('contact')" class="hero-contact">{{ content.contactLabel }}</a></div>
     </div>
     <div v-if="flying" class="hero-flight" :style="{ '--flight-path': flightPathStyle }" aria-hidden="true">
       <svg class="hero-trail" width="100%" height="100%" fill="none">
@@ -21,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import { sectionHref } from '@/composables/useTranslation'
 import { portfolioContent } from '@/content/portfolioContent'
 import { ref, computed, onBeforeUnmount } from 'vue'
 

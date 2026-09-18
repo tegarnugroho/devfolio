@@ -6,7 +6,7 @@
       <p v-reveal="{ delay: 120 }" class="mt-3 opacity-75">{{ content.description }}</p>
     </div>
     <ul class="capability-list">
-      <li v-for="(row, i) in matrix" :key="row.label" data-blueprint="SKILL_GROUP" class="capability-row">
+      <li v-for="(row, i) in matrix" :key="row.icon" data-blueprint="SKILL_GROUP" class="capability-row">
         <div class="capability-icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path :d="icons[row.icon]" /></svg></div>
         <div class="capability-copy"><h3>{{ row.label }}</h3><p>{{ row.description }}</p></div>
         <ul class="capability-tags"><li v-for="name in row.items" :key="name">{{ name }}</li></ul>

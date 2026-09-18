@@ -1,5 +1,6 @@
 import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 
+import { updateSectionUrl } from './useTranslation'
 import { navigationTarget } from './useSectionNavigation'
 
 export function useScrollHash(selector = 'section[id]'): { current: Ref<string | null> } {
@@ -22,7 +23,7 @@ export function useScrollHash(selector = 'section[id]'): { current: Ref<string |
         if (id && current.value !== id) {
           current.value = id
           // Update hash without adding a new history entry or causing a jump
-          history.replaceState(null, '', `#${id}`)
+          updateSectionUrl(id)
         }
       },
       {

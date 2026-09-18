@@ -1,4 +1,5 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { parseLocalePath, updateSectionUrl } from './useTranslation'
 import { finishReveal } from '@/directives/reveal'
 
 export const navigationTarget = ref<string | null>(null)
@@ -61,7 +62,7 @@ export function navigateToSection(section: HTMLElement, top = false) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || Math.abs(distance) < 2) {
     section.querySelectorAll<HTMLElement>('[data-reveal]').forEach(finishReveal)
     window.scrollTo({ top: destination, behavior: 'instant' })
-    history.pushState(null, '', `#${section.id}`)
+    updateSectionUrl(section.id, 'push')
     window.dispatchEvent(new Event('scroll'))
     return
   }
@@ -70,7 +71,7 @@ export function navigateToSection(section: HTMLElement, top = false) {
   document.documentElement.dataset.sectionNavigating = 'true'
   document.documentElement.style.setProperty('--navigation-duration', `${duration}ms`)
   navigationTarget.value = section.id
-  history.pushState(null, '', `#${section.id}`)
+  updateSectionUrl(section.id, 'push')
   const cancel = () => cancelSectionNavigation()
   const key = (event: KeyboardEvent) => {
     if (['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' ','Escape'].includes(event.key) &&
@@ -82,6 +83,7 @@ export function navigateToSection(section: HTMLElement, top = false) {
   window.addEventListener('keydown', key)
   window.addEventListener('resize', cancel)
   window.addEventListener('popstate', cancel)
+  window.addEventListener('locale-changing', cancel)
   const motion = matchMedia('(prefers-reduced-motion: reduce)')
   motion.addEventListener('change', cancel)
   removeInputs = () => {
@@ -91,6 +93,7 @@ export function navigateToSection(section: HTMLElement, top = false) {
     window.removeEventListener('keydown', key)
     window.removeEventListener('resize', cancel)
     window.removeEventListener('popstate', cancel)
+    window.removeEventListener('locale-changing', cancel)
     motion.removeEventListener('change', cancel)
   }
   const started = performance.now()
@@ -118,8 +121,11 @@ export function useSectionNavigation() {
     const link = (event.target as Element).closest<HTMLAnchorElement>('a[href]')
     if (!link || link.target || link.hasAttribute('download')) return
     const url = new URL(link.href)
-    if (url.origin !== location.origin || url.pathname !== location.pathname || url.search !== location.search || !url.hash) return
-    const section = document.getElementById(url.hash.slice(1))
+    if (url.origin !== location.origin || url.search !== location.search) return
+    const route = parseLocalePath(url.pathname)
+    const current = parseLocalePath(location.pathname)
+    if (route.locale !== current.locale || !/^\/(en|id)(\/(about|skills|projects|writing|contact))?\/?$/.test(url.pathname)) return
+    const section = document.getElementById(url.hash ? url.hash.slice(1) : route.section)
     if (!section?.matches('main section[id]')) return
     event.preventDefault()
     navigateToSection(section, section.id === 'hero')

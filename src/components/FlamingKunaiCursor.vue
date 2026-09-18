@@ -3,7 +3,7 @@
     <div ref="cursor" class="flaming-kunai-cursor" aria-hidden="true">
       <img
         :src="cursorSrc"
-        alt="Madara Uchiha's Chakra Infused Kunai"
+        alt=""
         width="32"
         height="32"
         class="kunai-cursor-img"
