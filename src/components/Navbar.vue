@@ -19,7 +19,7 @@
         </svg>
         <svg class="paper-plane" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="m3 10 18-7-7 18-3-8-8-3Zm8 3 10-10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
       </div>
-      <ul class="nav-links hidden md:flex gap-8 text-sm">
+      <ul ref="desktopLinks" class="nav-links relative hidden md:flex gap-8 text-sm">
         <li v-for="item in items" :key="item.href">
           <a
             :href="item.href"
@@ -30,6 +30,7 @@
             {{ item.label }}
           </a>
         </li>
+        <li class="nav-travel-indicator" aria-hidden="true" :style="desktopIndicator"><span></span></li>
       </ul>
       <div class="flex items-center gap-3">
         <button
@@ -78,13 +79,14 @@
     <Transition name="mobile-menu">
       <div id="mobile-navigation" v-if="open" :inert="!open" :aria-hidden="!open" class="mobile-navigation md:hidden absolute top-full z-40">
         <div class="mobile-menu-heading"><span>{{ portfolioContent.navigation.menuHeading }}</span><span>{{ String(Math.max(0, items.findIndex(item => item.href === active)) + 1).padStart(2, '0') }} / {{ String(items.length).padStart(2, '0') }}</span></div>
-        <ul class="mobile-menu-sections">
+        <ul ref="mobileLinks" class="mobile-menu-sections">
           <li v-for="(item, index) in items" :key="item.href" :style="{ '--row-index': index }" class="mobile-menu-row">
-            <a :href="item.href" @click="open = false" :class="{ selected: active === item.href || (active === '#hero' && index === 0) }" :aria-current="active === item.href ? 'location' : undefined">
+            <a :href="item.href" @click="open = false" :class="{ selected: active === item.href }" :aria-current="active === item.href ? 'location' : undefined">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path :d="menuIcons[item.href]" /></svg>
               <span>{{ item.label }}</span><span class="mobile-menu-number">{{ String(index + 1).padStart(2, '0') }}</span>
             </a>
           </li>
+          <li class="mobile-travel-indicator" aria-hidden="true" :style="mobileIndicator"><span></span></li>
         </ul>
         <div class="mobile-menu-social">
           <p>{{ portfolioContent.navigation.connectHeading }}</p>
@@ -105,7 +107,7 @@
 import { useFirstVisibleFlight } from '@/composables/useFirstVisibleFlight'
 import { useBlueprintHold } from '@/composables/useBlueprint'
 import { portfolioContent } from '@/content/portfolioContent'
-import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 
 const { progressVisible, startHold, moveHold, cancelHold, allowThemeClick } = useBlueprintHold()
@@ -184,8 +186,55 @@ const open = ref(false)
 const menuButton = ref<HTMLButtonElement | null>(null)
 function closeMenu() { open.value = false; menuButton.value?.focus() }
 function onOutsidePointer(event: PointerEvent) { if (open.value && !navElement.value?.parentElement?.contains(event.target as Node)) open.value = false }
-function onResize() { if (window.innerWidth >= 768) open.value = false }
+function onResize() { if (window.innerWidth >= 768) open.value = false; void nextTick(measureIndicators) }
 const active = ref('#hero')
+const desktopLinks = ref<HTMLElement | null>(null)
+const mobileLinks = ref<HTMLElement | null>(null)
+const desktopIndicator = ref({ transform: 'translate(0px, 0px)', width: '4px', opacity: 0 })
+const mobileIndicator = ref({ transform: 'translateY(0px)', height: '4px', opacity: 0 })
+let indicatorObserver: ResizeObserver | undefined
+function measureIndicators() {
+  const desktop = desktopLinks.value
+  const link = desktop?.querySelector<HTMLAnchorElement>('a[aria-current="location"]')
+  if (desktop && link && desktop.getClientRects().length) {
+    const container = desktop.getBoundingClientRect()
+    const range = document.createRange()
+    range.selectNodeContents(link)
+    const label = range.getBoundingClientRect()
+    desktopIndicator.value = { transform: `translate(${label.left - container.left + label.width / 2 - 2}px, ${label.bottom - container.top + 8}px)`, width: '4px', opacity: 1 }
+  } else desktopIndicator.value = { ...desktopIndicator.value, width: '4px', opacity: 0 }
+  const mobileLink = mobileLinks.value?.querySelector<HTMLAnchorElement>('a[aria-current="location"]')
+  if (mobileLink) {
+    const row = mobileLink.parentElement!
+    mobileIndicator.value = { transform: `translateY(${row.offsetTop + mobileLink.offsetHeight / 2 - 2}px)`, height: '4px', opacity: 1 }
+  } else mobileIndicator.value = { ...mobileIndicator.value, height: '4px', opacity: 0 }
+}
+let dotAnimations: Animation[] = []
+function launchDot() {
+  dotAnimations.forEach(animation => animation.cancel())
+  dotAnimations = []
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  for (const [container, vertical] of [[desktopLinks.value, false], [mobileLinks.value, true]] as const) {
+    const dot = container?.querySelector<HTMLElement>(vertical ? '.mobile-travel-indicator span' : '.nav-travel-indicator span')
+    if (!dot || !container?.getClientRects().length) continue
+    dotAnimations.push(dot.animate([
+      { transform: 'translate(0,0) scale(1)', borderRadius: '50%', offset: 0 },
+      { transform: vertical ? 'translateX(-2px) scale(.65,2.8)' : 'translateY(3px) scale(2.8,.65)', borderRadius: '60% 40% 60% 40%', offset: .25 },
+      { transform: vertical ? 'translateX(-1px) scale(.8,1.6)' : 'translateY(1px) scale(1.6,.8)', borderRadius: '50%', offset: .6 },
+      { transform: 'translate(0,0) scale(1)', borderRadius: '50%', offset: 1 },
+    ], { duration: 480, easing: 'cubic-bezier(.22,1,.36,1)' }))
+  }
+}
+watch([active, open], async ([current], [previous]) => {
+  await nextTick()
+  measureIndicators()
+  if (current !== previous) launchDot()
+})
+watch([desktopLinks, mobileLinks], (elements, previous) => {
+  previous?.forEach(element => { if (element) indicatorObserver?.unobserve(element) })
+  elements.forEach(element => { if (element) indicatorObserver?.observe(element) })
+  measureIndicators()
+}, { flush: 'post' })
 function updateActive() {
   const sections = Array.from(document.querySelectorAll<HTMLElement>('main section[id]'))
   active.value = '#' + (sections.reverse().find(section => section.getBoundingClientRect().top <= window.innerHeight * 0.4)?.id ?? 'hero')
@@ -249,13 +298,17 @@ function toggleTheme() {
 }
 
 onMounted(() => {
+  indicatorObserver = new ResizeObserver(measureIndicators)
+  if (desktopLinks.value) indicatorObserver.observe(desktopLinks.value)
+  if (mobileLinks.value) indicatorObserver.observe(mobileLinks.value)
+  void document.fonts.ready.then(() => { if (!disposed) measureIndicators() })
   theme.value = get()
   updateActive()
   window.addEventListener('scroll', updateActive, { passive: true })
   window.addEventListener('resize', onResize)
   window.addEventListener('pointerdown', onOutsidePointer)
 })
-onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout(commitTimer); clearTimeout(settleTimer); activeTransition?.skipTransition(); settleTheme(); window.removeEventListener('scroll', updateActive); window.removeEventListener('resize', onResize); window.removeEventListener('pointerdown', onOutsidePointer) })
+onBeforeUnmount(() => { indicatorObserver?.disconnect(); dotAnimations.forEach(animation => animation.cancel()); disposed = true; clearTimeout(flightTimer); clearTimeout(commitTimer); clearTimeout(settleTimer); activeTransition?.skipTransition(); settleTheme(); window.removeEventListener('scroll', updateActive); window.removeEventListener('resize', onResize); window.removeEventListener('pointerdown', onOutsidePointer) })
 </script>
 
 <style scoped>
@@ -317,7 +370,8 @@ onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout
 .mobile-navigation { inset-inline: 12px; margin-top: 8px; padding: 22px 16px 16px; border: 1px solid var(--strong-border); border-radius: 18px; background: linear-gradient(145deg,var(--secondary-background),var(--background)); box-shadow: 0 20px 65px #0005,inset 0 1px 0 var(--border); max-height: calc(100svh - 96px - env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain; transform-origin: top right; }
 .mobile-menu-heading { display: flex; justify-content: space-between; padding: 8px 10px 18px; font: 10px ui-monospace,monospace; text-transform: uppercase; letter-spacing: .14em; color: var(--label); }
 .mobile-menu-sections a { display: flex; align-items: center; gap: 20px; padding: 16px; border-radius: 13px; color: var(--primary); font-size: 17px; font-weight: 500; min-height: 58px; }
-.mobile-menu-sections a.selected { background: var(--surface); box-shadow: inset 0 1px 0 var(--border); }
+.mobile-menu-sections a { color: var(--secondary); transition: color 250ms; }
+.mobile-menu-sections a.selected { color: var(--primary); }
 .mobile-navigation svg { flex-shrink: 0; }
 .mobile-menu-number { margin-left: auto; font: 12px ui-monospace,monospace; color: var(--label); }
 .mobile-menu-social { margin: 22px 6px 24px; padding-top: 24px; border-top: 1px solid var(--border); }
@@ -339,4 +393,9 @@ onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout
 .theme-sky .blueprint-hold-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; opacity: .45; }
 .blueprint-hold-ring circle { fill: none; stroke: currentColor; stroke-width: 1; stroke-dasharray: 113.1; stroke-dashoffset: 113.1; animation: blueprint-hold 400ms linear forwards; }
 @keyframes blueprint-hold { to { stroke-dashoffset: 0; } }
+.nav-travel-indicator,.mobile-travel-indicator { position: absolute; top: 0; left: 0; width: 4px; height: 4px; pointer-events: none; transition: transform 480ms cubic-bezier(.22,1,.36,1),opacity 180ms; }
+.nav-travel-indicator span,.mobile-travel-indicator span { display: block; width: 4px; height: 4px; border-radius: 50%; background: var(--primary); }
+.mobile-menu-sections { position: relative; }
+.mobile-travel-indicator { left: 4px; }
+@media (prefers-reduced-motion: reduce) { .nav-travel-indicator,.mobile-travel-indicator { transition: none; } }
 </style>

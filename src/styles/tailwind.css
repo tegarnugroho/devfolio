@@ -37,7 +37,6 @@ footer.max-w-5xl { padding-inline: var(--section-inset); }
 .nav-links { color: var(--secondary); }
 .nav-link { transition: color 250ms; }
 .nav-link:hover, .nav-link.nav-active { color: var(--primary); }
-.nav-link.nav-active::after { content: ''; position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--primary); bottom: -6px; left: calc(50% - 2px); }
 .nav-inner button { border-color: var(--strong-border); background: transparent; }
 .mobile-navigation { background: var(--secondary-background); border-block: 1px solid var(--border); }
 .graphite-hero { position: relative; isolation: isolate; min-height: calc(100svh - 80px); display: flex; align-items: center; padding: 96px var(--section-inset) 140px; }
