@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="portfolio-shell">
     <Navbar />
     <main class="max-w-5xl mx-auto px-4">
       <HeroSection />
@@ -43,6 +43,8 @@ const year = new Date().getFullYear()
 </script>
 
 <style scoped>
+/* Clip viewport-wide decoration without creating another scroll container. */
+.portfolio-shell { overflow-x: clip; }
 .portfolio-footer { border-top: 1px solid var(--border); padding-block: 22px; color: var(--secondary); font-family: ui-monospace,monospace; font-size: 11px; }
 @media (max-width: 639px) { .portfolio-footer { padding-bottom: calc(24px + env(safe-area-inset-bottom)); } .portfolio-footer p { padding-right: 48px; } }
 .footer-clue { margin-top: 6px; font-size: 9px; opacity: .4; transition: opacity 200ms; }
