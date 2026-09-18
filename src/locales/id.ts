@@ -1,6 +1,7 @@
 import { en } from './en'
 
 const projectDescriptions: Record<string, string> = {
+  'flutter_v_keyboard - Flutter Virtual Keyboard': 'Package keyboard virtual untuk Flutter yang dapat disesuaikan, dengan pengalaman input teks yang terasa native di mobile, desktop, dan web. Mendukung layout responsif, tombol dan perilaku kustom, tema, kontrol kursor, seleksi teks, serta layout keyboard yang menyesuaikan platform.',
   'Table Parser - Flutter Package':'Mengubah data terstruktur dari tabel menjadi model yang siap digunakan di Dart dan Flutter. Efisien dan andal.',
   'VSCode Clone Personal Website':'Website pribadi berbasis Flutter Web dengan antarmuka terinspirasi Visual Studio Code, navigasi sidebar, panel terminal, dan tema gelap untuk pengalaman yang unik.',
   'Stationary POS - Retail Point-of-Sale System':'Solusi POS berbasis Windows untuk memproses transaksi, mencatat pembelian, mengelola stok, menampilkan informasi pelanggan, dan mendukung berbagai metode pembayaran. Dibangun dengan Flutter, Clean Architecture, BLoC Cubit, dan integrasi WebSocket real-time.',

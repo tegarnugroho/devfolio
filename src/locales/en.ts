@@ -401,6 +401,16 @@ export const projectsContent = {
       ],
     },
 
+    {
+      status: 'published',
+      title: 'flutter_v_keyboard - Flutter Virtual Keyboard',
+      description: 'A customizable virtual keyboard package for Flutter, designed to provide a native-feeling text input experience across mobile, desktop, and web. Supports responsive layouts, custom keys and behaviors, themes, cursor control, text selection, and platform-adaptive keyboard layouts.',
+      tech: ['Flutter', 'Dart', 'Android', 'iOS', 'Windows', 'macOS', 'Web'],
+      link: 'https://pub.dev/packages/flutter_v_keyboard',
+      repo: '#',
+      image: '/assets/v_keyboard/image.webp',
+      images: ['/assets/v_keyboard/image.webp'],
+    },
   ] satisfies ProjectContent[],
 }
 
@@ -476,4 +486,3 @@ export const en = {
   blueprint: blueprintContent,
   writing: writingContent,
 }
-
