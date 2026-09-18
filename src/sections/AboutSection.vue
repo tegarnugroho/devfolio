@@ -35,7 +35,7 @@
         </p>
       </div>
     </div>
-    <FlamingKunaiCursor :target="comparison" :active="overEffect" />
+    <FlamingKunaiCursor :target="comparison" :active="true" />
   </section>
   
 </template>
@@ -141,9 +141,16 @@ onBeforeUnmount(() => { disposed = true; cancelAnimationFrame(frame) })
 .portrait-comparison { position: relative; display: block; width: 100%; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--strong-border); border-radius: 5px; background: var(--secondary-background); }
 .portrait-comparison img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; transition: transform 450ms cubic-bezier(.22,1,.36,1); }
 .portrait-effect { transform: none; }
-.portrait-comparison { cursor: ew-resize; touch-action: pan-y; }
-@media (hover: hover) and (pointer: fine) { .portrait-comparison.effect-hovered { cursor: url('/assets/cursors/flame-kunai.svg') 4 2, ew-resize; } }
-.portrait-comparison.flame-cursor-active { cursor: none; }
+/* Madara Uchiha's Chakra Infused Kunai - https://www.cursors-4u.com/cursor/madara-uchihas-chakra-infused-kunai */
+.portrait-comparison { cursor: url('/assets/cursors/madara-kunai-preview-32.webp') 16 15, url('https://cdn.cursors-4u.net/previews/sizenwse-72fe4e9c-preview-32.webp') 16 15, auto; touch-action: pan-y; }
+@media (hover: hover) and (pointer: fine) {
+  .portrait-comparison,
+  .portrait-comparison.effect-hovered {
+    cursor: url('/assets/cursors/madara-kunai-preview-32.webp') 16 15, url('https://cdn.cursors-4u.net/previews/sizenwse-72fe4e9c-preview-32.webp') 16 15, auto;
+  }
+}
+.portrait-comparison.flame-cursor-active,
+.portrait-comparison.flame-cursor-active * { cursor: none !important; }
 .portrait-divider { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .portrait-divider line { stroke: var(--primary); stroke-opacity: .85; stroke-width: 1.5px; }
 .portrait-handle { position: absolute; top: 50%; width: 38px; height: 38px; display: grid; place-items: center; transform: translate(-50%,-50%); border-radius: 50%; border: 1px solid var(--strong-border); background: var(--background); color: var(--primary); font-size: 23px; line-height: 1; pointer-events: none; }
