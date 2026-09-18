@@ -51,7 +51,7 @@ export const projectsContent = {
       ],
     },
     {
-      status: 'published',
+      status: 'hidden',
       title: 'Stationary POS - Retail Point-of-Sale System',
       description:
         'A Windows-based POS solution featuring transaction processing, purchase journals, stock management, secondary customer display, and multi-payment support. Built with Flutter using Clean Architecture, BLoC Cubit, and real-time WebSocket integration.',
@@ -72,7 +72,7 @@ export const projectsContent = {
       ],
     },
     {
-      status: 'published',
+      status: 'hidden',
       title: 'EAA Pad - Self-Checkout Ordering App',
       description:
         'A Windows-based self-checkout app for food and beverage ordering with full accessibility support including voice guidance and visual markers. Built using Flutter with Clean Architecture and BLoC Cubit.',
@@ -93,7 +93,7 @@ export const projectsContent = {
       ],
     },
     {
-      status: 'published',
+      status: 'hidden',
       title: 'ANKER Store App - Flexible Retail Commerce Solution',
       description:
         'A scalable retail store app with seamless backend integration and headless architecture. Runs on any device including mobile, tablets, checkout, and self-checkout terminals.',
@@ -271,6 +271,7 @@ export const projectsContent = {
       tech: [
         'React',
         'TypeScript',
+        'Next.js',
         'Cloudflare',
         'Secrets Management',
         'REST API',
@@ -283,6 +284,29 @@ export const projectsContent = {
         '/assets/valthub/valthub-dashboard.png',
         '/assets/valthub/valthub-login.png',
         '/assets/valthub/valthub-billing.png',
+      ],
+    },
+    {
+      status: 'published',
+      title: 'Codeary - Developer Blog & Content Platform',
+      description:
+        'A developer-focused blogging platform for sharing technical articles, tutorials, and real-world software development experiences. Includes a custom admin dashboard for content management, analytics, drafts, publishing, and user management.',
+      tech: [
+        'React',
+        'TypeScript',
+        'Cloudflare Workers',
+        'Tailwind CSS',
+        'shadcn/ui',
+        'GA4',
+      ],
+      link: 'https://codeary.xyz/',
+      repo: '#',
+      image: '/assets/codeary/codeary-banner.png',
+      images: [
+        '/assets/codeary/codeary-banner.png',
+        '/assets/codeary/codeary-article.png',
+        '/assets/codeary/codeary-login.png',
+        '/assets/codeary/codeary-dashboard.png',
       ],
     },
 
