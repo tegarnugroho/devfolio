@@ -95,7 +95,7 @@
             </a>
           </li></ul>
         </div>
-        <div class="mobile-menu-motto mobile-menu-row" style="--row-index: 7"><svg class="mobile-menu-dots" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle v-for="dot in 9" :key="dot" :cx="4 + ((dot - 1) % 3) * 8" :cy="4 + Math.floor((dot - 1) / 3) * 8" r="1.6" /></svg><span>{{ portfolioContent.navigation.menuMotto }}</span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m3 10 18-7-7 18-3-8-8-3Zm8 3 10-10" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
+        <div class="mobile-menu-motto mobile-menu-row" :style="{ '--row-index': items.length + menuContacts.length }"><svg class="mobile-menu-dots" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle v-for="dot in 9" :key="dot" :cx="4 + ((dot - 1) % 3) * 8" :cy="4 + Math.floor((dot - 1) / 3) * 8" r="1.6" /></svg><span>{{ portfolioContent.navigation.menuMotto }}</span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m3 10 18-7-7 18-3-8-8-3Zm8 3 10-10" stroke-linecap="round" stroke-linejoin="round" /></svg></div>
       </div>
     </Transition>
   </header>
@@ -116,6 +116,7 @@ const menuIcons: Record<string, string> = {
   '#about': 'm3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9',
   '#skills': 'M16 6a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM3 21v-2a7 7 0 0 1 7-7h4a7 7 0 0 1 7 7v2Z',
   '#projects': 'M3 7V4h7l3 3h8v14H3ZM3 10h18',
+  '#writing': 'M4 3h7a3 3 0 0 1 3 3v15a4 4 0 0 0-4-2H4ZM20 3h-3a3 3 0 0 0-3 3v15a4 4 0 0 1 4-2h2Z',
   '#contact': 'M3 5h18v14H3Zm0 0 9 7 9-7',
 }
 const socialIcons = {

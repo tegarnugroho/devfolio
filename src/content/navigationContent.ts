@@ -5,6 +5,7 @@ export const navigationContent = {
     { href: '#about', label: 'About' },
     { href: '#skills', label: 'Skills' },
     { href: '#projects', label: 'Projects' },
+    { href: '#writing', label: 'Writing' },
     { href: '#contact', label: 'Contact' },
   ] satisfies NavItemContent[],
   home: { id: 'hero', label: 'Home' },

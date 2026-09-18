@@ -7,6 +7,7 @@ import { projectsContent } from './projectsContent'
 import { showcaseContent } from './showcaseContent'
 import { contactContent } from './contactContent'
 import { footerContent } from './footerContent'
+import { writingContent } from './writingContent'
 import { blueprintContent } from './blueprintContent'
 
 export type { NavItemContent, SkillGroupContent } from './contentModels'
@@ -31,4 +32,5 @@ export const portfolioContent = freezeContent({
   contact: contactContent,
   footer: footerContent,
   blueprint: blueprintContent,
+  writing: writingContent,
 })
