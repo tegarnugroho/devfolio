@@ -109,6 +109,7 @@ import { useBlueprintHold } from '@/composables/useBlueprint'
 import { portfolioContent } from '@/content/portfolioContent'
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from '@/composables/useTheme'
+import { themeRevealFallback } from '@/composables/themeRevealFallback'
 
 const { progressVisible, startHold, moveHold, cancelHold, allowThemeClick } = useBlueprintHold()
 
@@ -246,6 +247,7 @@ const direction = ref('')
 const themeButton = ref<HTMLButtonElement | null>(null)
 type ThemeViewTransition = { ready: Promise<void>; finished: Promise<void>; updateCallbackDone: Promise<void>; skipTransition(): void }
 let activeTransition: ThemeViewTransition | undefined
+let fallbackReveal: ReturnType<typeof themeRevealFallback> | undefined
 let commitTimer: ReturnType<typeof setTimeout> | undefined
 let settleTimer: ReturnType<typeof setTimeout> | undefined
 let disposed = false
@@ -256,6 +258,8 @@ function settleTheme() {
   root.classList.remove('theme-radial', 'theme-fallback')
   for (const property of ['--theme-x', '--theme-y', '--theme-radius']) root.style.removeProperty(property)
   activeTransition = undefined
+  fallbackReveal?.cancel()
+  fallbackReveal = undefined
 }
 function onThemeClick() { if (allowThemeClick()) toggleTheme() }
 function toggleTheme() {
@@ -265,7 +269,7 @@ function toggleTheme() {
   const start = (document as Document & { startViewTransition?: (update: () => Promise<void>) => ThemeViewTransition }).startViewTransition
   transitioning.value = true
   direction.value = theme.value === 'dark' ? 'sky-sunrise' : 'sky-sunset'
-  if (reduced || !start || !themeButton.value) {
+  if (reduced || !themeButton.value) {
     root.classList.add('theme-fallback')
     commitTimer = setTimeout(() => { theme.value = toggle() }, reduced ? 0 : 100)
     settleTimer = setTimeout(settleTheme, reduced ? 120 : 820)
@@ -278,6 +282,17 @@ function toggleTheme() {
   root.style.setProperty('--theme-y', `${y}px`)
   root.style.setProperty('--theme-radius', `${Math.ceil(radius)}px`)
   root.classList.add('theme-radial')
+  if (!start) {
+    fallbackReveal = themeRevealFallback(x, y, radius)
+    commitTimer = setTimeout(async () => {
+      theme.value = toggle()
+      await nextTick()
+      try { await fallbackReveal?.reveal() }
+      catch { /* Cancellation still leaves the committed theme active. */ }
+      finally { if (!disposed) settleTheme() }
+    }, 100)
+    return
+  }
   commitTimer = setTimeout(async () => {
     let committed = false
     try {
