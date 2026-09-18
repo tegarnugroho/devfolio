@@ -6,7 +6,7 @@
         <h2 v-reveal="{ delay: 60 }" class="contact-heading">{{ content.title }}</h2>
         <p v-reveal="{ delay: 120 }" class="mt-3 opacity-75">{{ content.description }}</p>
       </div>
-      <div class="contact-links">
+      <div data-blueprint="CONTACT_LINKS" class="contact-links">
         <div class="contact-list">
           <ul class="contact-rows">
             <ContactItem

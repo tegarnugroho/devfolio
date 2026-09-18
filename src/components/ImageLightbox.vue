@@ -1,21 +1,21 @@
 <template>
   <teleport to="body">
-    <transition name="showcase" @after-enter="refreshZoomBounds">
+    <transition name="showcase" @after-enter="onShowcaseEntered" @after-leave="notifyBlueprintLayout">
       <div v-if="modelValue" class="showcase-backdrop" @click.self="close" @keydown="onKey">
-        <div ref="dialog" class="showcase-dialog" role="dialog" aria-modal="true" aria-labelledby="showcase-title" tabindex="-1" @scroll.passive="refreshZoomBounds">
+        <div data-blueprint="MODAL" ref="dialog" class="showcase-dialog" role="dialog" aria-modal="true" aria-labelledby="showcase-title" tabindex="-1" @scroll.passive="refreshZoomBounds">
           <header class="showcase-bar">
             <span class="counter" aria-live="polite">{{ pad(current + 1) }} / {{ pad(images.length) }}</span>
             <div class="showcase-controls"><template v-if="hasMany"><button @click="prev" :aria-label="content.previousImageLabel">←</button><button @click="next" :aria-label="content.nextImageLabel">→</button><span class="control-divider" aria-hidden="true"></span></template><button ref="closeButton" class="close-button" @click="close" :aria-label="content.closeLabel">×</button></div>
           </header>
           <div class="showcase-body">
             <div class="showcase-gallery">
-              <figure ref="galleryCanvas" class="gallery-canvas" @pointerenter="onZoomEnter" @pointermove="onZoomMove" @pointerleave="resetZoom" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd" @contextmenu.prevent>
+              <figure data-blueprint="GALLERY_VIEWPORT" ref="galleryCanvas" class="gallery-canvas" @pointerenter="onZoomEnter" @pointermove="onZoomMove" @pointerleave="resetZoom" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd" @contextmenu.prevent>
                 <transition name="image-fade"><img ref="mainImage" @load="cacheImageBounds" v-if="displayedSource" :key="displayedSource" :src="displayedSource" :alt="content.screenshotAlt(project?.title ?? content.fallbackProject, displayedIndex + 1, images.length)" loading="eager" fetchpriority="high" decoding="async" draggable="false" @dragstart.prevent /></transition>
               <p v-if="imageError" class="image-error" role="status">{{ content.unavailableLabel }} <button @click="go(current)">{{ content.retryLabel }}</button></p>
               </figure>
-              <div v-if="hasMany" class="gallery-thumbnails" :aria-label="content.galleryLabel"><button v-for="(image, index) in images" :key="index" :class="{ selected: current === index }" :aria-label="content.imageLabel(index + 1)" :aria-pressed="current === index" @click="go(index)"><img :src="image" alt="" loading="lazy" fetchpriority="low" decoding="async" draggable="false" /></button></div>
+              <div v-if="hasMany" data-blueprint="THUMBNAILS" class="gallery-thumbnails" :aria-label="content.galleryLabel"><button v-for="(image, index) in images" :key="index" :class="{ selected: current === index }" :aria-label="content.imageLabel(index + 1)" :aria-pressed="current === index" @click="go(index)"><img :src="image" alt="" loading="lazy" fetchpriority="low" decoding="async" draggable="false" /></button></div>
             </div>
-            <div v-if="project" class="showcase-information">
+            <div v-if="project" data-blueprint="PROJECT_INFO" class="showcase-information">
               <p class="metadata">{{ project.tech[0] }}</p>
               <h2 id="showcase-title">{{ titleParts[0] }}</h2>
               <p v-if="titleParts[1]" class="subtitle">{{ titleParts[1] }}</p>
@@ -128,6 +128,8 @@ function onZoomMove(event: PointerEvent) {
     galleryCanvas.value!.style.cursor = 'zoom-in'
   })
 }
+function notifyBlueprintLayout() { window.dispatchEvent(new Event('blueprint-layout')) }
+function onShowcaseEntered() { refreshZoomBounds(); notifyBlueprintLayout() }
 function refreshZoomBounds() { resetZoom(); cacheImageBounds() }
 watch(galleryCanvas, canvas => {
   zoomObserver?.disconnect()
@@ -174,10 +176,11 @@ watch(() => props.modelValue, async open => {
   locked = true
   await nextTick()
   if (!props.modelValue) return
-  inertElements = Array.from(document.body.children).filter((element): element is HTMLElement => element instanceof HTMLElement && !element.contains(dialog.value)).map(element => ({ element, inert: element.inert }))
+  inertElements = Array.from(document.body.children).filter((element): element is HTMLElement => element instanceof HTMLElement && !element.contains(dialog.value) && !element.hasAttribute('data-blueprint-root')).map(element => ({ element, inert: element.inert }))
   inertElements.forEach(({ element }) => { element.inert = true })
   closeButton.value?.focus({ preventScroll: true })
 }, { immediate: true })
+watch(() => props.modelValue, async () => { await nextTick(); window.dispatchEvent(new Event('blueprint-layout')) }, { flush: 'post' })
 function close() { emit('update:modelValue', false) }
 function next() { if (props.images.length) void go((current.value + 1) % props.images.length) }
 function prev() { if (props.images.length) void go((current.value - 1 + props.images.length) % props.images.length) }
@@ -207,6 +210,8 @@ function onKey(event: KeyboardEvent) {
   else if (event.key === 'ArrowLeft') { event.preventDefault(); prev() }
   else if (event.key === 'Tab') {
     const controls = Array.from(dialog.value?.querySelectorAll<HTMLElement>('button, a[href]') ?? [])
+    const blueprintExit = document.querySelector<HTMLElement>('[data-blueprint-control]')
+    if (blueprintExit) controls.push(blueprintExit)
     const first = controls[0], last = controls[controls.length - 1]
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }

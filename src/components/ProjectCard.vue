@@ -1,6 +1,6 @@
 <template>
-  <article v-reveal="idx !== undefined ? { delay: idx * 80 } : undefined" class="card project-card">
-    <button type="button" class="project-media" @pointerenter="prefetch" @focus="prefetch" @click="$emit('open')" :aria-label="content.projectDetailsLabel(project.title)" @contextmenu.prevent>
+  <article v-reveal="idx !== undefined ? { delay: idx * 80 } : undefined" data-blueprint="PROJECT_CARD" class="card project-card">
+    <button type="button" data-blueprint="PROJECT_IMAGE" class="project-media" @pointerenter="prefetch" @focus="prefetch" @click="$emit('open')" :aria-label="content.projectDetailsLabel(project.title)" @contextmenu.prevent>
       <img v-if="project.image" :src="project.image" :alt="content.screenshotAlt(project.title)" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
       <span v-else class="media-placeholder">{{ content.detailsLabel }}</span>
       <span class="media-hint" aria-hidden="true">{{ content.detailsHint }}</span>

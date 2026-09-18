@@ -6,7 +6,7 @@
     <div class="about-layout mt-8 grid sm:grid-cols-[220px_1fr]">
       <div class="flex flex-col items-center sm:items-start">
         <div v-reveal="{ delay: 80 }" class="portrait-wrapper">
-          <div ref="comparison" class="portrait-comparison" :class="{ 'effect-hovered': overEffect }" role="slider" tabindex="0" :aria-label="content.sliderLabel" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(position)" :aria-valuetext="content.sliderValue(Math.round(position))" @pointerenter="onPortraitEnter" @pointerleave="pointerPosition = null" @pointerdown="startDrag" @pointermove="drag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="dragging = false" @keydown="onKey" @contextmenu.prevent>
+          <div data-blueprint="PROFILE_MEDIA" ref="comparison" class="portrait-comparison" :class="{ 'effect-hovered': overEffect }" role="slider" tabindex="0" :aria-label="content.sliderLabel" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(position)" :aria-valuetext="content.sliderValue(Math.round(position))" @pointerenter="onPortraitEnter" @pointerleave="pointerPosition = null" @pointerdown="startDrag" @pointermove="drag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="dragging = false" @keydown="onKey" @contextmenu.prevent>
             <img class="portrait-normal" :src="content.image" :alt="content.imageAlt" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
             <img class="portrait-effect" :style="{ clipPath }" :src="content.alternateImage" :alt="content.alternateImageAlt" loading="eager" decoding="async" draggable="false" @dragstart.prevent />
             <svg v-show="position > 0 && position < 100" class="portrait-divider" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line :x1="topEdge" y1="0" :x2="bottomEdge" y2="100" vector-effect="non-scaling-stroke" /></svg>
@@ -27,7 +27,7 @@
         </div>
       </div>
 
-      <div v-reveal="{ delay: 120 }" class="about-copy">
+      <div v-reveal="{ delay: 120 }" data-blueprint="ABOUT_CONTENT" class="about-copy">
         <h3 class="text-lg font-semibold tracking-tight">{{ content.greeting }}</h3>
 
         <p v-for="(paragraph, index) in content.paragraphs" :key="index" :class="index === 0 ? 'mt-4 leading-relaxed opacity-85' : 'mt-3 leading-relaxed opacity-85'">

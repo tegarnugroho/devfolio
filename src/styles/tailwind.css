@@ -169,3 +169,9 @@ footer.max-w-5xl { padding-inline: var(--section-inset); }
   from { clip-path: circle(0px at var(--theme-x) var(--theme-y)); }
   to { clip-path: circle(var(--theme-radius) at var(--theme-x) var(--theme-y)); }
 }
+
+/* Blueprint uses the existing grid, preserving its masks and geometry. */
+.blueprint-active .hero-atmosphere { --grid: rgba(0,0,0,.09); }
+.dark.blueprint-active .hero-atmosphere { --grid: rgba(255,255,255,.09); }
+@media (max-width: 767px) { .blueprint-active .hero-atmosphere::before { opacity: .7; } }
+.blueprint-active #skills::before,.blueprint-active #projects::before { opacity: .8; }

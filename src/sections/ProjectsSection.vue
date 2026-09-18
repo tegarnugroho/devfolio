@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { portfolioContent } from '@/content/portfolioContent'
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted, nextTick } from 'vue'
 import type { Project } from '@/types'
 import ImageLightbox from '@/components/ImageLightbox.vue'
 import ProjectCard from '@/components/ProjectCard.vue'
@@ -91,6 +91,8 @@ function nextPage() {
 function prevPage() {
   if (page.value > 1) page.value -= 1
 }
+
+watch(pagedProjects, async () => { await nextTick(); window.dispatchEvent(new Event('blueprint-layout')) })
 
 // Lightbox state
 const selectedProject = ref<Project | null>(null)

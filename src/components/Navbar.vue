@@ -3,7 +3,7 @@
     class="graphite-navbar sticky top-0 z-[60]"
     @keydown.esc="closeMenu"
   >
-    <nav ref="navElement" class="nav-inner relative mx-auto flex items-center justify-between">
+    <nav data-blueprint="NAVIGATION" ref="navElement" class="nav-inner relative mx-auto flex items-center justify-between">
       <a
         :href="portfolioContent.navigation.homeTarget"
         @pointerenter="launchPlane" @click="launchPlane"
@@ -33,13 +33,14 @@
       </ul>
       <div class="flex items-center gap-3">
         <button
-          @click="toggleTheme"
+          @click="onThemeClick" @pointerdown="startHold" @pointermove="moveHold" @pointerup="cancelHold" @pointercancel="cancelHold" @pointerleave="cancelHold" @contextmenu.prevent
           ref="themeButton"
           :aria-disabled="transitioning"
           :class="[theme === 'light' ? 'sky-day' : 'sky-night', direction, { 'sky-changing': transitioning }]"
           :aria-label="portfolioContent.navigation.themeLabel(theme === 'dark' ? 'light' : 'dark')"
           class="theme-sky h-9 w-9 grid place-items-center rounded-full border border-black/20 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
         >
+          <svg v-if="progressVisible" class="blueprint-hold-ring" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" /></svg>
           <span class="sky-horizon" aria-hidden="true"></span>
           <svg class="sky-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M12 4v2M12 18v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -102,9 +103,12 @@
 
 <script setup lang="ts">
 import { useFirstVisibleFlight } from '@/composables/useFirstVisibleFlight'
+import { useBlueprintHold } from '@/composables/useBlueprint'
 import { portfolioContent } from '@/content/portfolioContent'
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from '@/composables/useTheme'
+
+const { progressVisible, startHold, moveHold, cancelHold, allowThemeClick } = useBlueprintHold()
 
 const items = portfolioContent.navigation.items
 const menuContacts = [...portfolioContent.contact.items].sort((a, b) => ['github', 'linkedin', 'email'].indexOf(a.type) - ['github', 'linkedin', 'email'].indexOf(b.type))
@@ -203,6 +207,7 @@ function settleTheme() {
   for (const property of ['--theme-x', '--theme-y', '--theme-radius']) root.style.removeProperty(property)
   activeTransition = undefined
 }
+function onThemeClick() { if (allowThemeClick()) toggleTheme() }
 function toggleTheme() {
   if (transitioning.value) return
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -330,4 +335,7 @@ onBeforeUnmount(() => { disposed = true; clearTimeout(flightTimer); clearTimeout
 @keyframes menu-row-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .mobile-menu-enter-active,.mobile-menu-leave-active,.mobile-menu-row { transition: none !important; animation: none !important; } .mobile-menu-enter-from,.mobile-menu-leave-to { transform: none; filter: none; } }
 
+.theme-sky .blueprint-hold-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; opacity: .45; }
+.blueprint-hold-ring circle { fill: none; stroke: currentColor; stroke-width: 1; stroke-dasharray: 113.1; stroke-dashoffset: 113.1; animation: blueprint-hold 400ms linear forwards; }
+@keyframes blueprint-hold { to { stroke-dashoffset: 0; } }
 </style>
