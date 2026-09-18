@@ -65,6 +65,8 @@
 import { portfolioContent } from '@/content/portfolioContent'
 import { onBeforeUnmount, onMounted, ref, computed } from 'vue'
 
+import { navigateToSection } from '@/composables/useSectionNavigation'
+
 type SectionEl = HTMLElement & { id: string }
 
 const sections = ref<SectionEl[]>([])
@@ -130,7 +132,7 @@ function onResize() {
 
 function scrollToIndex(idx: number) {
   const el = sections.value[idx]
-  el?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
+  if (el) navigateToSection(el, idx === 0)
 }
 
 function goPrev() {
@@ -140,7 +142,7 @@ function goNext() {
   if (hasNext.value) scrollToIndex(currentIndex.value + 1)
 }
 function goTop() {
-  window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  scrollToIndex(0)
 }
 
 onMounted(() => {

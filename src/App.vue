@@ -30,10 +30,12 @@ import SkillsSection from './sections/SkillsSection.vue'
 import WritingSection from './sections/WritingSection.vue'
 import ProjectsSection from './sections/ProjectsSection.vue'
 import ContactSection from './sections/ContactSection.vue'
+import { useSectionNavigation } from '@/composables/useSectionNavigation'
 import { useScrollHash } from '@/composables/useScrollHash'
 import ScrollNavigator from './components/ScrollNavigator.vue'
 import SectionIndex from './components/SectionIndex.vue'
 
+useSectionNavigation()
 useScrollHash('main section[id]')
 const year = new Date().getFullYear()
 </script>

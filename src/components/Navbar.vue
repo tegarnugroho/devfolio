@@ -108,6 +108,7 @@ import { useFirstVisibleFlight } from '@/composables/useFirstVisibleFlight'
 import { useBlueprintHold } from '@/composables/useBlueprint'
 import { portfolioContent } from '@/content/portfolioContent'
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { navigationTarget } from '@/composables/useSectionNavigation'
 import { useTheme } from '@/composables/useTheme'
 import { themeRevealFallback } from '@/composables/themeRevealFallback'
 
@@ -189,6 +190,7 @@ function closeMenu() { open.value = false; menuButton.value?.focus() }
 function onOutsidePointer(event: PointerEvent) { if (open.value && !navElement.value?.parentElement?.contains(event.target as Node)) open.value = false }
 function onResize() { if (window.innerWidth >= 768) open.value = false; void nextTick(measureIndicators) }
 const active = ref('#hero')
+watch(navigationTarget, target => { if (target) active.value = `#${target}`; else updateActive() })
 const desktopLinks = ref<HTMLElement | null>(null)
 const mobileLinks = ref<HTMLElement | null>(null)
 const desktopIndicator = ref({ transform: 'translate(0px, 0px)', width: '4px', opacity: 0 })
@@ -223,7 +225,7 @@ function launchDot() {
       { transform: vertical ? 'translateX(-2px) scale(.65,2.8)' : 'translateY(3px) scale(2.8,.65)', borderRadius: '60% 40% 60% 40%', offset: .25 },
       { transform: vertical ? 'translateX(-1px) scale(.8,1.6)' : 'translateY(1px) scale(1.6,.8)', borderRadius: '50%', offset: .6 },
       { transform: 'translate(0,0) scale(1)', borderRadius: '50%', offset: 1 },
-    ], { duration: 480, easing: 'cubic-bezier(.22,1,.36,1)' }))
+    ], { duration: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--navigation-duration')) || 480, easing: 'cubic-bezier(.76,0,.24,1)' }))
   }
 }
 watch([active, open], async ([current], [previous]) => {
@@ -237,8 +239,10 @@ watch([desktopLinks, mobileLinks], (elements, previous) => {
   measureIndicators()
 }, { flush: 'post' })
 function updateActive() {
+  if (navigationTarget.value) return
   const sections = Array.from(document.querySelectorAll<HTMLElement>('main section[id]'))
-  active.value = '#' + (sections.reverse().find(section => section.getBoundingClientRect().top <= window.innerHeight * 0.4)?.id ?? 'hero')
+  const atBottom = window.scrollY > 0 && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2
+  active.value = '#' + (atBottom ? sections[sections.length - 1]?.id : sections.reverse().find(section => section.getBoundingClientRect().top <= window.innerHeight * 0.4)?.id ?? 'hero')
 }
 const { get, toggle } = useTheme()
 const theme = ref<'light' | 'dark'>(get())
@@ -408,7 +412,7 @@ onBeforeUnmount(() => { indicatorObserver?.disconnect(); dotAnimations.forEach(a
 .theme-sky .blueprint-hold-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; opacity: .45; }
 .blueprint-hold-ring circle { fill: none; stroke: currentColor; stroke-width: 1; stroke-dasharray: 113.1; stroke-dashoffset: 113.1; animation: blueprint-hold 400ms linear forwards; }
 @keyframes blueprint-hold { to { stroke-dashoffset: 0; } }
-.nav-travel-indicator,.mobile-travel-indicator { position: absolute; top: 0; left: 0; width: 4px; height: 4px; pointer-events: none; transition: transform 480ms cubic-bezier(.22,1,.36,1),opacity 180ms; }
+.nav-travel-indicator,.mobile-travel-indicator { position: absolute; top: 0; left: 0; width: 4px; height: 4px; pointer-events: none; transition: transform var(--navigation-duration, 480ms) cubic-bezier(.76,0,.24,1),opacity 180ms; }
 .nav-travel-indicator span,.mobile-travel-indicator span { display: block; width: 4px; height: 4px; border-radius: 50%; background: var(--primary); }
 .mobile-menu-sections { position: relative; }
 .mobile-travel-indicator { left: 4px; }

@@ -12,6 +12,7 @@
 </template>
 
 <script setup lang="ts">
+import { navigateToSection } from '@/composables/useSectionNavigation'
 import { portfolioContent } from '@/content/portfolioContent'
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 
@@ -22,7 +23,8 @@ function onScroll() {
 }
 
 function toTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  const hero = document.getElementById('hero')
+  if (hero) navigateToSection(hero, true)
 }
 
 onMounted(() => {

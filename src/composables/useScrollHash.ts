@@ -1,5 +1,7 @@
 import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 
+import { navigationTarget } from './useSectionNavigation'
+
 export function useScrollHash(selector = 'section[id]'): { current: Ref<string | null> } {
   const current = ref<string | null>(null)
   let observer: IntersectionObserver | null = null
@@ -10,6 +12,7 @@ export function useScrollHash(selector = 'section[id]'): { current: Ref<string |
 
     observer = new IntersectionObserver(
       (entries) => {
+        if (navigationTarget.value) return
         const visible = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
