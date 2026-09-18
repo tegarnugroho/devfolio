@@ -117,7 +117,7 @@ function startIntro(event: PointerEvent) {
 async function playIntro() {
   await Promise.all(Array.from(comparison.value?.querySelectorAll('img') ?? []).map(image => image.decode().catch(() => {})))
   if (disposed || interacted) return
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { position.value = 50; return }
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { position.value = 100; return }
   const start = performance.now()
   const ease = (value: number) => 1 - Math.pow(1 - value, 3)
   function animate(now: number) {
@@ -125,7 +125,7 @@ async function playIntro() {
     if (elapsed < 300) position.value = 100
     else if (elapsed < 1200) position.value = 100 * (1 - ease((elapsed - 300) / 900))
     else if (elapsed < 1550) position.value = 0
-    else position.value = 50 * ease(Math.min(1, (elapsed - 1550) / 700))
+    else position.value = 100 * ease(Math.min(1, (elapsed - 1550) / 700))
     if (elapsed < 2250) frame = requestAnimationFrame(animate)
   }
   frame = requestAnimationFrame(animate)

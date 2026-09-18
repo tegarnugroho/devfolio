@@ -12,11 +12,9 @@
     "jsx": "preserve",
     "types": ["vite/client"],
     "strict": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*", "env.d.ts"]
 }
-
