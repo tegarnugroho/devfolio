@@ -182,10 +182,10 @@ export const projectsContent = {
       repo: '#',
       image: '/assets/cicle/cicle-banner.png',
       images: [
-        '/assets/cicle/cicle-1.webp',
-        '/assets/cicle/cicle-2.webp',
-        '/assets/cicle/cicle-3.webp',
-        '/assets/cicle/cicle-4.webp',
+        '/assets/cicle/cicle-1.png',
+        '/assets/cicle/cicle-2.png',
+        '/assets/cicle/cicle-3.png',
+        '/assets/cicle/cicle-4.png',
       ],
     },
     {
