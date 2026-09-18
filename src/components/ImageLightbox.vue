@@ -9,10 +9,16 @@
           </header>
           <div class="showcase-body">
             <div class="showcase-gallery">
-              <figure data-blueprint="GALLERY_VIEWPORT" ref="galleryCanvas" class="gallery-canvas" @pointerenter="onZoomEnter" @pointermove="onZoomMove" @pointerleave="resetZoom" @touchstart.passive="onTouchStart" @touchend.passive="onTouchEnd" @contextmenu.prevent>
+              <figure data-blueprint="GALLERY_VIEWPORT" ref="galleryCanvas" class="gallery-canvas" @pointerenter="onZoomEnter" @pointermove="onZoomMove" @pointerleave="onZoomLeave" @touchstart="onTouchStart" @touchmove.prevent="onTouchMove" @touchend="onTouchEnd" @touchcancel="cancelTouch" @contextmenu.prevent>
                 <transition name="image-fade"><img ref="mainImage" @load="cacheImageBounds" v-if="displayedSource" :key="displayedSource" :src="displayedSource" :alt="content.screenshotAlt(project?.title ?? content.fallbackProject, displayedIndex + 1, images.length)" loading="eager" fetchpriority="high" decoding="async" draggable="false" @dragstart.prevent /></transition>
               <p v-if="imageError" class="image-error" role="status">{{ content.unavailableLabel }} <button @click="go(current)">{{ content.retryLabel }}</button></p>
               </figure>
+              <div class="gallery-zoom-controls" role="group" :aria-label="content.zoomLabel">
+                <button :disabled="touchScale <= 1 || !displayedSource" :aria-label="content.zoomOutLabel" @click="changeTouchZoom(-0.5)">−</button>
+                <button class="zoom-reset" :disabled="!displayedSource" :aria-label="content.resetZoomLabel" @click="resetZoom">{{ Math.round(touchScale * 100) }}%</button>
+                <button :disabled="touchScale >= 4 || !displayedSource" :aria-label="content.zoomInLabel" @click="changeTouchZoom(0.5)">+</button>
+                <span>{{ content.zoomHint }}</span>
+              </div>
               <div v-if="hasMany" data-blueprint="THUMBNAILS" class="gallery-thumbnails" :aria-label="content.galleryLabel"><button v-for="(image, index) in images" :key="index" :class="{ selected: current === index }" :aria-label="content.imageLabel(index + 1)" :aria-pressed="current === index" @click="go(index)"><img :src="image" alt="" loading="lazy" fetchpriority="low" decoding="async" draggable="false" /></button></div>
             </div>
             <div v-if="project" data-blueprint="PROJECT_INFO" class="showcase-information">
@@ -92,6 +98,8 @@ let zoomFrame = 0
 let zoomBounds: { left: number; top: number; width: number; height: number; offsetX: number; offsetY: number } | null = null
 let zoomPointer = { x: 0, y: 0 }
 let zoomObserver: ResizeObserver | null = null
+const touchScale = ref(1)
+let touchPan = { x: 0, y: 0 }
 function cacheImageBounds() {
   const canvas = galleryCanvas.value, image = mainImage.value
   zoomBounds = null
@@ -103,6 +111,9 @@ function cacheImageBounds() {
   zoomBounds = { left: rect.left + canvas.clientLeft + offsetX, top: rect.top + canvas.clientTop + offsetY, width, height, offsetX, offsetY }
 }
 function resetZoom() {
+  touchScale.value = 1
+  touchPan = { x: 0, y: 0 }
+  cancelTouch()
   cancelAnimationFrame(zoomFrame)
   zoomFrame = 0
   if (mainImage.value) {
@@ -111,7 +122,8 @@ function resetZoom() {
   }
   if (galleryCanvas.value) galleryCanvas.value.style.cursor = ''
 }
-function onZoomEnter(event: PointerEvent) { cacheImageBounds(); onZoomMove(event) }
+function onZoomEnter(event: PointerEvent) { if (event.pointerType === 'mouse') { cacheImageBounds(); onZoomMove(event) } }
+function onZoomLeave(event: PointerEvent) { if (event.pointerType === 'mouse') resetZoom() }
 function onZoomMove(event: PointerEvent) {
   if (event.pointerType !== 'mouse' || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
   zoomPointer = { x: event.clientX, y: event.clientY }
@@ -217,12 +229,68 @@ function onKey(event: KeyboardEvent) {
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
   }
 }
-let touchX = 0
-let touchY = 0
-function onTouchStart(event: TouchEvent) { touchX = event.changedTouches[0]?.clientX ?? 0; touchY = event.changedTouches[0]?.clientY ?? 0 }
+type TouchGesture = { x: number; y: number; distance: number; scale: number; panX: number; panY: number }
+let touchGesture: TouchGesture | null = null
+let swipeStart: { x: number; y: number } | null = null
+function cancelTouch() { touchGesture = null; swipeStart = null }
+function touchPosition(touches: TouchList) {
+  const first = touches[0]!, second = touches[1]
+  return second
+    ? { x: (first.clientX + second.clientX) / 2, y: (first.clientY + second.clientY) / 2, distance: Math.hypot(second.clientX - first.clientX, second.clientY - first.clientY) }
+    : { x: first.clientX, y: first.clientY, distance: 0 }
+}
+function applyTouchZoom() {
+  const canvas = galleryCanvas.value, image = mainImage.value, bounds = zoomBounds
+  if (!canvas || !image || !bounds) return
+  const maxX = Math.max(0, (bounds.width * touchScale.value - canvas.clientWidth) / 2)
+  const maxY = Math.max(0, (bounds.height * touchScale.value - canvas.clientHeight) / 2)
+  touchPan.x = Math.max(-maxX, Math.min(maxX, touchPan.x))
+  touchPan.y = Math.max(-maxY, Math.min(maxY, touchPan.y))
+  image.style.transformOrigin = '50% 50%'
+  image.style.transform = `translate(${touchPan.x}px, ${touchPan.y}px) scale(${touchScale.value})`
+}
+function changeTouchZoom(delta: number) {
+  cacheImageBounds()
+  touchScale.value = Math.max(1, Math.min(4, touchScale.value + delta))
+  applyTouchZoom()
+}
+function onTouchStart(event: TouchEvent) {
+  cacheImageBounds()
+  if (!event.touches.length) return
+  const position = touchPosition(event.touches)
+  touchGesture = { ...position, scale: touchScale.value, panX: touchPan.x, panY: touchPan.y }
+  swipeStart = event.touches.length === 1 && touchScale.value === 1 ? { x: position.x, y: position.y } : null
+}
+function onTouchMove(event: TouchEvent) {
+  const gesture = touchGesture, canvas = galleryCanvas.value
+  if (!gesture || !canvas || !event.touches.length) return
+  const position = touchPosition(event.touches)
+  if (position.distance > 0 && gesture.distance > 0) {
+    swipeStart = null
+    const rect = canvas.getBoundingClientRect()
+    touchScale.value = Math.max(1, Math.min(4, gesture.scale * position.distance / gesture.distance))
+    const ratio = touchScale.value / gesture.scale
+    touchPan = {
+      x: position.x - rect.left - rect.width / 2 - (gesture.x - rect.left - rect.width / 2 - gesture.panX) * ratio,
+      y: position.y - rect.top - rect.height / 2 - (gesture.y - rect.top - rect.height / 2 - gesture.panY) * ratio,
+    }
+  } else if (touchScale.value > 1) {
+    swipeStart = null
+    touchPan = { x: gesture.panX + position.x - gesture.x, y: gesture.panY + position.y - gesture.y }
+  }
+  applyTouchZoom()
+}
 function onTouchEnd(event: TouchEvent) {
-  const dx = (event.changedTouches[0]?.clientX ?? 0) - touchX
-  const dy = (event.changedTouches[0]?.clientY ?? 0) - touchY
+  if (event.touches.length) {
+    const position = touchPosition(event.touches)
+    touchGesture = { ...position, scale: touchScale.value, panX: touchPan.x, panY: touchPan.y }
+    swipeStart = null
+    return
+  }
+  const start = swipeStart, end = event.changedTouches[0]
+  cancelTouch()
+  if (!start || !end || touchScale.value > 1) return
+  const dx = end.clientX - start.x, dy = end.clientY - start.y
   if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { if (dx < 0) next(); else prev() }
 }
 onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomObserver?.disconnect(); restorePage() })
@@ -240,8 +308,17 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
 .showcase-controls .close-button { border-color: transparent; width: 36px; font-size: 28px; }
 .showcase-body { display: grid; grid-template-columns: minmax(0,1.8fr) minmax(0,1fr); gap: 40px; padding: 0 28px 36px; }
 .showcase-gallery, .showcase-information { min-width: 0; }
-.gallery-canvas { position: relative; height: clamp(260px,48vh,470px); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: pan-y; }
+.gallery-canvas { position: relative; height: clamp(260px,48vh,470px); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; }
 .gallery-canvas img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: auto; transform-origin: 50% 50%; transition: transform 220ms ease; }
+.gallery-zoom-controls { display: none; align-items: center; gap: 8px; margin-top: 10px; }
+.gallery-zoom-controls button { min-width: 44px; min-height: 44px; border: 1px solid var(--strong-border); border-radius: 4px; background: var(--surface); font-size: 20px; }
+.gallery-zoom-controls .zoom-reset { min-width: 64px; font-size: 12px; }
+.gallery-zoom-controls button:disabled { opacity: .4; }
+.gallery-zoom-controls span { color: var(--secondary); font-size: 11px; }
+@media (hover: none), (pointer: coarse), (max-width: 767px) {
+  .gallery-zoom-controls { display: flex; }
+}
+@media (any-pointer: coarse) { .gallery-canvas img { transition: none; } }
 .gallery-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-block: 22px 4px; }
 .gallery-thumbnails button { flex: 0 0 116px; height: 82px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); overflow: hidden; opacity: .6; transition: opacity 220ms,border-color 220ms; }
 .gallery-thumbnails button.selected { border-color: var(--primary); opacity: 1; }
