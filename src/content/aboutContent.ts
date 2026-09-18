@@ -8,8 +8,8 @@ export const aboutContent = {
     "At Wolkk (remote), I build cross‑platform solutions that combine clear design with robust engineering."
   ],
   role: 'Flutter Developer', company: 'Wolkk', startedLabel: 'Started in 2023',
-  image: '/assets/user.png', imageAlt: 'Tegar Nugroho',
-  alternateImage: '/assets/user-cute.png', alternateImageAlt: 'Alternate illustration of Tegar Nugroho',
+  image: '/assets/user.webp', imageAlt: 'Tegar Nugroho',
+  alternateImage: '/assets/user-cute.webp', alternateImageAlt: 'Alternate illustration of Tegar Nugroho',
   sliderLabel: 'Portrait comparison: drag left or right',
   sliderValue: (percent: number) => `${percent} percent normal portrait`,
 }
