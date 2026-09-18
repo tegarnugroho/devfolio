@@ -263,6 +263,28 @@ export const projectsContent = {
         '/assets/nucard/nucard-2.png',
       ],
     },
+    {
+      status: 'published',
+      title: 'ValtHub - Secrets & Environment Manager',
+      description:
+        'A secure secrets and environment variable management platform for development teams. Organize secrets by project and environment, collaborate with team members, compare configurations, and access remote config through scoped API keys.',
+      tech: [
+        'React',
+        'TypeScript',
+        'Cloudflare',
+        'Secrets Management',
+        'REST API',
+      ],
+      link: 'https://valthub.pages.dev/',
+      repo: '#',
+      image: '/assets/valthub/valthub-banner.png',
+      images: [
+        '/assets/valthub/valthub-banner.png',
+        '/assets/valthub/valthub-dashboard.png',
+        '/assets/valthub/valthub-login.png',
+        '/assets/valthub/valthub-billing.png',
+      ],
+    },
 
   ] satisfies ProjectContent[],
 }
