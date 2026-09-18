@@ -29,6 +29,7 @@
 
 <script setup lang="ts">
 import { portfolioContent } from '@/content/portfolioContent'
+import { publishedProjects } from '@/content/projectsContent'
 import { computed, ref, watch, onMounted, nextTick } from 'vue'
 import type { Project } from '@/types'
 import ImageLightbox from '@/components/ImageLightbox.vue'
@@ -36,19 +37,6 @@ import ProjectCard from '@/components/ProjectCard.vue'
 import { useMediaQuery } from '@/composables/useMediaQuery'
 
 const content = portfolioContent.projects
-
-const sourceProjects = content.items
-
-// Content is shared by project cards and the showcase dialog.
-
-// Generate unique, stable IDs from title + index
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)+/g, '')
-}
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -60,10 +48,7 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled
 }
 
-const projects: Project[] = sourceProjects.map((p: Omit<Project, 'id'>, idx: number) => ({
-  ...p,
-  id: `${slugify(p.title) || 'project'}-${idx}`,
-}))
+const projects: Project[] = [...publishedProjects]
 
 // Shuffle projects on component mount
 onMounted(() => {

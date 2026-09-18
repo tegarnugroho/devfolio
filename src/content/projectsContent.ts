@@ -1,4 +1,5 @@
 import type { Project } from '../types'
+import type { ProjectContent } from './contentModels'
 
 export const projectsContent = {
   eyebrow: 'Projects', title: 'Selected Work',
@@ -14,6 +15,7 @@ export const projectsContent = {
   liveLabel: 'Live', codeLabel: 'Code',
   items: [
     {
+      status: 'published',
       title: 'Table Parser - Flutter Package',
       description:
         'Parse structured data from table formats into usable models for Dart & Flutter. Efficient and reliable.',
@@ -31,6 +33,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'VSCode Clone Personal Website',
       description:
         'Personal website built with Flutter Web, featuring Visual Studio Code-inspired interface with sidebar navigation, terminal panel, and dark mode theme for unique user experience.',
@@ -48,6 +51,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'Stationary POS - Retail Point-of-Sale System',
       description:
         'A Windows-based POS solution featuring transaction processing, purchase journals, stock management, secondary customer display, and multi-payment support. Built with Flutter using Clean Architecture, BLoC Cubit, and real-time WebSocket integration.',
@@ -68,6 +72,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'EAA Pad - Self-Checkout Ordering App',
       description:
         'A Windows-based self-checkout app for food and beverage ordering with full accessibility support including voice guidance and visual markers. Built using Flutter with Clean Architecture and BLoC Cubit.',
@@ -88,6 +93,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'ANKER Store App - Flexible Retail Commerce Solution',
       description:
         'A scalable retail store app with seamless backend integration and headless architecture. Runs on any device including mobile, tablets, checkout, and self-checkout terminals.',
@@ -107,6 +113,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'Excel Translator - Excel to Localization Files(Flutter Package)',
       description:
         'Convert Excel translation sheets into localization files for Flutter apps automatically. Simple, fast, and consistent.',
@@ -124,6 +131,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'Danafix - Online Loan Application',
       description: 'Mobile app for seamless online loan applications, offering features like document upload, real-time status tracking, and secure data handling for a smooth user experience.',
       tech: [
@@ -141,6 +149,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'Tribelio - Brand & Influencer Platform',
       description: 'Platform for brands and influencers to build communities with exclusive content, membership management, engagement tracking, and audience monetization tools.',
       tech: [
@@ -160,6 +169,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'Cicle - Remote Team Tool',
       description: 'Platform for remote teams to collaborate with integrated tools for project management, communication, and file sharing.',
       tech: [
@@ -179,6 +189,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'IZILOH - Innovative Laundry App',
       description: 'A laundry service app offering scheduling, real-time tracking, and secure payments for a seamless user experience.',
       tech: [
@@ -198,6 +209,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'Waroong Retjeh - Restaurant App',
       description: 'A restaurant app offering online ordering, table reservation, and menu management for a seamless dining experience.',
       tech: [
@@ -216,6 +228,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'Flambe - Food Delivery App',
       description: 'A food delivery app offering online ordering, real-time tracking, and secure payments for a seamless user experience.',
       tech: [
@@ -233,6 +246,7 @@ export const projectsContent = {
       ],
     },
     {
+      status: 'published',
       title: 'NU Card - Electronic Wallet App',
       description: 'A digital wallet app offering secure payments, transaction tracking, and financial management tools for users.',
       tech: [
@@ -250,5 +264,17 @@ export const projectsContent = {
       ],
     },
 
-  ] satisfies Omit<Project, 'id'>[],
+  ] satisfies ProjectContent[],
 }
+
+// Assign IDs before filtering so visibility changes preserve project identity.
+export const publishedProjects: readonly Project[] = projectsContent.items
+  .map((project, index) => {
+    const slug = project.title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '')
+    return { ...project, id: `${slug || 'project'}-${index}` }
+  })
+  .filter((project) => project.status === 'published')
