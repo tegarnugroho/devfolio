@@ -1,13 +1,13 @@
 <template>
-  <section id="writing" data-blueprint="WRITING_SECTION" class="writing-section scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
+  <section v-section-reveal id="writing" data-blueprint="WRITING_SECTION" class="writing-section scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
     <header class="writing-header">
-      <div><p v-reveal class="writing-eyebrow">{{ content.eyebrow }}</p><h2 v-reveal="{ delay: 60 }">{{ content.title }}</h2><p v-reveal="{ delay: 120 }" class="writing-intro">{{ content.description }}</p></div>
-      <a :href="content.blogUrl" target="_blank" rel="noopener noreferrer" class="writing-source">{{ content.sourceLabel }} <span aria-hidden="true">↗</span></a>
+      <div><p v-reveal="{ delay: 0 }" class="writing-eyebrow">{{ content.eyebrow }}</p><h2 v-reveal="{ delay: 60, kind: 'heading' }">{{ content.title }}</h2><p v-reveal="{ delay: 120 }" class="writing-intro">{{ content.description }}</p></div>
+      <a v-reveal="{ delay: 360, kind: 'accent' }" :href="content.blogUrl" target="_blank" rel="noopener noreferrer" class="writing-source">{{ content.sourceLabel }} <span aria-hidden="true">↗</span></a>
     </header>
     <div class="writing-list" :aria-busy="loading">
-      <div v-if="loading" class="writing-skeleton" role="status" :aria-label="content.loadingLabel"><div v-for="index in 2" :key="index" class="writing-skeleton-row" aria-hidden="true"><span></span><div><i></i><i></i><i></i></div></div></div>
+      <div v-if="loading" v-reveal="{ delay: 180 }" class="writing-skeleton" role="status" :aria-label="content.loadingLabel"><div v-for="index in 2" :key="index" class="writing-skeleton-row" aria-hidden="true"><span></span><div><i></i><i></i><i></i></div></div></div>
       <ul v-else-if="posts.length">
-        <li v-for="(post, index) in posts" :key="post.slug">
+        <li v-for="(post, index) in posts" :key="post.slug" v-reveal="{ delay: 180 + index * 60 }">
           <article><a data-blueprint="ARTICLE_ROW" class="writing-row" :href="articleUrl(post.slug)" :aria-label="content.articleLabel(post.title)" target="_blank" rel="noopener noreferrer">
             <span class="writing-index" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
             <div class="writing-copy"><p v-if="post.tags.length" class="writing-tags">{{ post.tags.slice(0, 3).join(' · ') }}</p><h3>{{ post.title }}</h3><p v-if="post.excerpt" class="writing-excerpt">{{ post.excerpt }}</p></div>
@@ -15,9 +15,9 @@
           </a></article>
         </li>
       </ul>
-      <p v-else class="writing-message" role="status">{{ failed ? content.errorLabel : content.emptyLabel }}</p>
+      <p v-else v-reveal="{ delay: 180 }" class="writing-message" role="status">{{ failed ? content.errorLabel : content.emptyLabel }}</p>
     </div>
-    <a data-blueprint="CODEARY_LINK" class="writing-all" :href="content.blogUrl" target="_blank" rel="noopener noreferrer"><span>{{ content.viewAllLabel }}</span><span aria-hidden="true">↗</span></a>
+    <a v-reveal="{ delay: 420, kind: 'accent' }" data-blueprint="CODEARY_LINK" class="writing-all" :href="content.blogUrl" target="_blank" rel="noopener noreferrer"><span>{{ content.viewAllLabel }}</span><span aria-hidden="true">↗</span></a>
   </section>
 </template>
 

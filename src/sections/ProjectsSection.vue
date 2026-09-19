@@ -1,6 +1,6 @@
 <template>
-  <section id="projects" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
-    <div class="projects-header"><div><p v-reveal class="projects-eyebrow">{{ content.eyebrow }}</p><h2 v-reveal class="projects-heading">{{ content.title }}</h2><p class="projects-intro">{{ content.description }}</p></div><p class="projects-note">{{ content.note[0] }}<br />{{ content.note[1] }}</p></div>
+  <section v-section-reveal id="projects" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
+    <div class="projects-header"><div><p v-reveal="{ delay: 0 }" class="projects-eyebrow">{{ content.eyebrow }}</p><h2 v-reveal="{ delay: 60, kind: 'heading' }" class="projects-heading">{{ content.title }}</h2><p v-reveal="{ delay: 120 }" class="projects-intro">{{ content.description }}</p></div><p v-reveal="{ delay: 360, kind: 'accent' }" class="projects-note">{{ content.note[0] }}<br />{{ content.note[1] }}</p></div>
     <div class="projects-grid">
       <ProjectCard
         v-for="(p, idx) in pagedProjects"
@@ -10,7 +10,7 @@
         @open="openLightbox(p)"
       />
     </div>
-    <div class="projects-pagination">
+    <div v-reveal="{ delay: 420, kind: 'accent' }" class="projects-pagination">
       <button class="btn btn-ghost disabled:opacity-40" @click="prevPage" :disabled="page === 1"
         :aria-label="content.previousPageLabel">
         {{ content.previousLabel }}

@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Progressive enhancement: hide only after the shared observer starts. */
+span[data-reveal] { display: inline-block; }
+[data-section-reveal="pending"] [data-reveal] { opacity: 0 !important; translate: 0 20px !important; }
+@media (prefers-reduced-motion: reduce) {
+  [data-section-reveal="pending"] [data-reveal] { opacity: revert !important; translate: none !important; }
+}
+@media print {
+  [data-section-reveal="pending"] [data-reveal] { opacity: revert !important; translate: none !important; }
+}
+
 @layer base {
   :root { --background: #f2f2f2; --secondary-background: #e7e8e9; --surface: #dedfe0; --primary: #17191b; --secondary: #55595e; --muted: #666a6e; --label: #686d73; --border: rgba(0,0,0,.08); --strong-border: rgba(0,0,0,.16); --grid: rgba(0,0,0,.055); --illumination: rgba(0,0,0,.08); --button: #17191b; --button-text: #f2f2f2; --button-hover: #303438; color-scheme: light; }
   :root.dark { --background: #0b0c0d; --secondary-background: #111315; --surface: #16181a; --primary: #f2f2f2; --secondary: #a7a9ac; --muted: #666a6e; --label: #777b80; --border: rgba(255,255,255,.08); --strong-border: rgba(255,255,255,.16); --grid: rgba(255,255,255,.055); --illumination: rgba(255,255,255,.22); --button: #f1f1f1; --button-text: #111111; --button-hover: #ffffff; color-scheme: dark; }

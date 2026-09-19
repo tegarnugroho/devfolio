@@ -1,5 +1,5 @@
 <template>
-  <li class="contact-row" v-reveal="revealDelay != null ? { delay: revealDelay } : undefined">
+  <li class="contact-row" v-reveal="{ delay: revealDelay ?? 180 }">
     <a
       :href="href"
       :target="href?.startsWith('mailto:') ? undefined : '_blank'"
@@ -65,4 +65,3 @@ defineProps<{
 @media (max-width: 639px) { .contact-link { padding-block: 20px; gap: 14px; } .contact-information { gap: 14px; } .contact-value { font-size: 14px; } }
 @media (prefers-reduced-motion: reduce) { .contact-row, .contact-link, .contact-value, .contact-arrow { transition: none; } .contact-link:hover .contact-arrow { transform: none; } }
 </style>
-

@@ -1,11 +1,11 @@
 <template>
-  <section id="about" class="mt-10 sm:mt-12 md:mt-14 scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
-    <h2 v-reveal class="text-2xl font-semibold tracking-tight">{{ content.title }}</h2>
-    <p v-reveal class="about-eyebrow">{{ content.eyebrow }}</p>
+  <section v-section-reveal id="about" class="mt-10 sm:mt-12 md:mt-14 scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
+    <h2 v-reveal="{ delay: 60, kind: 'heading' }" class="text-2xl font-semibold tracking-tight">{{ content.title }}</h2>
+    <p v-reveal="{ delay: 0 }" class="about-eyebrow">{{ content.eyebrow }}</p>
 
     <div class="about-layout mt-8 grid sm:grid-cols-[220px_1fr]">
       <div class="flex flex-col items-center sm:items-start">
-        <div v-reveal="{ delay: 80 }" class="portrait-wrapper">
+        <div v-reveal="{ delay: 180 }" class="portrait-wrapper">
           <div data-blueprint="PROFILE_MEDIA" ref="comparison" class="portrait-comparison" :class="{ 'effect-hovered': overEffect }" role="slider" tabindex="0" :aria-label="content.sliderLabel" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(position)" :aria-valuetext="content.sliderValue(Math.round(position))" @pointerenter="onPortraitEnter" @pointerleave="pointerPosition = null" @pointerdown="startDrag" @pointermove="drag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="dragging = false" @keydown="onKey" @contextmenu.prevent>
             <img class="portrait-normal" :src="content.image" :alt="content.imageAlt" loading="lazy" decoding="async" draggable="false" @dragstart.prevent />
             <img class="portrait-effect" :style="{ clipPath }" :src="content.alternateImage" :alt="content.alternateImageAlt" loading="eager" decoding="async" draggable="false" @dragstart.prevent />
@@ -15,7 +15,7 @@
             <span class="portrait-edge portrait-edge-right" :style="{ opacity: 1 - Math.min(1, (100 - position) / 18) }" aria-hidden="true">‹</span>
           </div>
         </div>
-        <div class="badge mt-3 relative inline-flex items-center gap-2 rounded-full border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.06] px-3 py-1.5 text-xs hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+        <div v-reveal="{ delay: 240 }" class="badge mt-3 relative inline-flex items-center gap-2 rounded-full border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.06] px-3 py-1.5 text-xs hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="opacity-80">
             <path d="M3 8h18M7 8V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2m-7 5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             <rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
@@ -27,10 +27,10 @@
         </div>
       </div>
 
-      <div v-reveal="{ delay: 120 }" data-blueprint="ABOUT_CONTENT" class="about-copy">
-        <h3 class="text-lg font-semibold tracking-tight">{{ content.greeting }}</h3>
+      <div data-blueprint="ABOUT_CONTENT" class="about-copy">
+        <h3 v-reveal="{ delay: 300 }" class="text-lg font-semibold tracking-tight">{{ content.greeting }}</h3>
 
-        <p v-for="(paragraph, index) in content.paragraphs" :key="index" :class="index === 0 ? 'mt-4 leading-relaxed opacity-85' : 'mt-3 leading-relaxed opacity-85'">
+        <p v-for="(paragraph, index) in content.paragraphs" :key="index" v-reveal="{ delay: 360 + index * 60 }" :class="index === 0 ? 'mt-4 leading-relaxed opacity-85' : 'mt-3 leading-relaxed opacity-85'">
           {{ paragraph }}
         </p>
       </div>

@@ -1,9 +1,9 @@
 <template>
-  <section id="contact" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
+  <section v-section-reveal id="contact" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
     <div class="contact-layout">
       <div>
-        <span v-reveal class="text-[11px] tracking-[0.18em] uppercase opacity-60">{{ content.eyebrow }}</span>
-        <h2 v-reveal="{ delay: 60 }" class="contact-heading">{{ content.title }}</h2>
+        <span v-reveal="{ delay: 0 }" class="text-[11px] tracking-[0.18em] uppercase opacity-60">{{ content.eyebrow }}</span>
+        <h2 v-reveal="{ delay: 60, kind: 'heading' }" class="contact-heading">{{ content.title }}</h2>
         <p v-reveal="{ delay: 120 }" class="mt-3 opacity-75">{{ content.description }}</p>
       </div>
       <div data-blueprint="CONTACT_LINKS" class="contact-links">
@@ -13,7 +13,7 @@
               v-for="(c, i) in contacts"
               :key="c.type"
               v-bind="c"
-              :revealDelay="i * 80"
+              :revealDelay="180 + i * 60"
             />
           </ul>
         </div>
@@ -43,4 +43,3 @@ const contacts = content.items
 @media (max-width: 1000px) { .contact-layout { grid-template-columns: 1fr; gap: 32px; } .contact-layout p { max-width: 390px; } }
 @media (max-width: 639px) { #contact { padding-top: 56px; padding-bottom: 48px; } .contact-layout { gap: 28px; } }
 </style>
-
