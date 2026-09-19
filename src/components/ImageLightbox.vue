@@ -10,7 +10,11 @@
           <div class="showcase-body">
             <div class="showcase-gallery">
               <figure data-blueprint="GALLERY_VIEWPORT" ref="galleryCanvas" class="gallery-canvas" @pointerenter="onZoomEnter" @pointermove="onZoomMove" @pointerleave="onZoomLeave" @touchstart="onTouchStart" @touchmove.prevent="onTouchMove" @touchend="onTouchEnd" @touchcancel="cancelTouch" @contextmenu.prevent>
-                <transition name="image-fade"><img ref="mainImage" @load="cacheImageBounds" v-if="displayedSource" :key="displayedSource" :src="displayedSource" :alt="content.screenshotAlt(project?.title ?? content.fallbackProject, displayedIndex + 1, images.length)" loading="eager" fetchpriority="high" decoding="async" draggable="false" @dragstart.prevent /></transition>
+                <transition :name="imageDirection > 0 ? 'image-next' : 'image-prev'" @after-enter="cacheImageBounds">
+                  <div v-if="displayedSource" :key="displayedSource" class="gallery-image-layer">
+                    <img ref="mainImage" @load="cacheImageBounds" :src="displayedSource" :alt="content.screenshotAlt(project?.title ?? content.fallbackProject, displayedIndex + 1, images.length)" loading="eager" fetchpriority="high" decoding="async" draggable="false" @dragstart.prevent />
+                  </div>
+                </transition>
               <p v-if="imageError" class="image-error" role="status">{{ content.unavailableLabel }} <button @click="go(current)">{{ content.retryLabel }}</button></p>
               </figure>
               <div class="gallery-zoom-controls" role="group" :aria-label="content.zoomLabel">
@@ -50,6 +54,7 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>()
 const current = ref(0)
 const displayedSource = ref('')
 const displayedIndex = ref(0)
+const imageDirection = ref(1)
 const imageError = ref(false)
 let selectionVersion = 0
 let preloadVersion = 0
@@ -194,9 +199,9 @@ watch(() => props.modelValue, async open => {
 }, { immediate: true })
 watch(() => props.modelValue, async () => { await nextTick(); window.dispatchEvent(new Event('blueprint-layout')) }, { flush: 'post' })
 function close() { emit('update:modelValue', false) }
-function next() { if (props.images.length) void go((current.value + 1) % props.images.length) }
-function prev() { if (props.images.length) void go((current.value - 1 + props.images.length) % props.images.length) }
-async function go(index: number) {
+function next() { if (props.images.length) void go((current.value + 1) % props.images.length, 1) }
+function prev() { if (props.images.length) void go((current.value - 1 + props.images.length) % props.images.length, -1) }
+async function go(index: number, direction = index >= current.value ? 1 : -1) {
   const source = props.images[index]
   if (!source || !props.modelValue) return
   const version = ++selectionVersion
@@ -208,6 +213,7 @@ async function go(index: number) {
     await ready
     if (version !== selectionVersion || !props.modelValue || props.images[index] !== source) return
     resetZoom()
+    imageDirection.value = direction
     displayedIndex.value = index
     displayedSource.value = source
     await nextTick()
@@ -309,6 +315,7 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
 .showcase-body { display: grid; grid-template-columns: minmax(0,1.8fr) minmax(0,1fr); gap: 40px; padding: 0 28px 36px; }
 .showcase-gallery, .showcase-information { min-width: 0; }
 .gallery-canvas { position: relative; height: clamp(260px,48vh,470px); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; }
+.gallery-image-layer { position: absolute; inset: 0; }
 .gallery-canvas img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: auto; transform-origin: 50% 50%; transition: transform 220ms ease; }
 .gallery-zoom-controls { display: none; align-items: center; gap: 8px; margin-top: 10px; }
 .gallery-zoom-controls button { min-width: 44px; min-height: 44px; border: 1px solid var(--strong-border); border-radius: 4px; background: var(--surface); font-size: 20px; }
@@ -337,14 +344,28 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
 .showcase-actions a:hover { border-color: var(--secondary); }
 .showcase-actions .primary-action { background: var(--button); color: var(--button-text); }
 .showcase-actions .primary-action:hover { background: var(--button-hover); }
-.showcase-enter-active, .showcase-leave-active { transition: opacity 220ms; }
-.showcase-enter-active .showcase-dialog, .showcase-leave-active .showcase-dialog { transition: transform 220ms; }
+.showcase-enter-active { transition: opacity 700ms cubic-bezier(.22,.61,.36,1); }
+.showcase-enter-active .showcase-dialog { transition: opacity 620ms ease, transform 700ms cubic-bezier(.22,.61,.36,1); }
+.showcase-enter-active .showcase-gallery { transition: opacity 560ms ease 80ms, transform 620ms cubic-bezier(.22,.61,.36,1) 80ms; }
+.showcase-enter-active .showcase-information > * { transition: opacity 500ms ease, transform 500ms cubic-bezier(.22,.61,.36,1); transition-delay: 80ms; }
+.showcase-enter-active .showcase-information h2 { transition-delay: 110ms; }
+.showcase-enter-active .subtitle { transition-delay: 140ms; }
+.showcase-enter-active .description { transition-delay: 160ms; }
+.showcase-enter-active .stack { transition-delay: 180ms; }
+.showcase-enter-active .showcase-actions { transition-delay: 200ms; }
+.showcase-leave-active { pointer-events: none; transition: opacity 300ms ease; }
+.showcase-leave-active .showcase-dialog { transition: opacity 300ms ease, transform 300ms cubic-bezier(.4,0,1,1); }
 .showcase-enter-from, .showcase-leave-to { opacity: 0; }
-.showcase-enter-from .showcase-dialog, .showcase-leave-to .showcase-dialog { transform: scale(.98); }
-.image-fade-enter-active, .image-fade-leave-active { transition: opacity 180ms; }
+.showcase-enter-from .showcase-dialog { opacity: 0; transform: translateY(28px); }
+.showcase-enter-from .showcase-gallery, .showcase-enter-from .showcase-information > * { opacity: 0; transform: translateY(14px); }
+.showcase-leave-to .showcase-dialog { opacity: 0; transform: translateY(12px); }
+.image-next-enter-active, .image-next-leave-active, .image-prev-enter-active, .image-prev-leave-active { transition: opacity 540ms ease, transform 540ms cubic-bezier(.22,.61,.36,1); will-change: opacity, transform; }
+.image-next-enter-active, .image-prev-enter-active { z-index: 1; }
+.image-next-leave-active, .image-prev-leave-active { pointer-events: none; }
+.image-next-enter-from, .image-prev-leave-to { opacity: 0; transform: translateX(36px); }
+.image-prev-enter-from, .image-next-leave-to { opacity: 0; transform: translateX(-36px); }
 .image-error { position: absolute; bottom: 12px; z-index: 1; padding: 5px 8px; background: var(--secondary-background); color: var(--secondary); font-size: 12px; }
 .image-error button { text-decoration: underline; margin-left: 6px; }
-.image-fade-enter-from, .image-fade-leave-to { opacity: 0; }
 @media (max-width: 960px) {
   .showcase-backdrop { padding: 12px; }
   .showcase-dialog { max-height: calc(100dvh - 24px); }

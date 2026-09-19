@@ -4,12 +4,12 @@
 
 /* Progressive enhancement: hide only after the shared observer starts. */
 span[data-reveal] { display: inline-block; }
-[data-section-reveal="pending"] [data-reveal] { opacity: 0 !important; translate: 0 20px !important; }
+[data-section-reveal="pending"] [data-reveal], [data-reveal-waiting] { opacity: 0 !important; translate: 0 20px !important; }
 @media (prefers-reduced-motion: reduce) {
-  [data-section-reveal="pending"] [data-reveal] { opacity: revert !important; translate: none !important; }
+  [data-section-reveal="pending"] [data-reveal], [data-reveal-waiting] { opacity: revert !important; translate: none !important; }
 }
 @media print {
-  [data-section-reveal="pending"] [data-reveal] { opacity: revert !important; translate: none !important; }
+  [data-section-reveal="pending"] [data-reveal], [data-reveal-waiting] { opacity: revert !important; translate: none !important; }
 }
 
 @layer base {

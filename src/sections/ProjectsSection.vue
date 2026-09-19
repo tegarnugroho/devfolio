@@ -1,24 +1,29 @@
 <template>
-  <section v-section-reveal id="projects" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
+  <section ref="section" v-section-reveal id="projects" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
     <div class="projects-header"><div><p v-reveal="{ delay: 0 }" class="projects-eyebrow">{{ content.eyebrow }}</p><h2 v-reveal="{ delay: 60, kind: 'heading' }" class="projects-heading">{{ content.title }}</h2><p v-reveal="{ delay: 120 }" class="projects-intro">{{ content.description }}</p></div><p v-reveal="{ delay: 360, kind: 'accent' }" class="projects-note">{{ content.note[0] }}<br />{{ content.note[1] }}</p></div>
-    <div class="projects-grid">
-      <ProjectCard
-        v-for="(p, idx) in pagedProjects"
-        :key="p.id"
-        :project="p"
-        :idx="idx"
-        @open="openLightbox(p)"
-      />
+    <div ref="grid" class="projects-grid" :style="{ minHeight: gridHeight }" :aria-busy="isPaging">
+      <Transition :css="false" mode="out-in" @leave="leavePage" @enter="enterPage"
+        @after-enter="finishPaging" @enter-cancelled="cancelPaging" @leave-cancelled="cancelPaging">
+        <div :key="page" class="projects-page">
+          <ProjectCard
+            v-for="(p, idx) in pagedProjects"
+            :key="p.id"
+            :project="p"
+            :idx="idx"
+            @open="openLightbox(p)"
+          />
+        </div>
+      </Transition>
     </div>
     <div v-reveal="{ delay: 420, kind: 'accent' }" class="projects-pagination">
-      <button class="btn btn-ghost disabled:opacity-40" @click="prevPage" :disabled="page === 1"
+      <button class="btn btn-ghost disabled:opacity-40" @click="prevPage" :disabled="page === 1 || isPaging"
         :aria-label="content.previousPageLabel">
         {{ content.previousLabel }}
       </button>
       <div class="page-count">
         <span class="page-long">{{ content.pageLabel(page, totalPages) }}</span><span class="page-short">{{ page }} / {{ totalPages }}</span>
       </div>
-      <button class="btn btn-ghost disabled:opacity-40" @click="nextPage" :disabled="page === totalPages"
+      <button class="btn btn-ghost disabled:opacity-40" @click="nextPage" :disabled="page === totalPages || isPaging"
         :aria-label="content.nextPageLabel">
         {{ content.nextLabel }}
       </button>
@@ -30,11 +35,12 @@
 <script setup lang="ts">
 import { portfolioContent } from '@/content/portfolioContent'
 import { publishedProjects } from '@/content/projectsContent'
-import { computed, ref, watch, onMounted, nextTick } from 'vue'
+import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { Project } from '@/types'
 import ImageLightbox from '@/components/ImageLightbox.vue'
 import ProjectCard from '@/components/ProjectCard.vue'
 import { useMediaQuery } from '@/composables/useMediaQuery'
+import { revealSection } from '@/directives/reveal'
 
 const content = portfolioContent.projects
 
@@ -61,6 +67,13 @@ onMounted(() => {
 
 const page = ref(1)
 const isSm = useMediaQuery('(min-width: 640px)')
+const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+const section = ref<HTMLElement | null>(null)
+const grid = ref<HTMLElement | null>(null)
+const gridHeight = ref<string>()
+const isPaging = ref(false)
+let pageDirection = 1
+let finishPageMotion: (() => void) | undefined
 
 const pageSize = computed(() => (isSm.value ? 2 : 1))
 const totalPages = computed(() => Math.max(1, Math.ceil(projects.value.length / pageSize.value)))
@@ -73,12 +86,69 @@ watch(totalPages, (tp) => {
   if (page.value > tp) page.value = tp
 })
 
-function nextPage() {
-  if (page.value < totalPages.value) page.value += 1
+function changePage(destination: number) {
+  if (isPaging.value || destination < 1 || destination > totalPages.value) return
+  if (section.value) void revealSection(section.value, true)
+  const bounds = grid.value?.getBoundingClientRect()
+  if (bounds) {
+    gridHeight.value = `${bounds.height}px`
+    // Pagination sits below the cards; bring the next entrance back into view.
+    if (bounds.top < 80) window.scrollTo({ top: window.scrollY + bounds.top - 96, behavior: reducedMotion.value ? 'auto' : 'smooth' })
+  }
+  pageDirection = destination > page.value ? 1 : -1
+  isPaging.value = true
+  page.value = destination
 }
-function prevPage() {
-  if (page.value > 1) page.value -= 1
+function nextPage() { changePage(page.value + 1) }
+function prevPage() { changePage(page.value - 1) }
+
+function animatePage(element: Element, done: () => void, entering: boolean) {
+  if (!isPaging.value || reducedMotion.value || typeof element.animate !== 'function') { done(); return }
+  const animations: Animation[] = []
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let finished = false
+  const finish = () => {
+    if (finished) return
+    finished = true
+    clearTimeout(timer)
+    animations.forEach(animation => animation.cancel())
+    if (finishPageMotion === finish) finishPageMotion = undefined
+    done()
+  }
+  finishPageMotion = finish
+  try {
+    if (entering) {
+      Array.from(element.children).forEach((card, index) => {
+        animations.push(card.animate([
+          { opacity: 0, translate: `${pageDirection * 24}px 12px` },
+          { opacity: 1, translate: '0 0' },
+        ], { duration: 800, delay: index * 170, easing: 'cubic-bezier(.22,.8,.25,1)', fill: 'both' }))
+      })
+    } else {
+      animations.push(element.animate([
+        { opacity: 1, translate: '0 0' },
+        { opacity: 0, translate: `${pageDirection * -16}px 0` },
+      ], { duration: 260, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'both' }))
+    }
+    void Promise.allSettled(animations.map(animation => animation.finished)).then(finish)
+    timer = setTimeout(finish, entering ? 950 + Math.max(0, element.children.length - 1) * 170 : 410)
+  } catch { finish() }
 }
+function enterPage(element: Element, done: () => void) { animatePage(element, done, true) }
+function leavePage(element: Element, done: () => void) { animatePage(element, done, false) }
+function finishPaging() {
+  isPaging.value = false
+  gridHeight.value = undefined
+  void nextTick(() => window.dispatchEvent(new Event('blueprint-layout')))
+}
+function cancelPaging() {
+  finishPageMotion?.()
+  finishPaging()
+}
+
+watch(isSm, cancelPaging)
+watch(reducedMotion, value => { if (value) cancelPaging() })
+onBeforeUnmount(() => finishPageMotion?.())
 
 watch(pagedProjects, async () => { await nextTick(); window.dispatchEvent(new Event('blueprint-layout')) })
 
@@ -120,13 +190,13 @@ function openLightbox(p: Project) {
 .projects-heading { margin-top: 10px; font-size: clamp(32px,3vw,44px); font-weight: 600; line-height: 1.2; letter-spacing: -.035em; }
 .projects-intro { color: var(--secondary); margin-top: 12px; max-width: 680px; font-size: 14px; line-height: 1.6; }
 .projects-note { color: var(--secondary); font-size: 12px; line-height: 1.6; flex-shrink: 0; }
-.projects-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; }
+.projects-page { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; }
 .projects-pagination { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 32px; }
 .projects-pagination button { min-height: 44px; }
 .projects-pagination button:disabled { pointer-events: none; cursor: default; }
 .page-count { color: var(--secondary); font-size: 12px; }
 .page-short { display: none; }
 @media (max-width: 1200px) { .projects-note { display: none; } }
-@media (max-width: 900px) { .projects-grid { grid-template-columns: minmax(0,1fr); } }
-@media (max-width: 639px) { .projects-grid { gap: 18px; } .projects-pagination button { padding-inline: 14px; } .page-long { display: none; } .page-short { display: inline; } }
+@media (max-width: 900px) { .projects-page { grid-template-columns: minmax(0,1fr); } }
+@media (max-width: 639px) { .projects-page { gap: 18px; } .projects-pagination button { padding-inline: 14px; } .page-long { display: none; } .page-short { display: inline; } }
 </style>

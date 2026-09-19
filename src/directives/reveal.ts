@@ -1,12 +1,14 @@
 import type { Directive } from 'vue'
 
-type RevealOptions = { delay?: number; kind?: 'heading' | 'accent' }
+type RevealOptions = { delay?: number; kind?: 'heading' | 'accent'; whenVisible?: boolean }
 type SectionState = { finish?: () => void; settled?: Promise<void> }
 
 const options = new WeakMap<HTMLElement, RevealOptions>()
 const pending = new WeakMap<HTMLElement, () => void>()
 const sections = new Map<HTMLElement, SectionState>()
 const viewed = new Set<string>()
+const waitingItems = new Map<HTMLElement, HTMLElement>()
+const activeItems = new Map<HTMLElement, { section: HTMLElement; finish: () => void }>()
 let observer: IntersectionObserver | undefined
 let motion: MediaQueryList | undefined
 let navigationTarget: HTMLElement | null = null
@@ -15,8 +17,8 @@ let disabled = false
 
 export function finishReveal(element: HTMLElement) { pending.get(element)?.() }
 
-function visible(section: HTMLElement) {
-  const bounds = section.getBoundingClientRect()
+function visible(element: HTMLElement) {
+  const bounds = element.getBoundingClientRect()
   const top = 80 // Match the sticky navigation clearance.
   const height = Math.max(0, Math.min(bounds.bottom, innerHeight) - Math.max(bounds.top, top))
   // Tall mobile sections must not require an unreachable fraction of their full height.
@@ -29,12 +31,62 @@ function finishSection(section: HTMLElement) {
   section.dataset.sectionReveal = 'revealed'
   observer?.unobserve(section)
   state?.finish?.()
+  for (const [element, owner] of waitingItems) if (owner === section) finishItem(element)
+  for (const [element, item] of activeItems) if (item.section === section) finishItem(element)
 }
 
 function disableReveals() {
   disabled = true
   observer?.disconnect()
   for (const section of sections.keys()) finishSection(section)
+}
+
+function finishItem(element: HTMLElement) {
+  delete element.dataset.revealWaiting
+  waitingItems.delete(element)
+  observer?.unobserve(element)
+  activeItems.get(element)?.finish()
+}
+
+function animateItem(element: HTMLElement, opacity: string, delay?: number) {
+  const settings = options.get(element) ?? {}
+  const distance = settings.kind === 'accent' ? 16 : 24
+  const from: Keyframe = { opacity: 0, translate: `0 ${distance}px` }
+  const to: Keyframe = { opacity, translate: '0 0' }
+  if (settings.kind === 'heading') {
+    from.clipPath = 'inset(0 0 100% 0)'
+    to.clipPath = 'inset(0 0 0% 0)'
+  }
+  return element.animate([from, to], {
+    duration: settings.kind === 'heading' ? 1100 : 900,
+    delay: Math.min(1300, Math.max(0, delay ?? (settings.delay ?? 0) * 1.6)),
+    easing: 'cubic-bezier(.25,.46,.45,.94)',
+    fill: 'both',
+  })
+}
+
+function fallbackDuration(animations: Animation[]) {
+  return Math.max(0, ...animations.map(animation => Number(animation.effect?.getComputedTiming().endTime) || 0)) + 200
+}
+
+function revealVisibleItems() {
+  // Offscreen rows keep their first entrance until they can actually be seen.
+  let index = 0
+  for (const [element, section] of waitingItems) {
+    if ((navigationTarget && navigationTarget !== section) || !visible(element)) continue
+    finishItem(element)
+    try {
+      const animation = animateItem(element, getComputedStyle(element).opacity, 120 + index++ * 180)
+      const finish = () => {
+        clearTimeout(timer)
+        animation.cancel()
+        activeItems.delete(element)
+      }
+      const timer = setTimeout(finish, fallbackDuration([animation]))
+      activeItems.set(element, { section, finish })
+      void animation.finished.then(finish, finish)
+    } catch { finishItem(element) }
+  }
 }
 
 /** Navigation and the observer share this once-only entrance; neither owns scroll transforms. */
@@ -72,26 +124,17 @@ export function revealSection(section: HTMLElement, immediate = false): Promise<
     // Read final styles before starting effects so each element retains its design opacity.
     const items = elements.map(element => ({ element, opacity: getComputedStyle(element).opacity }))
     items.forEach(({ element, opacity }) => {
-      const { delay = 0, kind } = options.get(element) ?? {}
-      const distance = kind === 'heading' ? 24 : kind === 'accent' ? 16 : 20
-      const from: Keyframe = { opacity: 0, translate: `0 ${distance}px` }
-      const to: Keyframe = { opacity, translate: '0 0' }
-      if (kind === 'heading') {
-        from.clipPath = 'inset(0 0 100% 0)'
-        to.clipPath = 'inset(0 0 0% 0)'
-      }
-      animations.push(element.animate([from, to], {
-        duration: kind === 'heading' ? 600 : 520,
-        delay: Math.min(480, Math.max(0, delay)),
-        easing: 'cubic-bezier(.22,1,.36,1)',
-        fill: 'both',
-      }))
+      if (options.get(element)?.whenVisible && !visible(element)) {
+        observer!.observe(element)
+        waitingItems.set(element, section)
+        element.dataset.revealWaiting = ''
+      } else animations.push(animateItem(element, opacity))
     })
     void Promise.allSettled(animations.map(animation => animation.finished)).then(() => state.finish?.())
     // A failed/interrupted animation must never keep content hidden.
-    timer = setTimeout(() => state.finish?.(), 1200)
+    timer = setTimeout(() => state.finish?.(), fallbackDuration(animations))
   } catch {
-    state.finish()
+    finishSection(section)
   }
   return state.settled
 }
@@ -99,6 +142,7 @@ export function revealSection(section: HTMLElement, immediate = false): Promise<
 function scan() {
   scanFrame = 0
   for (const section of sections.keys()) void revealSection(section)
+  revealVisibleItems()
 }
 
 function scheduleScan() {
@@ -133,7 +177,10 @@ function initialize() {
     // One observer for all sections. Fine thresholds also cover very tall mobile layouts.
     observer = new IntersectionObserver(entries => {
       try {
-        for (const entry of entries) if (entry.isIntersecting) void revealSection(entry.target as HTMLElement)
+        for (const entry of entries) {
+          if (entry.isIntersecting && sections.has(entry.target as HTMLElement)) void revealSection(entry.target as HTMLElement)
+        }
+        revealVisibleItems()
       } catch { disableReveals() }
     }, { rootMargin: '-80px 0px 0px', threshold: Array.from({ length: 101 }, (_, index) => index / 100) })
   } catch { disableReveals() }
@@ -156,8 +203,7 @@ export const sectionReveal: Directive<HTMLElement> = {
     } catch { disableReveals() }
   },
   unmounted(section) {
-    sections.get(section)?.finish?.()
-    observer?.unobserve(section)
+    finishSection(section)
     sections.delete(section)
     if (sections.size) return
     observer?.disconnect()
@@ -203,5 +249,5 @@ export const reveal: Directive<HTMLElement, RevealOptions | undefined> = {
     } catch { finish() }
   },
   updated(element, binding) { options.set(element, binding.value ?? {}) },
-  unmounted(element) { finishReveal(element) },
+  unmounted(element) { finishReveal(element); finishItem(element) },
 }
