@@ -47,8 +47,8 @@ export const SHOWCASE_SECTIONS: ShowcaseSectionMeta[] = [
     id: 'contact',
     number: '06',
     label: 'CONTACT',
-    actionLabel: 'INITIATE UPLINK',
-    tagline: 'Global Satellite Uplink',
+    actionLabel: 'CONNECT NOW',
+    tagline: 'Communication Field',
     icon: 'uplink',
   },
 ]
