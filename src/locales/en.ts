@@ -471,21 +471,18 @@ export const blueprintContent = {
 }
 
 export const globeContent = {
-  badge: '04',
-  badgeLabel: '3D Globe',
-  badgeSub: 'Interactive globe with project locations.',
   number: '02',
   eyebrow: 'Selected Work',
-  title: 'Built Worldwide.',
-  description: 'Projects that impact users across different platforms and regions.',
-  exploreLabel: 'Explore Projects',
-  features: [
-    { num: '01', text: 'GLOBAL REACH' },
-    { num: '02', text: 'MULTI-PLATFORM' },
-    { num: '03', text: 'REAL USERS' },
-    { num: '04', text: 'CONTINUOUSLY BUILDING' },
-  ],
-  interactionHint: 'Drag horizontally to rotate globe · Click marker to explore',
+  title: 'Explore my projects in 3D.',
+  description: "An interactive technical visualization representing platforms, architectures, and products built worldwide.",
+  startLabel: 'START SHOWCASE',
+  exitLabel: 'EXIT SHOWCASE',
+  escHint: 'ESC',
+  viewProject: 'VIEW PROJECT',
+  prevLabel: 'PREV',
+  nextLabel: 'NEXT',
+  interactionHint: 'Drag to rotate · Click marker or arrows to navigate',
+  fallbackNotice: 'Interactive 3D acceleration unavailable on this device.',
 }
 
 const languageContent = { label: 'Language', en: 'Switch to English', id: 'Switch to Indonesian' }
