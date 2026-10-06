@@ -15,11 +15,11 @@
       @wheel="onWheel"
     ></canvas>
 
-    <!-- Extremely Subtle Ambient Grid & Vignette (Quiet Editorial Background) -->
+    <!-- Extremely Subtle Ambient Grid & Vignette -->
     <div class="pointer-events-none absolute inset-0 subtle-grid-bg opacity-[0.03]" aria-hidden="true"></div>
     <div class="pointer-events-none absolute inset-0 radial-vignette" aria-hidden="true"></div>
 
-    <!-- Editorial Introduction (Top-Left, Quiet Typography) -->
+    <!-- Editorial Introduction (Top-Left) -->
     <div class="pointer-events-none absolute top-16 sm:top-20 left-6 sm:left-12 z-10 max-w-xs space-y-2.5">
       <div class="flex items-center gap-2">
         <span class="font-mono text-[10px] text-zinc-500 tracking-widest font-semibold">03</span>
@@ -30,20 +30,21 @@
         Technology<br />Constellation
       </h1>
       <p class="text-[11.5px] text-zinc-400 leading-relaxed font-sans max-w-[250px] font-normal">
-        A visual map of the technologies I use and how they connect to build real products.
+        A 3D quantum map of the technologies I use and how they connect to build real products. Drag to rotate in full 3D space.
       </p>
     </div>
 
     <!-- Floating 2D Projected Hover Tag (Above hovered 3D node) -->
     <div
       v-if="hoveredNode && (!selectedNode || selectedNode.id !== hoveredNode.id)"
-      class="pointer-events-none absolute z-20 px-2 py-0.5 rounded-md bg-zinc-950/90 text-zinc-200 border border-white/15 shadow-xl font-mono text-[9px] uppercase tracking-wider -translate-x-1/2 -translate-y-8 transition-opacity duration-150"
+      class="pointer-events-none absolute z-20 px-2.5 py-1 rounded-md bg-zinc-950/90 text-zinc-200 border border-sky-500/30 shadow-[0_0_15px_rgba(56,189,248,0.2)] font-mono text-[9px] uppercase tracking-wider -translate-x-1/2 -translate-y-8 transition-opacity duration-150 backdrop-blur-md"
       :style="{ left: `${hoverScreenPos.x}px`, top: `${hoverScreenPos.y}px` }"
     >
+      <span class="text-sky-400 mr-1">●</span>
       {{ hoveredNode.name }}
     </div>
 
-    <!-- Editorial Information Panel (Bottom-Left / Compact Bottom-Sheet on Mobile) -->
+    <!-- Editorial Information Panel (Bottom-Left) -->
     <div
       v-if="selectedNode"
       class="editorial-panel absolute bottom-6 sm:bottom-10 left-6 sm:left-12 right-6 sm:right-auto z-20 max-w-sm sm:w-80 pointer-events-auto p-4 sm:p-5 rounded-xl border border-white/10 bg-zinc-950/85 backdrop-blur-xl shadow-2xl space-y-3 transition-all duration-300"
@@ -51,8 +52,9 @@
     >
       <div class="space-y-0.5">
         <div class="flex items-center justify-between">
-          <span class="font-mono text-[9px] uppercase tracking-[0.2em] text-blue-400 font-semibold">
-            SELECTED
+          <span class="font-mono text-[9px] uppercase tracking-[0.2em] text-sky-400 font-semibold flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
+            SELECTED NODE
           </span>
           <span class="font-mono text-[9px] text-zinc-500 uppercase tracking-wider">
             {{ selectedNode.category }}
@@ -66,14 +68,14 @@
         </p>
       </div>
 
-      <p class="text-xs text-zinc-300 leading-relaxed font-sans border-t border-white/5 pt-2">
+      <p class="text-xs text-zinc-300 leading-relaxed font-sans border-t border-white/5 pt-2 font-normal">
         {{ selectedNode.desc }}
       </p>
 
       <!-- Connected technologies list -->
       <div class="pt-1 space-y-1.5">
         <p class="font-mono text-[9px] uppercase tracking-wider text-zinc-500">
-          RELATED TECHNOLOGIES
+          ORBITAL CONNECTIONS
         </p>
         <div class="flex flex-wrap gap-1.5">
           <button
@@ -81,7 +83,7 @@
             :key="relId"
             type="button"
             @click.stop="selectNodeById(relId)"
-            class="px-2 py-0.5 rounded text-[10px] font-mono text-zinc-300 bg-white/5 hover:bg-white/15 border border-white/10 transition-colors cursor-pointer"
+            class="px-2 py-0.5 rounded text-[10px] font-mono text-zinc-300 bg-white/5 hover:bg-sky-500/20 hover:text-sky-300 border border-white/10 hover:border-sky-500/40 transition-colors cursor-pointer"
           >
             {{ getNodeName(relId) }}
           </button>
@@ -100,7 +102,7 @@
         <button
           type="button"
           @click="viewProjects"
-          class="inline-flex items-center gap-1 text-[10.5px] font-mono text-blue-400 hover:text-blue-300 transition-colors cursor-pointer font-medium tracking-wider uppercase"
+          class="inline-flex items-center gap-1 text-[10.5px] font-mono text-sky-400 hover:text-sky-300 transition-colors cursor-pointer font-medium tracking-wider uppercase"
         >
           <span>VIEW PROJECTS</span>
           <span>→</span>
@@ -126,7 +128,7 @@ interface TechNode {
   isCore?: boolean
 }
 
-// 1. Curated 10 Connected Technologies (Flutter at the Center)
+// 1. Curated Connected Technologies with Full 3D Depth
 const nodesData: TechNode[] = [
   {
     id: 'flutter',
@@ -144,7 +146,7 @@ const nodesData: TechNode[] = [
     category: 'Core Language',
     tagline: 'Client-optimized type-safe language',
     desc: 'High-velocity object-oriented language featuring sound null safety, Ahead-Of-Time native compilation, and responsive reactive execution.',
-    pos: new THREE.Vector3(-1.0, 0.7, 0.45),
+    pos: new THREE.Vector3(-1.3, 0.85, 0.85),
     connections: ['flutter', 'architecture'],
   },
   {
@@ -153,7 +155,7 @@ const nodesData: TechNode[] = [
     category: 'System Design',
     tagline: 'Clean Architecture & reactive state',
     desc: 'Robust separation of domain, data, and presentation layers using BLoC, Cubit, and Riverpod for scalable, testable codebases.',
-    pos: new THREE.Vector3(1.15, 0.65, -0.4),
+    pos: new THREE.Vector3(1.4, 0.8, -0.75),
     connections: ['flutter', 'dart', 'ui-ux'],
   },
   {
@@ -162,7 +164,7 @@ const nodesData: TechNode[] = [
     category: 'Mobile Platform',
     tagline: 'Platform channels & Gradle pipelines',
     desc: 'Deep platform-native Android configuration, Gradle orchestration, hardware channels, and Google Play packaging.',
-    pos: new THREE.Vector3(-1.45, -0.45, 0.35),
+    pos: new THREE.Vector3(-1.75, -0.55, 0.7),
     connections: ['flutter', 'ios', 'cicd'],
   },
   {
@@ -171,7 +173,7 @@ const nodesData: TechNode[] = [
     category: 'Apple Platform',
     tagline: 'Apple ecosystem & Cupertino fidelity',
     desc: 'Xcode workspace configuration, CocoaPods integration, iOS certificate management, and Apple App Store compliance.',
-    pos: new THREE.Vector3(-1.25, -1.05, -0.45),
+    pos: new THREE.Vector3(-1.45, -1.25, -0.8),
     connections: ['flutter', 'android', 'cicd'],
   },
   {
@@ -180,7 +182,7 @@ const nodesData: TechNode[] = [
     category: 'Web Platform',
     tagline: 'Responsive layouts & modern web runtimes',
     desc: 'Multi-screen responsive layouts, WebAssembly and CanvasKit rendering, cross-browser performance, and desktop parity.',
-    pos: new THREE.Vector3(0.35, 1.35, -0.55),
+    pos: new THREE.Vector3(0.45, 1.65, -0.75),
     connections: ['flutter', 'ui-ux'],
   },
   {
@@ -189,7 +191,7 @@ const nodesData: TechNode[] = [
     category: 'Cloud Services',
     tagline: 'Realtime data & serverless infrastructure',
     desc: 'Cloud Firestore, Firebase Authentication, Cloud Messaging, Crashlytics analytics, and real-time synchronization.',
-    pos: new THREE.Vector3(1.65, -0.35, 0.35),
+    pos: new THREE.Vector3(1.85, -0.4, 0.75),
     connections: ['flutter', 'nodejs'],
   },
   {
@@ -198,7 +200,7 @@ const nodesData: TechNode[] = [
     category: 'Backend & Cloud',
     tagline: 'REST APIs & serverless microservices',
     desc: 'Lightweight backend endpoints, Cloudflare Workers, WebSocket real-time connections, and developer tooling automation.',
-    pos: new THREE.Vector3(2.1, -1.0, 0.2),
+    pos: new THREE.Vector3(2.35, -1.15, 0.45),
     connections: ['firebase'],
   },
   {
@@ -207,7 +209,7 @@ const nodesData: TechNode[] = [
     category: 'Design Systems',
     tagline: 'Design systems & interaction ergonomics',
     desc: 'Fluid micro-interactions, responsive grid structures, typography hierarchy, accessibility, and human-centered design.',
-    pos: new THREE.Vector3(0.55, -1.25, -0.35),
+    pos: new THREE.Vector3(0.7, -1.45, -0.65),
     connections: ['flutter', 'architecture', 'web'],
   },
   {
@@ -216,7 +218,7 @@ const nodesData: TechNode[] = [
     category: 'DevOps & Tooling',
     tagline: 'Continuous integration & deployment',
     desc: 'Automated GitHub Actions pipelines, multi-platform artifact builds, automated linting, and zero-downtime releases.',
-    pos: new THREE.Vector3(-1.85, 0.35, -0.3),
+    pos: new THREE.Vector3(-2.1, 0.45, -0.6),
     connections: ['flutter', 'android', 'ios'],
   },
 ]
@@ -237,11 +239,6 @@ function selectNodeById(id: string) {
   updateHighlights()
 }
 
-function clearSelection() {
-  selectedNodeId.value = 'flutter'
-  updateHighlights()
-}
-
 function viewProjects() {
   setSection('projects')
 }
@@ -256,15 +253,69 @@ let renderer: THREE.WebGLRenderer | null = null
 let animFrameId = 0
 let constellationGroup: THREE.Group | null = null
 let centralFlutterMesh: THREE.Mesh | null = null
-let centralFlutterEmblem: THREE.Mesh | null = null
 let accentPointLight: THREE.PointLight | null = null
 
-let nodeMeshMap = new Map<string, { mesh: THREE.Mesh; ring: THREE.Mesh }>()
-let edgeLines: { line: THREE.Line; from: string; to: string }[] = []
+// Orbital Electron Definitions
+interface ElectronOrbit {
+  a: number
+  b: number
+  rot: THREE.Euler
+  speed: number
+  color: number
+}
+
+const ORBIT_TRACKS: ElectronOrbit[] = [
+  { a: 2.2, b: 1.45, rot: new THREE.Euler(1.15, 0.35, 0.4), speed: 1.4, color: 0x38bdf8 },
+  { a: 2.5, b: 1.60, rot: new THREE.Euler(-1.05, 1.25, -0.4), speed: -1.1, color: 0x60a5fa },
+  { a: 2.75, b: 1.75, rot: new THREE.Euler(0.45, -1.15, 0.95), speed: 1.3, color: 0x38bdf8 },
+  { a: 3.0, b: 1.90, rot: new THREE.Euler(-1.35, -0.4, 1.2), speed: -0.95, color: 0x818cf8 },
+]
+
+interface ActiveElectron {
+  trackIndex: number
+  phaseOffset: number
+  mesh: THREE.Mesh
+  haloMesh: THREE.Mesh
+  trailPoints: THREE.Points
+  trailPositions: Float32Array
+  trailHistory: THREE.Vector3[]
+}
+
+let activeElectrons: ActiveElectron[] = []
+
+// Core Swirling Nucleus Particles
+let nucleusParticles: THREE.Points | null = null
+const NUCLEUS_PARTICLE_COUNT = 32
+let nucleusParticleOffsets: { radius: number; speed: number; phi: number; theta: number }[] = []
+
+// Node runtime meshes
+interface NodeRuntime {
+  node: TechNode
+  group: THREE.Group
+  sphereMesh: THREE.Mesh
+  electronRing: THREE.LineLoop
+  microElectron: THREE.Mesh
+}
+
+let nodeRuntimeMap = new Map<string, NodeRuntime>()
+
+// Connection Lines & Traveling Photon Packets
+interface ConnectionBeam {
+  fromNode: TechNode
+  toNode: TechNode
+  line: THREE.Line
+  photonMesh: THREE.Mesh
+  speed: number
+  offset: number
+}
+
+let connectionBeams: ConnectionBeam[] = []
 
 // Raycasting & Interaction
 const raycaster = new THREE.Raycaster()
 const mouseNDC = new THREE.Vector2(-999, -999)
+const interactiveObjects: THREE.Object3D[] = []
+
 let isDragging = false
 let prevPointerX = 0
 let prevPointerY = 0
@@ -272,10 +323,16 @@ let targetRotX = 0
 let targetRotY = 0
 let targetCamZ = 5.2
 
-// Unregister handler for showcase content navigation
 let unregisterContentNav: (() => void) | null = null
 
-// Generate crisp Flutter Emblem Canvas Texture
+// Helper to evaluate 3D Ellipse point
+function getOrbitPoint(a: number, b: number, angle: number, rot: THREE.Euler): THREE.Vector3 {
+  const p = new THREE.Vector3(a * Math.cos(angle), b * Math.sin(angle), 0)
+  p.applyEuler(rot)
+  return p
+}
+
+// Generate Flutter Mark Canvas Texture
 function createFlutterEmblemTexture(): THREE.CanvasTexture {
   const size = 512
   const c = document.createElement('canvas')
@@ -284,8 +341,6 @@ function createFlutterEmblemTexture(): THREE.CanvasTexture {
   const ctx = c.getContext('2d')!
 
   ctx.clearRect(0, 0, size, size)
-
-  // Draw clean, minimalist Flutter Mark
   const ox = size * 0.48
   const oy = size * 0.52
   const s = size * 0.38
@@ -303,17 +358,17 @@ function createFlutterEmblemTexture(): THREE.CanvasTexture {
   ctx.fillStyle = '#54c5f8'
   ctx.fill()
 
-  // Bottom-Left Inner Chevron
+  // Bottom-Left Chevron
   ctx.beginPath()
   ctx.moveTo(s * 0.25, 0)
   ctx.lineTo(-s * 0.2, 0)
   ctx.lineTo(s * 0.25, s * 0.45)
   ctx.lineTo(s * 0.7, s * 0.45)
   ctx.closePath()
-  ctx.fillStyle = '#01579b'
+  ctx.fillStyle = '#0284c7'
   ctx.fill()
 
-  // Bottom-Right Outer Chevron
+  // Bottom-Right Chevron
   ctx.beginPath()
   ctx.moveTo(s * 0.25, s * 0.45)
   ctx.lineTo(s * 0.02, s * 0.68)
@@ -321,7 +376,7 @@ function createFlutterEmblemTexture(): THREE.CanvasTexture {
   ctx.lineTo(s * 0.85, s * 0.32)
   ctx.lineTo(s * 0.48, s * 0.32)
   ctx.closePath()
-  ctx.fillStyle = '#0288d1'
+  ctx.fillStyle = '#38bdf8'
   ctx.fill()
 
   ctx.restore()
@@ -338,14 +393,14 @@ function initScene() {
   const height = container.value.clientHeight || window.innerHeight
   const isMobile = width < 768
 
-  // 1. Scene & Camera (Perspective with subtle negative space framing)
+  // 1. Scene & Camera
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100)
 
-  targetCamZ = isMobile ? 6.4 : 5.0
+  targetCamZ = isMobile ? 6.2 : 5.1
   camera.position.set(0, 0, targetCamZ)
 
-  // 2. High-Performance WebGL Renderer
+  // 2. Renderer
   renderer = new THREE.WebGLRenderer({
     canvas: canvas.value,
     antialias: !isMobile,
@@ -355,54 +410,233 @@ function initScene() {
   renderer.setSize(width, height)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
 
-  // 3. Very Soft, Sophisticated Lighting Setup
-  // Weak Ambient
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
+  // 3. Studio Ambient & Key Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.4)
   scene.add(ambientLight)
 
-  // Large Soft Key Light
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1.3)
+  const keyLight = new THREE.DirectionalLight(0xfffaed, 2.2)
   keyLight.position.set(5, 6, 6)
   scene.add(keyLight)
 
-  // Subtle Rim Light
-  const rimLight = new THREE.DirectionalLight(0x94a3b8, 0.7)
+  const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.2)
   rimLight.position.set(-6, -4, -4)
   scene.add(rimLight)
 
-  // Dynamic Accent Point Light (Soft blue near selected object)
-  accentPointLight = new THREE.PointLight(0x3b82f6, 1.2, 5, 1.5)
-  accentPointLight.position.set(0, 0, 1.2)
+  accentPointLight = new THREE.PointLight(0x38bdf8, 2.0, 6, 1.5)
+  accentPointLight.position.set(0, 0, 1.5)
   scene.add(accentPointLight)
 
-  // 4. Main Constellation Group (Offset slightly right on desktop to leave room for editorial copy)
+  // 4. Main 3D Constellation Root Group
   constellationGroup = new THREE.Group()
-  constellationGroup.position.x = isMobile ? 0 : 0.65
+  constellationGroup.position.x = isMobile ? 0 : 0.6
   scene.add(constellationGroup)
 
-  // 5. 2–3 Subtle Elliptical Orbital Paths
-  const orbitConfigs = [
-    { a: 1.5, b: 1.35, rotX: 0.28, rotZ: 0.15 },
-    { a: 1.9, b: 1.6, rotX: -0.32, rotZ: 0.4 },
-    { a: 2.2, b: 1.85, rotX: 0.48, rotZ: -0.25 },
-  ]
-  for (const cfg of orbitConfigs) {
-    const curve = new THREE.EllipseCurve(0, 0, cfg.a, cfg.b, 0, 2 * Math.PI, false, 0)
-    const points = curve.getPoints(96)
-    const geo = new THREE.BufferGeometry().setFromPoints(points)
-    const mat = new THREE.LineBasicMaterial({
-      color: 0x475569,
-      transparent: true,
-      opacity: 0.12,
+  interactiveObjects.length = 0
+
+  // 5. 3D ATOMIC NUCLEUS (Flutter Core)
+  const flutterNode = nodesData[0]
+
+  // Inner Pulsing Core Sphere
+  const coreGeo = new THREE.SphereGeometry(0.34, 32, 32)
+  const coreMat = new THREE.MeshStandardMaterial({
+    color: 0x0284c7,
+    emissive: 0x0369a1,
+    emissiveIntensity: 0.85,
+    roughness: 0.25,
+    metalness: 0.8,
+  })
+  centralFlutterMesh = new THREE.Mesh(coreGeo, coreMat)
+  centralFlutterMesh.position.copy(flutterNode.pos)
+  centralFlutterMesh.userData = { id: flutterNode.id }
+  constellationGroup.add(centralFlutterMesh)
+  interactiveObjects.push(centralFlutterMesh)
+
+  // Outer Fresnel Corona Shield
+  const coronaGeo = new THREE.SphereGeometry(0.42, 32, 32)
+  const coronaMat = new THREE.MeshPhysicalMaterial({
+    color: 0x38bdf8,
+    transmission: 0.75,
+    roughness: 0.1,
+    transparent: true,
+    opacity: 0.5,
+    reflectivity: 0.8,
+  })
+  const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat)
+  centralFlutterMesh.add(coronaMesh)
+
+  // Flutter Emblem Billboard inside the nucleus
+  const emblemTex = createFlutterEmblemTexture()
+  const emblemGeo = new THREE.PlaneGeometry(0.36, 0.36)
+  const emblemMat = new THREE.MeshBasicMaterial({
+    map: emblemTex,
+    transparent: true,
+    opacity: 0.95,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  })
+  const emblemMesh = new THREE.Mesh(emblemGeo, emblemMat)
+  centralFlutterMesh.add(emblemMesh)
+
+  // Nucleus Swirling Energy Particles
+  const nucPos = new Float32Array(NUCLEUS_PARTICLE_COUNT * 3)
+  nucleusParticleOffsets = []
+  for (let i = 0; i < NUCLEUS_PARTICLE_COUNT; i++) {
+    const r = 0.18 + Math.random() * 0.14
+    const phi = Math.random() * Math.PI * 2
+    const theta = Math.random() * Math.PI
+    nucPos[i * 3] = r * Math.sin(theta) * Math.cos(phi)
+    nucPos[i * 3 + 1] = r * Math.sin(theta) * Math.sin(phi)
+    nucPos[i * 3 + 2] = r * Math.cos(theta)
+    nucleusParticleOffsets.push({
+      radius: r,
+      speed: 0.8 + Math.random() * 1.5,
+      phi,
+      theta,
     })
-    const orbitLine = new THREE.LineLoop(geo, mat)
-    orbitLine.rotation.x = cfg.rotX
-    orbitLine.rotation.z = cfg.rotZ
-    constellationGroup.add(orbitLine)
+  }
+  const nucGeo = new THREE.BufferGeometry()
+  nucGeo.setAttribute('position', new THREE.BufferAttribute(nucPos, 3))
+  const nucMat = new THREE.PointsMaterial({
+    color: 0x7dd3fc,
+    size: 0.035,
+    transparent: true,
+    opacity: 0.85,
+  })
+  nucleusParticles = new THREE.Points(nucGeo, nucMat)
+  centralFlutterMesh.add(nucleusParticles)
+
+  // 6. 3D ELECTRON ORBITAL SHELLS & ACTIVE ORBITING ELECTRONS
+  activeElectrons = []
+  ORBIT_TRACKS.forEach((track, trackIdx) => {
+    // Generate 3D Elliptical Track LineLoop
+    const segments = 96
+    const points: THREE.Vector3[] = []
+    for (let i = 0; i < segments; i++) {
+      const angle = (i / segments) * Math.PI * 2
+      points.push(getOrbitPoint(track.a, track.b, angle, track.rot))
+    }
+    const trackGeo = new THREE.BufferGeometry().setFromPoints(points)
+    const trackMat = new THREE.LineBasicMaterial({
+      color: track.color,
+      transparent: true,
+      opacity: 0.35,
+    })
+    const trackLine = new THREE.LineLoop(trackGeo, trackMat)
+    constellationGroup!.add(trackLine)
+
+    // Add 2 active electrons per track with different phase offsets
+    const electronCount = 2
+    for (let e = 0; e < electronCount; e++) {
+      const phaseOffset = (e / electronCount) * Math.PI * 2
+
+      // Core Electron Sphere
+      const eGeo = new THREE.SphereGeometry(0.045, 16, 16)
+      const eMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+      const eMesh = new THREE.Mesh(eGeo, eMat)
+      constellationGroup!.add(eMesh)
+
+      // Outer Halo
+      const hGeo = new THREE.SphereGeometry(0.08, 12, 12)
+      const hMat = new THREE.MeshBasicMaterial({
+        color: 0x0284c7,
+        transparent: true,
+        opacity: 0.45,
+      })
+      const hMesh = new THREE.Mesh(hGeo, hMat)
+      eMesh.add(hMesh)
+
+      // Electron Particle Spark Trail (8 points)
+      const TRAIL_LENGTH = 8
+      const trailPositions = new Float32Array(TRAIL_LENGTH * 3)
+      const trailHistory: THREE.Vector3[] = []
+      const initPos = getOrbitPoint(track.a, track.b, phaseOffset, track.rot)
+      for (let k = 0; k < TRAIL_LENGTH; k++) {
+        trailHistory.push(initPos.clone())
+        trailPositions[k * 3] = initPos.x
+        trailPositions[k * 3 + 1] = initPos.y
+        trailPositions[k * 3 + 2] = initPos.z
+      }
+      const trailGeo = new THREE.BufferGeometry()
+      trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3))
+      const trailMat = new THREE.PointsMaterial({
+        color: 0x38bdf8,
+        size: 0.028,
+        transparent: true,
+        opacity: 0.6,
+      })
+      const trailPoints = new THREE.Points(trailGeo, trailMat)
+      constellationGroup!.add(trailPoints)
+
+      activeElectrons.push({
+        trackIndex: trackIdx,
+        phaseOffset,
+        mesh: eMesh,
+        haloMesh: hMesh,
+        trailPoints,
+        trailPositions,
+        trailHistory,
+      })
+    }
+  })
+
+  // 7. SATELLITE TECHNOLOGY NODES (In True 3D Depth with Local Orbiting Micro-Electrons)
+  nodeRuntimeMap.clear()
+  for (let i = 1; i < nodesData.length; i++) {
+    const node = nodesData[i]
+    const nodeGroup = new THREE.Group()
+    nodeGroup.position.copy(node.pos)
+    constellationGroup.add(nodeGroup)
+
+    // Node 3D Sphere
+    const sGeo = new THREE.SphereGeometry(0.11, 24, 24)
+    const sMat = new THREE.MeshStandardMaterial({
+      color: 0x181f2c,
+      roughness: 0.3,
+      metalness: 0.8,
+      emissive: 0x0f172a,
+      emissiveIntensity: 0.2,
+    })
+    const sphereMesh = new THREE.Mesh(sGeo, sMat)
+    sphereMesh.userData = { id: node.id }
+    nodeGroup.add(sphereMesh)
+    interactiveObjects.push(sphereMesh)
+
+    // Micro Electron Orbit Ring around this node
+    const ringRadius = 0.22
+    const ringSegments = 48
+    const ringPts: THREE.Vector3[] = []
+    for (let r = 0; r < ringSegments; r++) {
+      const theta = (r / ringSegments) * Math.PI * 2
+      ringPts.push(new THREE.Vector3(ringRadius * Math.cos(theta), ringRadius * Math.sin(theta), 0))
+    }
+    const ringGeo = new THREE.BufferGeometry().setFromPoints(ringPts)
+    const ringMat = new THREE.LineBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.25,
+    })
+    const electronRing = new THREE.LineLoop(ringGeo, ringMat)
+    electronRing.rotation.x = 0.8 + i * 0.4
+    electronRing.rotation.y = 0.5 + i * 0.3
+    nodeGroup.add(electronRing)
+
+    // Micro-Electron particle orbiting this node
+    const microGeo = new THREE.SphereGeometry(0.022, 12, 12)
+    const microMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc })
+    const microElectron = new THREE.Mesh(microGeo, microMat)
+    nodeGroup.add(microElectron)
+
+    nodeRuntimeMap.set(node.id, {
+      node,
+      group: nodeGroup,
+      sphereMesh,
+      electronRing,
+      microElectron,
+    })
   }
 
-  // 6. Sparse 3D Connection Lines
-  edgeLines = []
+  // 8. 3D CONNECTION BEAMS & TRAVELING PHOTON PACKETS
+  connectionBeams = []
   const createdPairs = new Set<string>()
 
   nodesData.forEach(node => {
@@ -417,96 +651,32 @@ function initScene() {
       const points = [node.pos.clone(), target.pos.clone()]
       const geo = new THREE.BufferGeometry().setFromPoints(points)
       const mat = new THREE.LineBasicMaterial({
-        color: 0x1f2937,
+        color: 0x1e293b,
         transparent: true,
-        opacity: 0.2,
+        opacity: 0.3,
       })
       const line = new THREE.Line(geo, mat)
       constellationGroup!.add(line)
-      edgeLines.push({ line, from: node.id, to: targetId })
+
+      // Traveling Energy Photon Packet
+      const photonGeo = new THREE.SphereGeometry(0.028, 12, 12)
+      const photonMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+      const photonMesh = new THREE.Mesh(photonGeo, photonMat)
+      constellationGroup!.add(photonMesh)
+
+      connectionBeams.push({
+        fromNode: node,
+        toNode: target,
+        line,
+        photonMesh,
+        speed: 0.35 + Math.random() * 0.25,
+        offset: Math.random(),
+      })
     })
   })
 
-  // 7. Central Translucent 3D Sphere for Flutter
-  const flutterNode = nodesData[0]
-  const glassGeo = new THREE.SphereGeometry(0.36, 32, 32)
-  const glassMat = new THREE.MeshPhysicalMaterial({
-    color: 0x0c1322,
-    emissive: 0x08162e,
-    emissiveIntensity: 0.2,
-    roughness: 0.15,
-    metalness: 0.1,
-    transmission: 0.65,
-    ior: 1.45,
-    thickness: 0.8,
-    transparent: true,
-    opacity: 0.92,
-    reflectivity: 0.5,
-  })
-  centralFlutterMesh = new THREE.Mesh(glassGeo, glassMat)
-  centralFlutterMesh.position.copy(flutterNode.pos)
-  centralFlutterMesh.userData = { id: flutterNode.id }
-  constellationGroup.add(centralFlutterMesh)
-
-  // Inner Flutter Emblem Plane
-  const emblemTex = createFlutterEmblemTexture()
-  const emblemGeo = new THREE.PlaneGeometry(0.32, 0.32)
-  const emblemMat = new THREE.MeshBasicMaterial({
-    map: emblemTex,
-    transparent: true,
-    opacity: 0.9,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  })
-  centralFlutterEmblem = new THREE.Mesh(emblemGeo, emblemMat)
-  centralFlutterMesh.add(centralFlutterEmblem)
-
-  // Outer subtle rim ring
-  const flutterRingGeo = new THREE.RingGeometry(0.42, 0.44, 48)
-  const flutterRingMat = new THREE.MeshBasicMaterial({
-    color: 0x60a5fa,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.6,
-  })
-  const flutterRing = new THREE.Mesh(flutterRingGeo, flutterRingMat)
-  flutterRing.position.copy(flutterNode.pos)
-  constellationGroup.add(flutterRing)
-  nodeMeshMap.set(flutterNode.id, { mesh: centralFlutterMesh, ring: flutterRing })
-
-  // 8. Surrounding Smaller Technology Spheres
-  for (let i = 1; i < nodesData.length; i++) {
-    const node = nodesData[i]
-    const sGeo = new THREE.SphereGeometry(0.095, 20, 20)
-    const sMat = new THREE.MeshStandardMaterial({
-      color: 0x181c24,
-      roughness: 0.32,
-      metalness: 0.75,
-      emissive: 0x0a0d14,
-      emissiveIntensity: 0.1,
-    })
-    const sMesh = new THREE.Mesh(sGeo, sMat)
-    sMesh.position.copy(node.pos)
-    sMesh.userData = { id: node.id }
-    constellationGroup.add(sMesh)
-
-    // Thin halo ring (invisible until selected)
-    const rGeo = new THREE.RingGeometry(0.13, 0.145, 32)
-    const rMat = new THREE.MeshBasicMaterial({
-      color: 0x60a5fa,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0,
-    })
-    const ring = new THREE.Mesh(rGeo, rMat)
-    ring.position.copy(node.pos)
-    constellationGroup.add(ring)
-
-    nodeMeshMap.set(node.id, { mesh: sMesh, ring })
-  }
-
-  // 9. Very Sparse Depth Particles (Faint cosmic micro-dust, NO starfield)
-  const dustCount = isMobile ? 120 : 350
+  // 9. Sparse Ambient Quantum Starfield / Dust
+  const dustCount = isMobile ? 120 : 250
   const dustPos = new Float32Array(dustCount * 3)
   for (let i = 0; i < dustCount; i++) {
     dustPos[i * 3] = (Math.random() - 0.5) * 16
@@ -517,59 +687,106 @@ function initScene() {
   dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3))
   const dustMat = new THREE.PointsMaterial({
     color: 0x475569,
-    size: 0.015,
+    size: 0.016,
     transparent: true,
-    opacity: 0.25,
+    opacity: 0.3,
   })
   scene.add(new THREE.Points(dustGeo, dustMat))
 
   updateHighlights()
 
-  // 10. Animation Loop (Slow, calm, 10–30s per major rotation)
+  // 10. Main Quantum Render Loop
   let lastTime = performance.now()
   function loop(now: number) {
     animFrameId = requestAnimationFrame(loop)
     const delta = Math.min((now - lastTime) / 1000, 0.1)
     lastTime = now
 
+    // Smooth Full 3D Constellation Rotation from Drag or Idle
     if (constellationGroup) {
       if (!isDragging) {
-        // Slow calm idle rotation
-        targetRotY += delta * 0.035
+        targetRotY += delta * 0.04
       }
       constellationGroup.rotation.y = THREE.MathUtils.lerp(constellationGroup.rotation.y, targetRotY, 0.06)
       constellationGroup.rotation.x = THREE.MathUtils.lerp(constellationGroup.rotation.x, targetRotX, 0.06)
     }
 
-    // Keep rings facing camera & subtle idle node float
-    nodeMeshMap.forEach((item, id) => {
-      item.ring.lookAt(camera!.position)
+    // A. Animate Active Orbiting 3D Electrons & Spark Trails
+    activeElectrons.forEach(electron => {
+      const track = ORBIT_TRACKS[electron.trackIndex]
+      const angle = (now * 0.001 * track.speed + electron.phaseOffset) % (Math.PI * 2)
+      const pos = getOrbitPoint(track.a, track.b, angle, track.rot)
+      electron.mesh.position.copy(pos)
 
-      if (id !== 'flutter') {
-        const nIndex = nodesData.findIndex(n => n.id === id)
-        const floatOffset = Math.sin(now * 0.001 + nIndex) * 0.0006
-        item.mesh.position.y += floatOffset
-        item.ring.position.y += floatOffset
-      }
+      // Update particle spark trail
+      electron.trailHistory.unshift(pos.clone())
+      if (electron.trailHistory.length > 8) electron.trailHistory.pop()
+
+      const positions = electron.trailPositions
+      electron.trailHistory.forEach((tp, idx) => {
+        positions[idx * 3] = tp.x
+        positions[idx * 3 + 1] = tp.y
+        positions[idx * 3 + 2] = tp.z
+      })
+      electron.trailPoints.geometry.attributes.position.needsUpdate = true
     })
 
-    // Slow rotation of central Flutter emblem
-    if (centralFlutterEmblem) {
-      centralFlutterEmblem.lookAt(camera!.position)
+    // B. Animate Swirling Nucleus Protons/Neutrons
+    if (nucleusParticles) {
+      const posArray = nucleusParticles.geometry.attributes.position.array as Float32Array
+      nucleusParticleOffsets.forEach((np, idx) => {
+        np.phi += delta * np.speed
+        np.theta += delta * (np.speed * 0.5)
+        posArray[idx * 3] = np.radius * Math.sin(np.theta) * Math.cos(np.phi)
+        posArray[idx * 3 + 1] = np.radius * Math.sin(np.theta) * Math.sin(np.phi)
+        posArray[idx * 3 + 2] = np.radius * Math.cos(np.theta)
+      })
+      nucleusParticles.geometry.attributes.position.needsUpdate = true
     }
 
-    // Smooth Camera Zoom
+    // C. Central Nucleus Breathing Glow
+    if (centralFlutterMesh) {
+      const pulseScale = 1.0 + Math.sin(now * 0.003) * 0.03
+      centralFlutterMesh.scale.set(pulseScale, pulseScale, pulseScale)
+    }
+
+    // D. Animate Satellite Nodes & Local Micro-Electrons
+    nodeRuntimeMap.forEach((runtime, id) => {
+      // Local micro-electron orbit around the node
+      const microAngle = now * 0.0025 + runtime.node.pos.x
+      const ringRadius = 0.22
+      const localPos = new THREE.Vector3(
+        ringRadius * Math.cos(microAngle),
+        ringRadius * Math.sin(microAngle),
+        0
+      )
+      localPos.applyEuler(runtime.electronRing.rotation)
+      runtime.microElectron.position.copy(localPos)
+
+      // Subtle float
+      const nIndex = nodesData.findIndex(n => n.id === id)
+      runtime.group.position.y = runtime.node.pos.y + Math.sin(now * 0.0012 + nIndex) * 0.03
+    })
+
+    // E. Animate Traveling Photons along Connection Beams
+    connectionBeams.forEach(beam => {
+      const progress = ((now * 0.001 * beam.speed + beam.offset) % 1)
+      beam.photonMesh.position.lerpVectors(beam.fromNode.pos, beam.toNode.pos, progress)
+    })
+
+    // F. Smooth Camera Zoom
     if (camera) {
       camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetCamZ, 0.08)
     }
 
-    // Update 2D Screen Position for Hovered Tag
+    // G. Update Hover Projected Tooltip
     updateHoverPosition()
 
     if (renderer && scene && camera) {
       renderer.render(scene, camera)
     }
   }
+
   animFrameId = requestAnimationFrame(loop)
 }
 
@@ -579,66 +796,78 @@ function updateHighlights() {
 
   // Move accent point light towards selected node
   if (accentPointLight) {
-    accentPointLight.position.set(cur.pos.x, cur.pos.y, cur.pos.z + 0.8)
+    accentPointLight.position.set(cur.pos.x, cur.pos.y, cur.pos.z + 1.2)
   }
 
-  // Update spheres & rings
-  nodeMeshMap.forEach((item, id) => {
+  // Update Center Flutter Nucleus
+  if (centralFlutterMesh) {
+    const isSelected = cur.id === 'flutter'
+    const isConnected = cur.connections.includes('flutter')
+    const mat = centralFlutterMesh.material as THREE.MeshStandardMaterial
+    if (isSelected) {
+      mat.emissive.setHex(0x0284c7)
+      mat.emissiveIntensity = 1.0
+    } else if (isConnected) {
+      mat.emissive.setHex(0x0369a1)
+      mat.emissiveIntensity = 0.6
+    } else {
+      mat.emissive.setHex(0x082f49)
+      mat.emissiveIntensity = 0.3
+    }
+  }
+
+  // Update Satellite Nodes
+  nodeRuntimeMap.forEach((runtime, id) => {
     const isSelected = id === cur.id
     const isConnected = cur.connections.includes(id)
-    const rMat = item.ring.material as THREE.MeshBasicMaterial
+    const mat = runtime.sphereMesh.material as THREE.MeshStandardMaterial
+    const ringMat = runtime.electronRing.material as THREE.LineBasicMaterial
+    const microMat = runtime.microElectron.material as THREE.MeshBasicMaterial
 
-    if (id === 'flutter') {
-      const gMat = item.mesh.material as THREE.MeshPhysicalMaterial
-      if (isSelected) {
-        gMat.emissive.setHex(0x1d4ed8)
-        gMat.emissiveIntensity = 0.4
-        rMat.opacity = 0.85
-      } else if (isConnected) {
-        gMat.emissive.setHex(0x0f2952)
-        gMat.emissiveIntensity = 0.25
-        rMat.opacity = 0.4
-      } else {
-        gMat.emissive.setHex(0x060f1e)
-        gMat.emissiveIntensity = 0.1
-        rMat.opacity = 0.15
-      }
+    if (isSelected) {
+      mat.color.setHex(0x0284c7)
+      mat.emissive.setHex(0x38bdf8)
+      mat.emissiveIntensity = 0.85
+      runtime.sphereMesh.scale.set(1.3, 1.3, 1.3)
+      ringMat.opacity = 0.75
+      ringMat.color.setHex(0x38bdf8)
+      microMat.color.setHex(0x7dd3fc)
+    } else if (isConnected) {
+      mat.color.setHex(0x1e3a8a)
+      mat.emissive.setHex(0x2563eb)
+      mat.emissiveIntensity = 0.4
+      runtime.sphereMesh.scale.set(1.1, 1.1, 1.1)
+      ringMat.opacity = 0.4
+      ringMat.color.setHex(0x60a5fa)
+      microMat.color.setHex(0x93c5fd)
     } else {
-      const sMat = item.mesh.material as THREE.MeshStandardMaterial
-      if (isSelected) {
-        sMat.color.setHex(0x1e3a8a)
-        sMat.emissive.setHex(0x3b82f6)
-        sMat.emissiveIntensity = 0.75
-        item.mesh.scale.set(1.25, 1.25, 1.25)
-        rMat.opacity = 0.85
-      } else if (isConnected) {
-        sMat.color.setHex(0x27303f)
-        sMat.emissive.setHex(0x2563eb)
-        sMat.emissiveIntensity = 0.25
-        item.mesh.scale.set(1.05, 1.05, 1.05)
-        rMat.opacity = 0
-      } else {
-        sMat.color.setHex(0x11141a)
-        sMat.emissive.setHex(0x05070a)
-        sMat.emissiveIntensity = 0.05
-        item.mesh.scale.set(0.9, 0.9, 0.9)
-        rMat.opacity = 0
-      }
+      mat.color.setHex(0x0f172a)
+      mat.emissive.setHex(0x020617)
+      mat.emissiveIntensity = 0.1
+      runtime.sphereMesh.scale.set(0.92, 0.92, 0.92)
+      ringMat.opacity = 0.12
+      ringMat.color.setHex(0x334155)
+      microMat.color.setHex(0x64748b)
     }
   })
 
-  // Update connection lines
-  edgeLines.forEach(edge => {
-    const isDirect = (edge.from === cur.id && cur.connections.includes(edge.to)) ||
-                     (edge.to === cur.id && cur.connections.includes(edge.from))
-    const lMat = edge.line.material as THREE.LineBasicMaterial
+  // Update Connection Beams
+  connectionBeams.forEach(beam => {
+    const isDirect = (beam.fromNode.id === cur.id && cur.connections.includes(beam.toNode.id)) ||
+                     (beam.toNode.id === cur.id && cur.connections.includes(beam.fromNode.id))
+    const lMat = beam.line.material as THREE.LineBasicMaterial
+    const pMat = beam.photonMesh.material as THREE.MeshBasicMaterial
 
     if (isDirect) {
-      lMat.color.setHex(0x3b82f6)
-      lMat.opacity = 0.75
+      lMat.color.setHex(0x38bdf8)
+      lMat.opacity = 0.8
+      pMat.color.setHex(0x7dd3fc)
+      beam.photonMesh.scale.set(1.4, 1.4, 1.4)
     } else {
-      lMat.color.setHex(0x1e2430)
-      lMat.opacity = 0.08
+      lMat.color.setHex(0x1e293b)
+      lMat.opacity = 0.15
+      pMat.color.setHex(0x38bdf8)
+      beam.photonMesh.scale.set(0.7, 0.7, 0.7)
     }
   })
 }
@@ -650,15 +879,17 @@ function updateHoverPosition() {
     pos.applyMatrix4(constellationGroup.matrixWorld)
   }
   const projected = pos.project(camera)
+
   const w = container.value.clientWidth
   const h = container.value.clientHeight
+
   hoverScreenPos.value = {
     x: (projected.x * 0.5 + 0.5) * w,
     y: (-projected.y * 0.5 + 0.5) * h,
   }
 }
 
-// Interaction Handlers
+// Interaction Handlers (Full 3D Pitch and Yaw Orbit)
 function onPointerDown(e: PointerEvent) {
   isDragging = true
   prevPointerX = e.clientX
@@ -672,16 +903,15 @@ function onPointerMove(e: PointerEvent) {
   mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
   mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
 
-  if (isDragging && constellationGroup) {
+  if (isDragging) {
     const dx = e.clientX - prevPointerX
     const dy = e.clientY - prevPointerY
     prevPointerX = e.clientX
     prevPointerY = e.clientY
 
     targetRotY += dx * 0.005
-    targetRotX += dy * 0.005
+    targetRotX = THREE.MathUtils.clamp(targetRotX + dy * 0.005, -0.7, 0.7)
   } else {
-    // Check hover state
     checkRaycast(e, false)
   }
 }
@@ -692,22 +922,23 @@ function onPointerUp() {
 
 function onWheel(e: WheelEvent) {
   e.preventDefault()
-  targetCamZ = THREE.MathUtils.clamp(targetCamZ + e.deltaY * 0.003, 4.2, 6.8)
+  targetCamZ = THREE.MathUtils.clamp(targetCamZ + e.deltaY * 0.003, 3.8, 7.5)
 }
 
 function checkRaycast(e: PointerEvent, isClick: boolean) {
-  if (!camera || !container.value) return
-  const rect = container.value.getBoundingClientRect()
-  mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
-  mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+  if (!camera || !container.value || !scene) return
 
   raycaster.setFromCamera(mouseNDC, camera)
-  const targets = Array.from(nodeMeshMap.values()).map(n => n.mesh)
-  const hits = raycaster.intersectObjects(targets, false)
+  const hits = raycaster.intersectObjects(interactiveObjects, true)
 
   if (hits.length > 0) {
-    const id = hits[0].object.userData.id
-    if (typeof id === 'string') {
+    let topObj: THREE.Object3D | null = hits[0].object
+    while (topObj && !topObj.userData?.id && topObj.parent && topObj !== scene) {
+      topObj = topObj.parent
+    }
+
+    if (topObj && topObj.userData?.id) {
+      const id = topObj.userData.id
       if (isClick) {
         selectNodeById(id)
       } else {
@@ -724,50 +955,39 @@ function checkRaycast(e: PointerEvent, isClick: boolean) {
   }
 }
 
-function onBackgroundClick(e: MouseEvent) {
-  // If clicked directly on canvas background without hitting a node, reset view to flutter
-  if (e.target === canvas.value && !hoveredNodeId.value) {
-    clearSelection()
-  }
-}
-
-// Arrow Key Navigation (Left / Right cycles through nodes)
-function prevNode() {
-  const currentIdx = nodesData.findIndex(n => n.id === selectedNodeId.value)
-  const prevIdx = (currentIdx - 1 + nodesData.length) % nodesData.length
-  selectNodeById(nodesData[prevIdx].id)
-}
-
-function nextNode() {
-  const currentIdx = nodesData.findIndex(n => n.id === selectedNodeId.value)
-  const nextIdx = (currentIdx + 1) % nodesData.length
-  selectNodeById(nodesData[nextIdx].id)
+function onBackgroundClick() {
+  // Clear selection back to Flutter
+  selectNodeById('flutter')
 }
 
 function onResize() {
-  if (!container.value || !camera || !renderer) return
+  if (!container.value || !camera || !renderer || !constellationGroup) return
   const w = container.value.clientWidth || window.innerWidth
   const h = container.value.clientHeight || window.innerHeight
   const isMobile = w < 768
 
+  constellationGroup.position.x = isMobile ? 0 : 0.6
+  targetCamZ = isMobile ? 6.2 : 5.1
+
   camera.aspect = w / h
   camera.updateProjectionMatrix()
   renderer.setSize(w, h)
-
-  if (constellationGroup) {
-    constellationGroup.position.x = isMobile ? 0 : 0.65
-  }
-  targetCamZ = isMobile ? 6.4 : 5.0
 }
 
 onMounted(() => {
   initScene()
   window.addEventListener('resize', onResize)
 
-  // Register left/right content navigation
-  unregisterContentNav = registerContentNavigator((dir) => {
-    if (dir === 'next') nextNode()
-    else prevNode()
+  unregisterContentNav = registerContentNavigator((direction) => {
+    const list = nodesData.map(n => n.id)
+    const curr = list.indexOf(selectedNodeId.value)
+    if (direction === 'prev') {
+      const prevIdx = (curr - 1 + list.length) % list.length
+      selectNodeById(list[prevIdx])
+    } else {
+      const nextIdx = (curr + 1) % list.length
+      selectNodeById(list[nextIdx])
+    }
   })
 })
 
@@ -779,11 +999,18 @@ onBeforeUnmount(() => {
 
   if (scene) {
     scene.traverse(obj => {
-      if (obj instanceof THREE.Mesh || obj instanceof THREE.Points || obj instanceof THREE.LineLoop || obj instanceof THREE.Line) {
+      if (obj instanceof THREE.Mesh || obj instanceof THREE.Points || obj instanceof THREE.Line || obj instanceof THREE.LineLoop) {
         if (obj.geometry) obj.geometry.dispose()
         if (obj.material) {
-          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose())
-          else obj.material.dispose()
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach(m => {
+              if (m.map) m.map.dispose()
+              m.dispose()
+            })
+          } else {
+            if (obj.material.map) obj.material.map.dispose()
+            obj.material.dispose()
+          }
         }
       }
     })
@@ -800,17 +1027,16 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* Subtle Editorial Grid */
+/* Editorial subtle grid and radial vignette */
 .subtle-grid-bg {
+  background-size: 32px 32px;
   background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 64px 64px;
 }
 
-/* Faint Depth Vignette */
 .radial-vignette {
-  background: radial-gradient(circle at 60% 50%, rgba(15, 23, 42, 0.25) 0%, rgba(6, 7, 9, 0.95) 80%, #060709 100%);
+  background: radial-gradient(circle at 65% 50%, rgba(56, 189, 248, 0.06) 0%, rgba(6, 7, 9, 0.75) 60%, #060709 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
