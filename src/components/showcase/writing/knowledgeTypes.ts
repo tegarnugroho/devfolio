@@ -2,15 +2,15 @@ export interface KnowledgeArticle {
   id: string
   title: string
   shortTitle: string
-  category: 'Flutter' | 'Dart' | 'Architecture' | 'Tools' | 'Productivity'
+  category: string
   date: string
   year: string
   excerpt: string
-  keyInsights: string[]
+  tags: string[]
   url: string
 }
 
-export type CategoryFilter = 'ALL' | 'Flutter' | 'Dart' | 'Architecture' | 'Tools'
+export type CategoryFilter = string
 
 export interface SpatialNodeState {
   article: KnowledgeArticle

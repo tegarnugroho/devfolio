@@ -27,21 +27,20 @@
         {{ article.excerpt }}
       </p>
 
-      <!-- Key Insights (if available) -->
-      <div v-if="article.keyInsights && article.keyInsights.length" class="space-y-1 pt-1 border-t border-white/5">
+      <!-- Tags / Key Insights from API response -->
+      <div v-if="article.tags && article.tags.length" class="space-y-1 pt-1 border-t border-white/5">
         <p class="font-mono text-[8.5px] uppercase tracking-widest text-zinc-400 font-semibold">
-          CORE TAKEAWAYS
+          TOPICS & TAGS
         </p>
-        <ul class="space-y-1 text-[10.5px] text-zinc-300 font-sans">
-          <li
-            v-for="(insight, idx) in article.keyInsights.slice(0, 2)"
-            :key="idx"
-            class="flex items-start gap-1.5"
+        <div class="flex flex-wrap gap-1 pt-0.5">
+          <span
+            v-for="tag in article.tags"
+            :key="tag"
+            class="px-1.5 py-0.5 rounded text-[9px] font-mono uppercase bg-white/5 border border-white/10 text-zinc-300"
           >
-            <span class="text-zinc-500 font-mono text-[9px] mt-0.5">·</span>
-            <span class="line-clamp-1">{{ insight }}</span>
-          </li>
-        </ul>
+            #{{ tag }}
+          </span>
+        </div>
       </div>
 
       <!-- Category & Progress -->
@@ -116,3 +115,4 @@ defineEmits<{
   transform: translateY(10px);
 }
 </style>
+

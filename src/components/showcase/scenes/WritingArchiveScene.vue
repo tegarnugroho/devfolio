@@ -18,8 +18,41 @@
     <!-- Deep Ambient Vignette (Seamless background blend) -->
     <div class="pointer-events-none absolute inset-0 gallery-ambient-vignette" aria-hidden="true"></div>
 
+    <!-- Loading State -->
+    <div
+      v-if="loading && articles.length === 0"
+      class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 z-30 font-mono text-zinc-400 select-none"
+    >
+      <div class="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+      <span class="tracking-widest uppercase text-[10px] text-zinc-400">
+        {{ portfolioContent.writing.loadingLabel || 'LOADING KNOWLEDGE FIELD...' }}
+      </span>
+    </div>
+
+    <!-- Error State -->
+    <div
+      v-else-if="failed && articles.length === 0"
+      class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 z-30 font-mono text-zinc-400 select-none"
+    >
+      <span class="text-zinc-500 text-lg">✕</span>
+      <span class="tracking-wider uppercase text-[11px] text-zinc-400 max-w-xs text-center px-4">
+        {{ portfolioContent.writing.errorLabel }}
+      </span>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      v-else-if="articles.length === 0"
+      class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 z-30 font-mono text-zinc-400 select-none"
+    >
+      <span class="tracking-wider uppercase text-[11px] text-zinc-500">
+        {{ portfolioContent.writing.emptyLabel }}
+      </span>
+    </div>
+
     <!-- Section Header & Category Filters (Left Side) -->
     <WritingFilters
+      v-if="articles.length > 0"
       :categories="availableCategories"
       :selected-category="selectedCategory"
       :count="filteredArticles.length"
@@ -38,6 +71,7 @@
 
     <!-- Selected Article Editorial Preview Panel (Right / Bottom-Right) -->
     <WritingArticlePanel
+      v-if="articles.length > 0"
       :article="selectedArticle"
       :current-index="selectedArticleIndex"
       :total-count="filteredArticles.length"
@@ -52,152 +86,75 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
 import { registerContentNavigator } from '@/composables/useShowcase'
 import { portfolioContent } from '@/content/portfolioContent'
-import { useWritingPosts } from '@/composables/useWritingPosts'
+import { useWritingPosts, type BlogPost } from '@/composables/useWritingPosts'
 import type { KnowledgeArticle, CategoryFilter } from '../writing/knowledgeTypes'
 import { createCardTexture } from '../writing/cardTextureGenerator'
 import { calculateNodeTransform, buildRelationshipPairs } from '../writing/articlePosition'
 import WritingFilters from '../writing/WritingFilters.vue'
 import WritingArticlePanel from '../writing/WritingArticlePanel.vue'
 
-// Base Curated Technical Articles
-const baseArticles: KnowledgeArticle[] = [
-  {
-    id: 'flutter-csv-parser',
-    title: 'Working with CSV, Excel, and ODS in Flutter Without Multiple Packages',
-    shortTitle: 'CSV, EXCEL & ODS PARSER',
-    category: 'Flutter',
-    date: '31 JAN 2026',
-    year: '2026',
-    excerpt: 'Handling multi-format spreadsheet ingestion with zero external dependencies and isolate binary stream decoding.',
-    keyInsights: [
-      'Zero-dependency binary stream decoding in pure Dart isolates',
-      'Unified schema mapping for CSV, XLS, XLSX, and ODS formats',
-      'Zero-copy memory buffering to handle 100k+ row datasets',
-    ],
-    url: 'https://codeary.xyz',
-  },
-  {
-    id: 'flutter-clean-arch',
-    title: 'Clean Architecture in Flutter: Scalable Domain Layer Patterns',
-    shortTitle: 'CLEAN ARCHITECTURE',
-    category: 'Architecture',
-    date: '15 MAR 2024',
-    year: '2024',
-    excerpt: 'Structuring state management, repository contracts, and pure use-cases for resilient enterprise Flutter applications.',
-    keyInsights: [
-      'Strict separation between UI widgets and pure domain business logic',
-      'Repository interface abstractions for seamless API/local swaps',
-      'Deterministic unit testing with zero Flutter bindings',
-    ],
-    url: 'https://codeary.xyz',
-  },
-  {
-    id: 'riverpod-2-mastery',
-    title: 'Reactive State Mastery with Riverpod 2.0',
-    shortTitle: 'RIVERPOD 2.0 MASTERY',
-    category: 'Flutter',
-    date: '20 FEB 2024',
-    year: '2024',
-    excerpt: 'How code generation and auto-dispose providers eliminate memory leaks, circular dependencies, and repetitive boilerplate.',
-    keyInsights: [
-      'Modern @riverpod annotation generators for type-safe providers',
-      'Scoping state lifecycles to avoid zombie listeners & memory leaks',
-      'Granular rebuild control using select() and family parameters',
-    ],
-    url: 'https://codeary.xyz',
-  },
-  {
-    id: 'cross-platform-flutter',
-    title: 'Building Universal Desktop and Web UIs with Flutter',
-    shortTitle: 'CROSS-PLATFORM DESKTOP',
-    category: 'Flutter',
-    date: '12 JAN 2024',
-    year: '2024',
-    excerpt: 'Adapting cursor events, hardware shortcuts, and responsive layouts across macOS, Windows, and modern web viewports.',
-    keyInsights: [
-      'Platform-adaptive layout builders and split-view navigation',
-      'Keyboard shortcuts, hover effects, and contextual right-click menus',
-      'Desktop window frame controls and multi-window orchestration',
-    ],
-    url: 'https://codeary.xyz',
-  },
-  {
-    id: 'pos-offline-first',
-    title: 'Engineering Offline-First Sync for Retail POS Systems',
-    shortTitle: 'OFFLINE-FIRST POS SYNC',
-    category: 'Architecture',
-    date: '18 NOV 2023',
-    year: '2023',
-    excerpt: 'Managing local high-throughput SQLite storage with resilient WebSocket backpressure and conflict-free journal replay.',
-    keyInsights: [
-      'WAL-mode SQLite embedded storage for sub-millisecond writes',
-      'Conflict-free transaction queuing with idempotent replay',
-      'WebSocket backpressure management during network degradation',
-    ],
-    url: 'https://codeary.xyz',
-  },
-  {
-    id: 'dart-high-performance-parsing',
-    title: 'High-Performance Data Parsing in Dart',
-    shortTitle: 'HIGH-PERF DART PARSING',
-    category: 'Dart',
-    date: '05 OCT 2023',
-    year: '2023',
-    excerpt: 'Benchmarking string chunking, regex compilation, and memory allocations in background isolates for high-throughput pipelines.',
-    keyInsights: [
-      'Isolate pool architectures for non-blocking UI threads',
-      'TypedData buffers vs standard list allocations',
-      'Pre-compiled regular expression state machines',
-    ],
-    url: 'https://codeary.xyz',
-  },
-  {
-    id: 'secrets-remote-config',
-    title: 'Secrets & Remote Config Management in Distributed Systems',
-    shortTitle: 'SECRETS & REMOTE CONFIG',
-    category: 'Tools',
-    date: '14 JUN 2023',
-    year: '2023',
-    excerpt: 'Architecting scoped API tokens, zero-trust credential distribution, and atomic configuration rollouts via Cloudflare Workers.',
-    keyInsights: [
-      'Edge KV stores for global low-latency configuration delivery',
-      'Rotatable public/private key pairs with signature verification',
-      'Zero-downtime remote feature flag rollouts',
-    ],
-    url: 'https://codeary.xyz',
-  },
-]
+// Live API Data Hook (Identical data source as the 2D Writing section)
+const { posts, loading, failed } = useWritingPosts()
 
-// Integrate live blog posts if available
-const { posts } = useWritingPosts()
-const articles = computed<KnowledgeArticle[]>(() => {
-  if (posts.value && posts.value.length > 0) {
-    const liveFirst = posts.value[0]
-    const updated = [...baseArticles]
-    updated[0] = {
-      ...updated[0],
-      title: liveFirst.title,
-      excerpt: liveFirst.excerpt || updated[0].excerpt,
-      date: liveFirst.dateLabel || updated[0].date,
-      url: `${portfolioContent.writing.blogUrl}/posts/${liveFirst.slug}`,
-    }
-    return updated
+// Map BlogPost from API to KnowledgeArticle
+function mapPostToArticle(post: BlogPost): KnowledgeArticle {
+  const category = post.tags && post.tags.length > 0 ? post.tags[0] : 'Engineering'
+  const blogUrl = portfolioContent.writing.blogUrl || 'https://codeary.xyz'
+  const url = new URL(`/${encodeURIComponent(post.slug)}`, blogUrl).href
+  const year = post.date ? post.date.slice(0, 4) : ''
+
+  return {
+    id: post.id || post.slug,
+    title: post.title,
+    shortTitle: post.title.length > 28 ? `${post.title.slice(0, 25)}...` : post.title,
+    category,
+    date: post.dateLabel || post.date || year,
+    year,
+    excerpt: post.excerpt || '',
+    tags: post.tags || [],
+    url,
   }
-  return baseArticles
+}
+
+// Articles strictly driven by API response
+const articles = computed<KnowledgeArticle[]>(() => {
+  return posts.value.map(mapPostToArticle)
 })
 
-// Categories
-const availableCategories = ['ALL', 'Flutter', 'Dart', 'Architecture', 'Tools'] as const
+// Dynamic Categories derived directly from API tags
+const availableCategories = computed<CategoryFilter[]>(() => {
+  const tagSet = new Set<string>()
+  articles.value.forEach(a => {
+    if (a.tags && a.tags.length > 0) {
+      a.tags.forEach(t => tagSet.add(t))
+    } else if (a.category) {
+      tagSet.add(a.category)
+    }
+  })
+  const list = Array.from(tagSet)
+  return list.length > 0 ? ['ALL', ...list] : ['ALL']
+})
+
 const selectedCategory = ref<CategoryFilter>('ALL')
 
 const filteredArticles = computed<KnowledgeArticle[]>(() => {
   if (selectedCategory.value === 'ALL') return articles.value
-  return articles.value.filter(a => a.category === selectedCategory.value)
+  return articles.value.filter(
+    a => a.category === selectedCategory.value || a.tags.includes(selectedCategory.value)
+  )
 })
 
-const selectedArticleId = ref<string>('flutter-csv-parser')
+const selectedArticleId = ref<string>('')
+
+// Keep selectedArticle reactive and synchronized
 const selectedArticle = computed<KnowledgeArticle | null>(() => {
-  return articles.value.find(a => a.id === selectedArticleId.value) || filteredArticles.value[0] || null
+  if (!articles.value.length) return null
+  return (
+    articles.value.find(a => a.id === selectedArticleId.value) ||
+    filteredArticles.value[0] ||
+    articles.value[0] ||
+    null
+  )
 })
 
 const selectedArticleIndex = computed<number>(() => {
@@ -229,7 +186,6 @@ function nextArticle() {
 
 function setCategory(cat: CategoryFilter) {
   selectedCategory.value = cat
-  // If selected article is not in new category, select the first visible
   const list = filteredArticles.value
   if (list.length && !list.some(a => a.id === selectedArticleId.value)) {
     selectedArticleId.value = list[0].id
@@ -315,71 +271,44 @@ function createShadowTexture(): THREE.CanvasTexture {
   return t
 }
 
-function initThree() {
-  if (!container.value || !canvas.value) return
-
-  const width = container.value.clientWidth || window.innerWidth
-  const height = container.value.clientHeight || window.innerHeight
-
-  isMobile.value = width < 768
-  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-  scene = new THREE.Scene()
-
-  // Camera: Perspective 46 deg FOV
-  camera = new THREE.PerspectiveCamera(46, width / height, 0.1, 100)
-  camera.position.set(0, 0.15, isMobile.value ? 8.6 : 7.8)
-
-  // WebGL Renderer
-  renderer = new THREE.WebGLRenderer({
-    canvas: canvas.value,
-    antialias: true,
-    alpha: true,
-    powerPreference: 'high-performance',
+function clear3DNodes() {
+  cardNodes.forEach(node => {
+    node.activeTexture.dispose()
+    node.inactiveTexture.dispose()
+    node.materials.forEach(m => m.dispose())
+    if (fieldGroup) {
+      fieldGroup.remove(node.group)
+    }
   })
-  renderer.setSize(width, height)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
-  renderer.outputColorSpace = THREE.SRGBColorSpace
+  cardNodes.length = 0
 
-  // Subtle Gallery Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.65)
-  scene.add(ambientLight)
+  if (linesMesh && fieldGroup) {
+    fieldGroup.remove(linesMesh)
+    if (linesGeometry) linesGeometry.dispose()
+    if (Array.isArray(linesMesh.material)) linesMesh.material.forEach(m => m.dispose())
+    else linesMesh.material.dispose()
+    linesMesh = null
+    linesGeometry = null
+  }
+}
 
-  const keyLight = new THREE.DirectionalLight(0xffffff, 0.75)
-  keyLight.position.set(2, 4, 5)
-  scene.add(keyLight)
+function build3DNodes() {
+  if (!fieldGroup || !articles.value.length) return
 
-  const rimLight = new THREE.DirectionalLight(0x94a3b8, 0.35)
-  rimLight.position.set(-3, -2, -2)
-  scene.add(rimLight)
+  clear3DNodes()
 
-  // Master Field Group
-  fieldGroup = new THREE.Group()
-  scene.add(fieldGroup)
+  if (!selectedArticleId.value && articles.value.length > 0) {
+    selectedArticleId.value = articles.value[0].id
+  }
 
-  // Geometries
-  sharedBoxGeometry = new THREE.BoxGeometry(1.85, 2.4, 0.035)
-  sharedShadowGeometry = new THREE.PlaneGeometry(2.1, 2.65)
-
-  const shadowTexture = createShadowTexture()
-  sharedShadowMaterial = new THREE.MeshBasicMaterial({
-    map: shadowTexture,
-    transparent: true,
-    opacity: 0.45,
-    depthWrite: false,
-  })
-
-  // Create 3D Nodes for each article
   articles.value.forEach((article, index) => {
     const nodeGroup = new THREE.Group()
 
-    // Pre-generate active and inactive textures
     const activeTexture = createCardTexture(article, index, true)
     const inactiveTexture = createCardTexture(article, index, false)
 
     const isSelected = article.id === selectedArticleId.value
 
-    // 6-sided materials array for the document slab box
     const sideMaterial = new THREE.MeshStandardMaterial({
       color: 0x0c0f14,
       roughness: 0.8,
@@ -403,24 +332,22 @@ function initThree() {
     })
 
     const materials = [
-      sideMaterial, // +X
-      sideMaterial, // -X
-      sideMaterial, // +Y
-      sideMaterial, // -Y
-      frontMaterial, // +Z (Front)
-      backMaterial, // -Z (Back)
+      sideMaterial,
+      sideMaterial,
+      sideMaterial,
+      sideMaterial,
+      frontMaterial,
+      backMaterial,
     ]
 
     const mesh = new THREE.Mesh(sharedBoxGeometry!, materials)
     mesh.userData = { articleId: article.id }
     nodeGroup.add(mesh)
 
-    // Shadow Quad
     const shadowMesh = new THREE.Mesh(sharedShadowGeometry!, sharedShadowMaterial!)
     shadowMesh.position.z = -0.025
     nodeGroup.add(shadowMesh)
 
-    // Initial Transform
     const transform = calculateNodeTransform(
       article,
       articles.value,
@@ -451,12 +378,65 @@ function initThree() {
     })
   })
 
-  // Relationship lines connecting same-category articles
   setupRelationshipLines()
-
   updateNodeTargets()
+}
 
-  // Start Animation Loop
+function initThree() {
+  if (!container.value || !canvas.value) return
+
+  const width = container.value.clientWidth || window.innerWidth
+  const height = container.value.clientHeight || window.innerHeight
+
+  isMobile.value = width < 768
+  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  scene = new THREE.Scene()
+
+  camera = new THREE.PerspectiveCamera(46, width / height, 0.1, 100)
+  camera.position.set(0, 0.15, isMobile.value ? 8.6 : 7.8)
+
+  renderer = new THREE.WebGLRenderer({
+    canvas: canvas.value,
+    antialias: true,
+    alpha: true,
+    powerPreference: 'high-performance',
+  })
+  renderer.setSize(width, height)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+  renderer.outputColorSpace = THREE.SRGBColorSpace
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.65)
+  scene.add(ambientLight)
+
+  const keyLight = new THREE.DirectionalLight(0xffffff, 0.75)
+  keyLight.position.set(2, 4, 5)
+  scene.add(keyLight)
+
+  const rimLight = new THREE.DirectionalLight(0x94a3b8, 0.35)
+  rimLight.position.set(-3, -2, -2)
+  scene.add(rimLight)
+
+  fieldGroup = new THREE.Group()
+  scene.add(fieldGroup)
+
+  sharedBoxGeometry = new THREE.BoxGeometry(1.85, 2.4, 0.035)
+  sharedShadowGeometry = new THREE.PlaneGeometry(2.1, 2.65)
+
+  const shadowTexture = createShadowTexture()
+  sharedShadowMaterial = new THREE.MeshBasicMaterial({
+    map: shadowTexture,
+    transparent: true,
+    opacity: 0.45,
+    depthWrite: false,
+  })
+
+  // Build nodes if articles are already available
+  if (articles.value.length > 0) {
+    build3DNodes()
+  }
+
+  // Animation Loop
   let lastTime = performance.now()
   function loop(now: number) {
     animFrameId = requestAnimationFrame(loop)
@@ -466,7 +446,6 @@ function initThree() {
     lastTime = now
     const time = now * 0.001
 
-    // 1. Smooth Field Rotation Damping
     currentFieldRotY = THREE.MathUtils.lerp(currentFieldRotY, targetFieldRotY, delta * 4.5)
     currentFieldRotX = THREE.MathUtils.lerp(currentFieldRotX, targetFieldRotX, delta * 4.5)
     if (fieldGroup) {
@@ -474,7 +453,6 @@ function initThree() {
       fieldGroup.rotation.x = currentFieldRotX
     }
 
-    // 2. Camera Parallax Damping
     currentCamX = THREE.MathUtils.lerp(currentCamX, targetCamX, delta * 3.5)
     currentCamY = THREE.MathUtils.lerp(currentCamY, targetCamY, delta * 3.5)
     if (camera) {
@@ -483,9 +461,7 @@ function initThree() {
       camera.lookAt(0, 0, 0)
     }
 
-    // 3. Interpolate Card Node Positions, Rotations, Scales, and Opacity
     cardNodes.forEach((node, i) => {
-      // Natural idle floating motion
       let floatY = 0
       let floatRotZ = 0
       if (!prefersReducedMotion.value) {
@@ -499,7 +475,6 @@ function initThree() {
       const tempRot = node.targetRot.clone()
       tempRot.z += floatRotZ
 
-      // Subtle hover elevation
       let scaleMult = 1.0
       if (hoveredArticle.value?.id === node.article.id && node.article.id !== selectedArticleId.value) {
         tempPos.z += 0.18
@@ -508,22 +483,18 @@ function initThree() {
 
       node.group.position.lerp(tempPos, delta * 4.8)
 
-      // Slerp rotation via quaternion
       const targetQuat = new THREE.Quaternion().setFromEuler(tempRot)
       node.group.quaternion.slerp(targetQuat, delta * 4.8)
 
-      // Scale lerp
       const finalScale = node.targetScale * scaleMult
       node.group.scale.lerp(new THREE.Vector3(finalScale, finalScale, finalScale), delta * 4.8)
 
-      // Opacity lerp
       node.currentOpacity = THREE.MathUtils.lerp(node.currentOpacity, node.targetOpacity, delta * 4.8)
       node.materials.forEach(mat => {
         mat.opacity = node.currentOpacity
       })
     })
 
-    // 4. Update Relationship Lines endpoints
     updateLinesPositions()
 
     if (renderer && scene && camera) {
@@ -535,7 +506,7 @@ function initThree() {
 }
 
 function setupRelationshipLines() {
-  if (!fieldGroup) return
+  if (!fieldGroup || !articles.value.length) return
 
   linesGeometry = new THREE.BufferGeometry()
   const pairs = buildRelationshipPairs(articles.value, selectedCategory.value)
@@ -559,7 +530,6 @@ function updateLinesPositions() {
   const pairs = buildRelationshipPairs(articles.value, selectedCategory.value)
   const posAttr = linesGeometry.getAttribute('position') as THREE.BufferAttribute
   if (!posAttr || posAttr.count !== pairs.length * 2) {
-    // Rebuild attribute if count changed
     linesGeometry.dispose()
     const positions = new Float32Array(pairs.length * 6)
     linesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
@@ -602,14 +572,28 @@ function updateNodeTargets() {
     node.targetScale = transform.scale
     node.targetOpacity = transform.opacity
 
-    // Update front face texture
     const frontMat = node.materials[4] as THREE.MeshStandardMaterial
     frontMat.map = isSelected ? node.activeTexture : node.inactiveTexture
     frontMat.needsUpdate = true
   })
 }
 
-// Watchers
+// Rebuild or update targets when articles arrive from API or selection changes
+watch(
+  articles,
+  newArticles => {
+    if (newArticles.length > 0) {
+      if (!selectedArticleId.value || !newArticles.some(a => a.id === selectedArticleId.value)) {
+        selectedArticleId.value = newArticles[0].id
+      }
+      build3DNodes()
+    } else {
+      clear3DNodes()
+    }
+  },
+  { deep: true }
+)
+
 watch([selectedArticleId, selectedCategory], () => {
   updateNodeTargets()
 })
@@ -628,11 +612,9 @@ function onPointerMove(e: PointerEvent) {
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top
 
-  // Normalized coords for raycaster
   mouse.x = (x / rect.width) * 2 - 1
   mouse.y = -(y / rect.height) * 2 + 1
 
-  // Parallax target
   targetCamX = mouse.x * 0.22
   targetCamY = mouse.y * 0.16
 
@@ -645,7 +627,6 @@ function onPointerMove(e: PointerEvent) {
     targetFieldRotY = THREE.MathUtils.clamp(targetFieldRotY + dx * 0.0035, -0.42, 0.42)
     targetFieldRotX = THREE.MathUtils.clamp(targetFieldRotX + dy * 0.0025, -0.22, 0.22)
   } else {
-    // Raycasting for hover
     raycaster.setFromCamera(mouse, camera)
     const meshes = cardNodes.map(n => n.mesh)
     const intersects = raycaster.intersectObjects(meshes)
@@ -654,7 +635,12 @@ function onPointerMove(e: PointerEvent) {
       const hitMesh = intersects[0].object
       const articleId = hitMesh.userData.articleId
       const found = articles.value.find(a => a.id === articleId)
-      if (found && (selectedCategory.value === 'ALL' || found.category === selectedCategory.value)) {
+      if (
+        found &&
+        (selectedCategory.value === 'ALL' ||
+          found.category === selectedCategory.value ||
+          found.tags.includes(selectedCategory.value))
+      ) {
         hoveredArticle.value = found
         hoverScreenPos.value = { x: e.clientX, y: e.clientY }
         if (canvas.value) canvas.value.style.cursor = 'pointer'
@@ -671,7 +657,6 @@ function onPointerUp(e: PointerEvent) {
   if (isDragging) {
     const dist = Math.hypot(e.clientX - prevPointerX, e.clientY - prevPointerY)
     if (dist < 4 && camera) {
-      // It was a click
       raycaster.setFromCamera(mouse, camera)
       const meshes = cardNodes.map(n => n.mesh)
       const intersects = raycaster.intersectObjects(meshes)
@@ -688,7 +673,6 @@ function onPointerUp(e: PointerEvent) {
 }
 
 function onWheel(e: WheelEvent) {
-  // Subtle camera depth adjust on wheel
   if (!camera) return
   camera.position.z = THREE.MathUtils.clamp(
     camera.position.z + e.deltaY * 0.003,
@@ -758,25 +742,13 @@ onBeforeUnmount(() => {
 
   if (unregisterNavigator) unregisterNavigator()
 
-  // Dispose Three.js objects
-  cardNodes.forEach(node => {
-    node.activeTexture.dispose()
-    node.inactiveTexture.dispose()
-    node.materials.forEach(m => m.dispose())
-  })
-  cardNodes.length = 0
+  clear3DNodes()
 
   if (sharedBoxGeometry) sharedBoxGeometry.dispose()
   if (sharedShadowGeometry) sharedShadowGeometry.dispose()
   if (sharedShadowMaterial) {
     if (sharedShadowMaterial.map) sharedShadowMaterial.map.dispose()
     sharedShadowMaterial.dispose()
-  }
-
-  if (linesGeometry) linesGeometry.dispose()
-  if (linesMesh) {
-    if (Array.isArray(linesMesh.material)) linesMesh.material.forEach(m => m.dispose())
-    else linesMesh.material.dispose()
   }
 
   if (renderer) {

@@ -57,3 +57,4 @@ defineEmits<{
   (e: 'select-category', category: CategoryFilter): void
 }>()
 </script>
+
