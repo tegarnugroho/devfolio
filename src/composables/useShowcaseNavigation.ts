@@ -39,8 +39,8 @@ export const SHOWCASE_SECTIONS: ShowcaseSectionMeta[] = [
     id: 'writing',
     number: '05',
     label: 'WRITING',
-    actionLabel: 'OPEN ARCHIVE',
-    tagline: 'Holographic Digital Archive',
+    actionLabel: 'EXPLORE FIELD',
+    tagline: 'Spatial Knowledge Field',
     icon: 'archive',
   },
   {

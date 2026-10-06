@@ -1,10 +1,10 @@
 <template>
   <div
     ref="container"
-    class="writing-bookshelf-scene relative w-full h-full select-none overflow-hidden bg-[#03060b]"
+    class="writing-knowledge-field-scene relative w-full h-full select-none overflow-hidden bg-[#03060b]"
     @click="onBackgroundClick"
   >
-    <!-- WebGL Canvas -->
+    <!-- WebGL Canvas for 3D Knowledge Field -->
     <canvas
       ref="canvas"
       class="w-full h-full block cursor-grab active:cursor-grabbing outline-none"
@@ -15,47 +15,16 @@
       @wheel="onWheel"
     ></canvas>
 
-    <!-- Deep Ambient Vignette -->
+    <!-- Deep Ambient Vignette (Seamless background blend) -->
     <div class="pointer-events-none absolute inset-0 gallery-ambient-vignette" aria-hidden="true"></div>
 
-    <!-- Editorial Section Typography (Left Side) -->
-    <div
-      class="pointer-events-none absolute top-16 sm:top-20 left-6 sm:left-12 z-10 max-w-xs space-y-3 transition-all duration-700 ease-out"
-    >
-      <div class="flex items-center gap-2">
-        <span class="font-mono text-[10px] text-zinc-400 tracking-widest font-semibold">05</span>
-        <span class="w-3.5 h-[1px] bg-zinc-600"></span>
-        <span class="font-mono text-[10px] text-zinc-300 uppercase tracking-widest font-medium">WRITING</span>
-      </div>
-
-      <h1 class="text-2xl sm:text-3xl font-light tracking-tight text-zinc-100 font-sans leading-tight">
-        Knowledge Shelf
-      </h1>
-
-      <p class="text-[11.5px] text-zinc-400 leading-relaxed font-sans max-w-[270px] font-normal">
-        A collection of technical notes, experiments, and things I've learned while building real products. Click any book to inspect its pages.
-      </p>
-
-      <!-- Category Filter Pills -->
-      <div class="pt-2 pointer-events-auto flex flex-wrap gap-1.5 max-w-[280px]">
-        <button
-          v-for="cat in availableCategories"
-          :key="cat"
-          type="button"
-          class="px-2.5 py-1 rounded text-[9.5px] font-mono tracking-wider transition-colors cursor-pointer border"
-          :class="selectedCategory === cat ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'bg-black/40 text-zinc-400 hover:text-white border-white/10 hover:border-white/20'"
-          @click="setCategory(cat)"
-        >
-          {{ cat }}
-        </button>
-      </div>
-
-      <!-- Live Counter / Interactive Hint -->
-      <div class="pt-1 flex items-center gap-2 font-mono text-[9.5px] text-zinc-500">
-        <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-        <span>{{ filteredArticles.length }} ARTICLES · CLICK BOOK TO OPEN</span>
-      </div>
-    </div>
+    <!-- Section Header & Category Filters (Left Side) -->
+    <WritingFilters
+      :categories="availableCategories"
+      :selected-category="selectedCategory"
+      :count="filteredArticles.length"
+      @select-category="setCategory"
+    />
 
     <!-- Hover Tooltip -->
     <div
@@ -63,111 +32,35 @@
       class="pointer-events-none absolute z-30 px-2.5 py-1 rounded bg-zinc-950/95 text-zinc-200 border border-white/15 shadow-2xl font-mono text-[9.5px] -translate-x-1/2 -translate-y-full tracking-wider transition-opacity duration-150 backdrop-blur-md"
       :style="{ left: `${hoverScreenPos.x}px`, top: `${hoverScreenPos.y - 12}px` }"
     >
-      <span class="text-sky-400 font-medium">[{{ hoveredArticle.category }}]</span>
-      <span class="ml-1 text-zinc-200">{{ hoveredArticle.shortTitle }}</span>
+      <span class="text-zinc-400 font-medium">[{{ hoveredArticle.category }}]</span>
+      <span class="ml-1 text-zinc-100">{{ hoveredArticle.shortTitle }}</span>
     </div>
 
-    <!-- Selected Article Editorial Preview (Right Side / Beside Opened Book) -->
-    <Transition name="editorial-fade">
-      <div
-        v-if="selectedArticle"
-        class="editorial-card pointer-events-auto absolute bottom-6 sm:bottom-10 right-6 sm:right-12 z-20 max-w-sm sm:w-88 p-4 sm:p-5 rounded-xl border border-white/10 bg-zinc-950/85 backdrop-blur-xl shadow-2xl space-y-3.5"
-        @click.stop
-      >
-        <!-- Card Header -->
-        <div class="space-y-1">
-          <div class="flex items-center justify-between">
-            <span class="font-mono text-[9px] uppercase tracking-[0.2em] text-sky-400 font-semibold flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
-              OPEN BOOK // DISPATCH
-            </span>
-            <span class="font-mono text-[9px] text-zinc-400 tracking-wider">
-              {{ selectedArticle.date }}
-            </span>
-          </div>
-
-          <h2 class="text-base sm:text-lg font-medium tracking-tight text-white leading-snug">
-            {{ selectedArticle.title }}
-          </h2>
-        </div>
-
-        <!-- Excerpt -->
-        <p class="text-[11.5px] text-zinc-400 leading-relaxed font-sans line-clamp-3 font-normal">
-          {{ selectedArticle.excerpt }}
-        </p>
-
-        <!-- Category & Progress -->
-        <div class="flex items-center justify-between pt-1 text-[10px] font-mono border-t border-white/5">
-          <span class="px-2 py-0.5 rounded text-[9px] uppercase bg-sky-500/10 border border-sky-500/20 text-sky-300">
-            {{ selectedArticle.category }}
-          </span>
-          <span class="text-zinc-500">
-            {{ selectedArticleIndex + 1 }} OF {{ filteredArticles.length }}
-          </span>
-        </div>
-
-        <!-- Action Footer -->
-        <div class="pt-2 border-t border-white/5 flex items-center justify-between">
-          <div class="flex items-center gap-1.5">
-            <button
-              type="button"
-              class="w-7 h-7 rounded border border-white/10 hover:border-white/25 hover:bg-white/5 flex items-center justify-center text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer"
-              title="Previous article"
-              @click="prevArticle"
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              class="w-7 h-7 rounded border border-white/10 hover:border-white/25 hover:bg-white/5 flex items-center justify-center text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer"
-              title="Next article"
-              @click="nextArticle"
-            >
-              →
-            </button>
-          </div>
-
-          <a
-            :href="selectedArticle.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-1 text-[10.5px] font-mono text-sky-400 hover:text-sky-300 transition-colors font-medium tracking-wider uppercase cursor-pointer"
-          >
-            <span>READ FULL ARTICLE</span>
-            <span>→</span>
-          </a>
-        </div>
-      </div>
-    </Transition>
+    <!-- Selected Article Editorial Preview Panel (Right / Bottom-Right) -->
+    <WritingArticlePanel
+      :article="selectedArticle"
+      :current-index="selectedArticleIndex"
+      :total-count="filteredArticles.length"
+      @prev="prevArticle"
+      @next="nextArticle"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
 import { registerContentNavigator } from '@/composables/useShowcase'
 import { portfolioContent } from '@/content/portfolioContent'
 import { useWritingPosts } from '@/composables/useWritingPosts'
+import type { KnowledgeArticle, CategoryFilter } from '../writing/knowledgeTypes'
+import { createCardTexture } from '../writing/cardTextureGenerator'
+import { calculateNodeTransform, buildRelationshipPairs } from '../writing/articlePosition'
+import WritingFilters from '../writing/WritingFilters.vue'
+import WritingArticlePanel from '../writing/WritingArticlePanel.vue'
 
-export interface ShelfArticle {
-  id: string
-  title: string
-  shortTitle: string
-  category: 'Flutter' | 'Dart' | 'Architecture' | 'Tools' | 'Productivity'
-  date: string
-  year: string
-  excerpt: string
-  keyInsights: string[]
-  url: string
-  slotIndex: number // Position along the single shelf ledge
-  dimensions: { thickness: number; height: number; depth: number }
-  tiltZ?: number
-}
-
-const { posts } = useWritingPosts()
-
-// Curated Technical Article Collection (Large prominent books on a single shelf)
-const baseArticles: ShelfArticle[] = [
+// Base Curated Technical Articles
+const baseArticles: KnowledgeArticle[] = [
   {
     id: 'flutter-csv-parser',
     title: 'Working with CSV, Excel, and ODS in Flutter Without Multiple Packages',
@@ -175,15 +68,13 @@ const baseArticles: ShelfArticle[] = [
     category: 'Flutter',
     date: '31 JAN 2026',
     year: '2026',
-    excerpt: 'Real-world spreadsheet and tabular files often break Dart parsers in subtle ways. Handling multi-format tabular ingestion with zero external dependencies.',
+    excerpt: 'Handling multi-format spreadsheet ingestion with zero external dependencies and isolate binary stream decoding.',
     keyInsights: [
-      'Zero-dependency binary & stream decoding in pure Dart isolates',
+      'Zero-dependency binary stream decoding in pure Dart isolates',
       'Unified schema mapping for CSV, XLS, XLSX, and ODS formats',
       'Zero-copy memory buffering to handle 100k+ row datasets',
     ],
     url: 'https://codeary.xyz',
-    slotIndex: 0,
-    dimensions: { thickness: 0.13, height: 1.25, depth: 0.82 },
   },
   {
     id: 'flutter-clean-arch',
@@ -192,15 +83,13 @@ const baseArticles: ShelfArticle[] = [
     category: 'Architecture',
     date: '15 MAR 2024',
     year: '2024',
-    excerpt: 'Structuring state management, repository contracts, and pure use-cases for enterprise Flutter applications.',
+    excerpt: 'Structuring state management, repository contracts, and pure use-cases for resilient enterprise Flutter applications.',
     keyInsights: [
-      'Strict separation between UI widgets and domain business logic',
+      'Strict separation between UI widgets and pure domain business logic',
       'Repository interface abstractions for seamless API/local swaps',
-      'Pure deterministic unit testing with zero Flutter bindings',
+      'Deterministic unit testing with zero Flutter bindings',
     ],
     url: 'https://codeary.xyz',
-    slotIndex: 1,
-    dimensions: { thickness: 0.14, height: 1.22, depth: 0.80 },
   },
   {
     id: 'riverpod-2-mastery',
@@ -212,12 +101,10 @@ const baseArticles: ShelfArticle[] = [
     excerpt: 'How code generation and auto-dispose providers eliminate memory leaks, circular dependencies, and repetitive boilerplate.',
     keyInsights: [
       'Modern @riverpod annotation generators for type-safe providers',
-      'Scoping state lifecycles to avoid zombie listeners & leaks',
+      'Scoping state lifecycles to avoid zombie listeners & memory leaks',
       'Granular rebuild control using select() and family parameters',
     ],
     url: 'https://codeary.xyz',
-    slotIndex: 2,
-    dimensions: { thickness: 0.12, height: 1.18, depth: 0.78 },
   },
   {
     id: 'cross-platform-flutter',
@@ -233,8 +120,6 @@ const baseArticles: ShelfArticle[] = [
       'Desktop window frame controls and multi-window orchestration',
     ],
     url: 'https://codeary.xyz',
-    slotIndex: 3,
-    dimensions: { thickness: 0.13, height: 1.20, depth: 0.80 },
   },
   {
     id: 'pos-offline-first',
@@ -250,8 +135,6 @@ const baseArticles: ShelfArticle[] = [
       'WebSocket backpressure management during network degradation',
     ],
     url: 'https://codeary.xyz',
-    slotIndex: 4,
-    dimensions: { thickness: 0.14, height: 1.24, depth: 0.84 },
   },
   {
     id: 'dart-high-performance-parsing',
@@ -267,9 +150,6 @@ const baseArticles: ShelfArticle[] = [
       'Pre-compiled regular expression state machines',
     ],
     url: 'https://codeary.xyz',
-    slotIndex: 5,
-    dimensions: { thickness: 0.12, height: 1.19, depth: 0.79 },
-    tiltZ: 0.05, // subtle natural lean
   },
   {
     id: 'secrets-remote-config',
@@ -285,18 +165,12 @@ const baseArticles: ShelfArticle[] = [
       'Zero-downtime remote feature flag rollouts',
     ],
     url: 'https://codeary.xyz',
-    slotIndex: 6,
-    dimensions: { thickness: 0.13, height: 1.21, depth: 0.80 },
   },
 ]
 
-// Category Filter State
-const availableCategories = ['ALL', 'Flutter', 'Dart', 'Architecture', 'Tools'] as const
-type CategoryFilter = typeof availableCategories[number]
-const selectedCategory = ref<CategoryFilter>('ALL')
-
-// Dynamic Articles merged with live posts if available
-const articles = computed<ShelfArticle[]>(() => {
+// Integrate live blog posts if available
+const { posts } = useWritingPosts()
+const articles = computed<KnowledgeArticle[]>(() => {
   if (posts.value && posts.value.length > 0) {
     const liveFirst = posts.value[0]
     const updated = [...baseArticles]
@@ -312,51 +186,59 @@ const articles = computed<ShelfArticle[]>(() => {
   return baseArticles
 })
 
-const filteredArticles = computed<ShelfArticle[]>(() => {
+// Categories
+const availableCategories = ['ALL', 'Flutter', 'Dart', 'Architecture', 'Tools'] as const
+const selectedCategory = ref<CategoryFilter>('ALL')
+
+const filteredArticles = computed<KnowledgeArticle[]>(() => {
   if (selectedCategory.value === 'ALL') return articles.value
   return articles.value.filter(a => a.category === selectedCategory.value)
 })
 
 const selectedArticleId = ref<string>('flutter-csv-parser')
-const selectedArticle = computed<ShelfArticle | undefined>(() => {
-  const match = filteredArticles.value.find(a => a.id === selectedArticleId.value)
-  return match || filteredArticles.value[0]
+const selectedArticle = computed<KnowledgeArticle | null>(() => {
+  return articles.value.find(a => a.id === selectedArticleId.value) || filteredArticles.value[0] || null
 })
 
-const selectedArticleIndex = computed(() => {
+const selectedArticleIndex = computed<number>(() => {
   if (!selectedArticle.value) return 0
-  return filteredArticles.value.findIndex(a => a.id === selectedArticle.value?.id)
+  const idx = filteredArticles.value.findIndex(a => a.id === selectedArticle.value?.id)
+  return idx >= 0 ? idx : 0
 })
 
-function setCategory(cat: CategoryFilter) {
-  selectedCategory.value = cat
-  const matches = articles.value.filter(a => cat === 'ALL' || a.category === cat)
-  if (matches.length > 0 && !matches.some(a => a.id === selectedArticleId.value)) {
-    selectedArticleId.value = matches[0].id
-  }
+// Navigation methods
+function selectArticle(id: string) {
+  selectedArticleId.value = id
 }
 
 function prevArticle() {
   const list = filteredArticles.value
-  if (list.length === 0) return
-  const curr = selectedArticleIndex.value
-  const prevIdx = (curr - 1 + list.length) % list.length
-  selectedArticleId.value = list[prevIdx].id
+  if (!list.length) return
+  const currentIdx = selectedArticleIndex.value
+  const newIdx = (currentIdx - 1 + list.length) % list.length
+  selectedArticleId.value = list[newIdx].id
 }
 
 function nextArticle() {
   const list = filteredArticles.value
-  if (list.length === 0) return
-  const curr = selectedArticleIndex.value
-  const nextIdx = (curr + 1) % list.length
-  selectedArticleId.value = list[nextIdx].id
+  if (!list.length) return
+  const currentIdx = selectedArticleIndex.value
+  const newIdx = (currentIdx + 1) % list.length
+  selectedArticleId.value = list[newIdx].id
 }
 
-// Hover State
-const hoveredArticle = ref<ShelfArticle | null>(null)
-const hoverScreenPos = ref({ x: 0, y: 0 })
+function setCategory(cat: CategoryFilter) {
+  selectedCategory.value = cat
+  // If selected article is not in new category, select the first visible
+  const list = filteredArticles.value
+  if (list.length && !list.some(a => a.id === selectedArticleId.value)) {
+    selectedArticleId.value = list[0].id
+  }
+}
 
-// Three.js State
+// -------------------------------------------------------------
+// THREE.JS SPATIAL KNOWLEDGE FIELD
+// -------------------------------------------------------------
 const container = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
 
@@ -364,459 +246,285 @@ let scene: THREE.Scene | null = null
 let camera: THREE.PerspectiveCamera | null = null
 let renderer: THREE.WebGLRenderer | null = null
 let animFrameId = 0
+let isVisible = true
+let observer: IntersectionObserver | null = null
 
-let shelfGroup: THREE.Group | null = null
-let accentSpotLight: THREE.PointLight | null = null
+// Groups & Objects
+let fieldGroup: THREE.Group | null = null
+let linesMesh: THREE.LineSegments | null = null
+let linesGeometry: THREE.BufferGeometry | null = null
 
-interface BookRuntimeMesh {
-  article: ShelfArticle
-  rootGroup: THREE.Group
-  coverHingeGroup: THREE.Group
-  coverMesh: THREE.Mesh
-  blockMesh: THREE.Mesh
-  basePosition: THREE.Vector3
-  baseRotationY: number
-  targetPosition: THREE.Vector3
-  targetRotationY: number
-  targetHingeAngle: number
-  currentHingeAngle: number
+interface Card3DNode {
+  article: KnowledgeArticle
+  index: number
+  group: THREE.Group
+  mesh: THREE.Mesh
+  materials: THREE.Material[]
+  activeTexture: THREE.CanvasTexture
+  inactiveTexture: THREE.CanvasTexture
+  targetPos: THREE.Vector3
+  targetRot: THREE.Euler
+  targetScale: number
+  targetOpacity: number
+  currentOpacity: number
 }
 
-let bookMeshes: BookRuntimeMesh[] = []
-const interactiveMeshes: THREE.Object3D[] = []
+const cardNodes: Card3DNode[] = []
+let sharedBoxGeometry: THREE.BoxGeometry | null = null
+let sharedShadowGeometry: THREE.PlaneGeometry | null = null
+let sharedShadowMaterial: THREE.MeshBasicMaterial | null = null
 
-// Mouse Interaction
+// Interaction State
+const isMobile = ref(false)
+const prefersReducedMotion = ref(false)
+
+const raycaster = new THREE.Raycaster()
+const mouse = new THREE.Vector2(-999, -999)
+const hoveredArticle = ref<KnowledgeArticle | null>(null)
+const hoverScreenPos = ref({ x: 0, y: 0 })
+
 let isDragging = false
 let prevPointerX = 0
-let dragRotationY = 0
-let targetDragRotationY = 0
-const raycaster = new THREE.Raycaster()
-const mouseNDC = new THREE.Vector2(-999, -999)
+let prevPointerY = 0
+let targetFieldRotY = 0
+let targetFieldRotX = 0
+let currentFieldRotY = 0
+let currentFieldRotX = 0
 
-let wheelThrottleTimeout = 0
-let unregisterContentNav: (() => void) | null = null
+let targetCamX = 0
+let targetCamY = 0
+let currentCamX = 0
+let currentCamY = 0
 
-// Texture Generation Helpers
-function generateSpineTexture(shortTitle: string, category: string, year: string): THREE.CanvasTexture {
+// Create soft radial shadow texture for card elevation
+function createShadowTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas')
-  c.width = 256
-  c.height = 1024
-  const ctx = c.getContext('2d')!
-
-  // Deep matte background with subtle fine gradient
-  const grad = ctx.createLinearGradient(0, 0, 256, 0)
-  grad.addColorStop(0, '#0e121a')
-  grad.addColorStop(0.5, '#171c26')
-  grad.addColorStop(1, '#0b0e14')
-  ctx.fillStyle = grad
-  ctx.fillRect(0, 0, 256, 1024)
-
-  // Top / bottom technical notches
-  ctx.fillStyle = '#38bdf8'
-  ctx.fillRect(0, 0, 256, 16)
-  ctx.fillRect(0, 1008, 256, 16)
-
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
-  ctx.fillRect(24, 32, 208, 3)
-  ctx.fillRect(24, 988, 208, 3)
-
-  // Vertical spine typography (rotated 90 degrees)
-  ctx.save()
-  ctx.translate(128, 512)
-  ctx.rotate(-Math.PI / 2)
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-
-  // Category Tag
-  ctx.fillStyle = '#38bdf8'
-  ctx.font = '600 28px monospace'
-  ctx.fillText(`[ ${category.toUpperCase()} ]`, -280, 0)
-
-  // Book Title (Large, bold, crisp)
-  ctx.fillStyle = '#f8fafc'
-  ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  ctx.fillText(shortTitle.toUpperCase(), 30, 0)
-
-  // Year
-  ctx.fillStyle = '#64748b'
-  ctx.font = '500 24px monospace'
-  ctx.fillText(year, 350, 0)
-
-  ctx.restore()
-
-  const tex = new THREE.CanvasTexture(c)
-  tex.colorSpace = THREE.SRGBColorSpace
-  return tex
+  c.width = 128
+  c.height = 128
+  const ctx = c.getContext('2d')
+  if (ctx) {
+    const g = ctx.createRadialGradient(64, 64, 10, 64, 64, 60)
+    g.addColorStop(0, 'rgba(0, 0, 0, 0.75)')
+    g.addColorStop(0.5, 'rgba(0, 0, 0, 0.35)')
+    g.addColorStop(1, 'rgba(0, 0, 0, 0.0)')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, 128, 128)
+  }
+  const t = new THREE.CanvasTexture(c)
+  t.generateMipmaps = false
+  return t
 }
 
-function generateFrontCoverTexture(title: string, category: string, date: string): THREE.CanvasTexture {
-  const c = document.createElement('canvas')
-  c.width = 512
-  c.height = 768
-  const ctx = c.getContext('2d')!
-
-  // Architectural Dark Cover
-  ctx.fillStyle = '#0b0e14'
-  ctx.fillRect(0, 0, 512, 768)
-
-  // Subtle border rule
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)'
-  ctx.lineWidth = 2
-  ctx.strokeRect(24, 24, 464, 720)
-
-  // Category & Date Header
-  ctx.fillStyle = '#38bdf8'
-  ctx.font = '600 18px monospace'
-  ctx.fillText(`TECHNICAL BOOK // ${category.toUpperCase()}`, 44, 68)
-
-  ctx.fillStyle = '#64748b'
-  ctx.font = '500 16px monospace'
-  ctx.fillText(date, 44, 96)
-
-  // Divider line
-  ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)'
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  ctx.moveTo(44, 120)
-  ctx.lineTo(200, 120)
-  ctx.stroke()
-
-  // Large Bold Title
-  ctx.fillStyle = '#f8fafc'
-  ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  
-  const words = title.split(' ')
-  let line = ''
-  let y = 185
-  const maxWidth = 424
-  const lineHeight = 46
-
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + ' '
-    const metrics = ctx.measureText(testLine)
-    if (metrics.width > maxWidth && n > 0) {
-      ctx.fillText(line, 44, y)
-      line = words[n] + ' '
-      y += lineHeight
-    } else {
-      line = testLine
-    }
-  }
-  ctx.fillText(line, 44, y)
-
-  // Architectural Grid graphic in bottom
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'
-  ctx.lineWidth = 1
-  for (let gy = 440; gy <= 640; gy += 30) {
-    ctx.beginPath()
-    ctx.moveTo(44, gy)
-    ctx.lineTo(468, gy)
-    ctx.stroke()
-  }
-
-  // Publisher Seal
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'
-  ctx.font = '600 14px monospace'
-  ctx.fillText('CODEARY LIBRARY EDITION // VOL. 1', 44, 704)
-
-  const tex = new THREE.CanvasTexture(c)
-  tex.colorSpace = THREE.SRGBColorSpace
-  return tex
-}
-
-// Inside Left Page (Facing viewer when cover swings open)
-function generateInsideLeftPageTexture(article: ShelfArticle): THREE.CanvasTexture {
-  const c = document.createElement('canvas')
-  c.width = 512
-  c.height = 768
-  const ctx = c.getContext('2d')!
-
-  // Warm off-white editorial paper
-  ctx.fillStyle = '#0f141f'
-  ctx.fillRect(0, 0, 512, 768)
-
-  // Inner margin border
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)'
-  ctx.lineWidth = 1.5
-  ctx.strokeRect(28, 28, 456, 712)
-
-  // Left Page Chapter Heading
-  ctx.fillStyle = '#38bdf8'
-  ctx.font = '600 16px monospace'
-  ctx.fillText(`CHAPTER 01 // ${article.category.toUpperCase()}`, 48, 70)
-
-  ctx.fillStyle = '#64748b'
-  ctx.font = '500 14px monospace'
-  ctx.fillText(`PUBLISHED: ${article.date}`, 48, 96)
-
-  // Divider
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.moveTo(48, 116)
-  ctx.lineTo(464, 116)
-  ctx.stroke()
-
-  // Article Title
-  ctx.fillStyle = '#ffffff'
-  ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  const words = article.title.split(' ')
-  let line = ''
-  let y = 160
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + ' '
-    const metrics = ctx.measureText(testLine)
-    if (metrics.width > 416 && n > 0) {
-      ctx.fillText(line, 48, y)
-      line = words[n] + ' '
-      y += 36
-    } else {
-      line = testLine
-    }
-  }
-  ctx.fillText(line, 48, y)
-
-  // Abstract / Excerpt Intro
-  ctx.fillStyle = '#94a3b8'
-  ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  const exWords = article.excerpt.split(' ')
-  let exLine = ''
-  let exY = y + 40
-  for (let n = 0; n < exWords.length; n++) {
-    const testLine = exLine + exWords[n] + ' '
-    const metrics = ctx.measureText(testLine)
-    if (metrics.width > 416 && n > 0) {
-      ctx.fillText(exLine, 48, exY)
-      exLine = exWords[n] + ' '
-      exY += 24
-    } else {
-      exLine = testLine
-    }
-  }
-  ctx.fillText(exLine, 48, exY)
-
-  // Author signature line
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
-  ctx.font = '500 14px monospace'
-  ctx.fillText('AUTHOR: TEGAR NUGROHO (WOLKK)', 48, 700)
-
-  const tex = new THREE.CanvasTexture(c)
-  tex.colorSpace = THREE.SRGBColorSpace
-  return tex
-}
-
-// Inside Right Page (Top page of the block)
-function generateInsideRightPageTexture(article: ShelfArticle): THREE.CanvasTexture {
-  const c = document.createElement('canvas')
-  c.width = 512
-  c.height = 768
-  const ctx = c.getContext('2d')!
-
-  ctx.fillStyle = '#0f141f'
-  ctx.fillRect(0, 0, 512, 768)
-
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)'
-  ctx.lineWidth = 1.5
-  ctx.strokeRect(28, 28, 456, 712)
-
-  // Header
-  ctx.fillStyle = '#38bdf8'
-  ctx.font = '600 16px monospace'
-  ctx.fillText('KEY ARCHITECTURAL INSIGHTS', 48, 70)
-
-  ctx.fillStyle = '#64748b'
-  ctx.font = '500 14px monospace'
-  ctx.fillText('CORE HIGHLIGHTS & PATTERNS', 48, 96)
-
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)'
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.moveTo(48, 116)
-  ctx.lineTo(464, 116)
-  ctx.stroke()
-
-  // Bullet points
-  let by = 160
-  article.keyInsights.forEach((insight, idx) => {
-    ctx.fillStyle = '#38bdf8'
-    ctx.font = 'bold 16px monospace'
-    ctx.fillText(`0${idx + 1}.`, 48, by)
-
-    ctx.fillStyle = '#e2e8f0'
-    ctx.font = '15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    
-    const words = insight.split(' ')
-    let bLine = ''
-    let subY = by
-    for (let n = 0; n < words.length; n++) {
-      const testLine = bLine + words[n] + ' '
-      const metrics = ctx.measureText(testLine)
-      if (metrics.width > 380 && n > 0) {
-        ctx.fillText(bLine, 84, subY)
-        bLine = words[n] + ' '
-        subY += 22
-      } else {
-        bLine = testLine
-      }
-    }
-    ctx.fillText(bLine, 84, subY)
-    by = subY + 38
-  })
-
-  // Bottom Dispatch Stamp
-  ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'
-  ctx.lineWidth = 1.5
-  ctx.strokeRect(48, 620, 416, 68)
-
-  ctx.fillStyle = '#38bdf8'
-  ctx.font = '600 13px monospace'
-  ctx.fillText('DISPATCH STATUS: VERIFIED PRODUCTION', 64, 646)
-
-  ctx.fillStyle = '#94a3b8'
-  ctx.font = '12px monospace'
-  ctx.fillText('READ COMPLETE ESSAY ON CODEARY.XYZ →', 64, 668)
-
-  const tex = new THREE.CanvasTexture(c)
-  tex.colorSpace = THREE.SRGBColorSpace
-  return tex
-}
-
-function initScene() {
+function initThree() {
   if (!container.value || !canvas.value) return
 
   const width = container.value.clientWidth || window.innerWidth
   const height = container.value.clientHeight || window.innerHeight
-  const isMobile = width < 768
 
-  // 1. Scene & Perspective Camera
+  isMobile.value = width < 768
+  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
   scene = new THREE.Scene()
-  camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100)
-  
-  // Architectural Composition:
-  // Left: Typography & Category Filters
-  // Center-Right: Single-tier Bookshelf with large prominent books
-  camera.position.set(isMobile ? 0 : -0.15, isMobile ? 0.1 : 0.05, isMobile ? 5.8 : 4.8)
-  camera.lookAt(isMobile ? 0 : 0.35, isMobile ? 0.05 : -0.05, 0)
 
-  // 2. High-Performance WebGL Renderer
+  // Camera: Perspective 46 deg FOV
+  camera = new THREE.PerspectiveCamera(46, width / height, 0.1, 100)
+  camera.position.set(0, 0.15, isMobile.value ? 8.6 : 7.8)
+
+  // WebGL Renderer
   renderer = new THREE.WebGLRenderer({
     canvas: canvas.value,
-    antialias: !isMobile,
+    antialias: true,
     alpha: true,
     powerPreference: 'high-performance',
   })
   renderer.setSize(width, height)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
-  renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = 1.3
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+  renderer.outputColorSpace = THREE.SRGBColorSpace
 
-  // 3. Studio-Style Architectural Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.1)
+  // Subtle Gallery Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.65)
   scene.add(ambientLight)
 
-  // Main soft key light from upper-left
-  const keyLight = new THREE.DirectionalLight(0xfffaed, 2.4)
-  keyLight.position.set(-3, 6, 4.5)
+  const keyLight = new THREE.DirectionalLight(0xffffff, 0.75)
+  keyLight.position.set(2, 4, 5)
   scene.add(keyLight)
 
-  // Subtle cool fill light from right
-  const fillLight = new THREE.DirectionalLight(0x94a3b8, 0.8)
-  fillLight.position.set(5, 2, 3)
-  scene.add(fillLight)
+  const rimLight = new THREE.DirectionalLight(0x94a3b8, 0.35)
+  rimLight.position.set(-3, -2, -2)
+  scene.add(rimLight)
 
-  // Dedicated subtle blue accent light around selected book
-  accentSpotLight = new THREE.PointLight(0x38bdf8, 1.4, 4.5, 1.4)
-  accentSpotLight.position.set(0.4, 0.3, 1.5)
-  scene.add(accentSpotLight)
+  // Master Field Group
+  fieldGroup = new THREE.Group()
+  scene.add(fieldGroup)
 
-  // 4. Single-Tier Bookshelf Root Group
-  shelfGroup = new THREE.Group()
-  shelfGroup.position.set(isMobile ? 0 : 0.35, isMobile ? 0.05 : 0.0, 0)
-  scene.add(shelfGroup)
+  // Geometries
+  sharedBoxGeometry = new THREE.BoxGeometry(1.85, 2.4, 0.035)
+  sharedShadowGeometry = new THREE.PlaneGeometry(2.1, 2.65)
 
-  // 5. Build Single Architectural Shelf Ledge (1 Susun)
-  buildSingleShelfStructure()
+  const shadowTexture = createShadowTexture()
+  sharedShadowMaterial = new THREE.MeshBasicMaterial({
+    map: shadowTexture,
+    transparent: true,
+    opacity: 0.45,
+    depthWrite: false,
+  })
 
-  // 6. Build and Position Prominent Opening Books
-  buildBooks()
+  // Create 3D Nodes for each article
+  articles.value.forEach((article, index) => {
+    const nodeGroup = new THREE.Group()
 
-  // 7. Subtle Floor Grid
-  const gridHelper = new THREE.GridHelper(8, 20, 0x1e293b, 0x0f172a)
-  gridHelper.position.y = -1.18
-  ;(gridHelper.material as THREE.Material).transparent = true
-  ;(gridHelper.material as THREE.Material).opacity = 0.18
-  scene.add(gridHelper)
+    // Pre-generate active and inactive textures
+    const activeTexture = createCardTexture(article, index, true)
+    const inactiveTexture = createCardTexture(article, index, false)
 
-  // 8. Main Render Loop
+    const isSelected = article.id === selectedArticleId.value
+
+    // 6-sided materials array for the document slab box
+    const sideMaterial = new THREE.MeshStandardMaterial({
+      color: 0x0c0f14,
+      roughness: 0.8,
+      metalness: 0.2,
+      transparent: true,
+      opacity: 0.4,
+    })
+    const backMaterial = new THREE.MeshStandardMaterial({
+      color: 0x07090c,
+      roughness: 0.9,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.4,
+    })
+    const frontMaterial = new THREE.MeshStandardMaterial({
+      map: isSelected ? activeTexture : inactiveTexture,
+      roughness: 0.3,
+      metalness: 0.1,
+      transparent: true,
+      opacity: isSelected ? 1.0 : 0.38,
+    })
+
+    const materials = [
+      sideMaterial, // +X
+      sideMaterial, // -X
+      sideMaterial, // +Y
+      sideMaterial, // -Y
+      frontMaterial, // +Z (Front)
+      backMaterial, // -Z (Back)
+    ]
+
+    const mesh = new THREE.Mesh(sharedBoxGeometry!, materials)
+    mesh.userData = { articleId: article.id }
+    nodeGroup.add(mesh)
+
+    // Shadow Quad
+    const shadowMesh = new THREE.Mesh(sharedShadowGeometry!, sharedShadowMaterial!)
+    shadowMesh.position.z = -0.025
+    nodeGroup.add(shadowMesh)
+
+    // Initial Transform
+    const transform = calculateNodeTransform(
+      article,
+      articles.value,
+      selectedArticleId.value,
+      selectedCategory.value,
+      isMobile.value
+    )
+
+    nodeGroup.position.set(...transform.position)
+    nodeGroup.rotation.set(...transform.rotation)
+    nodeGroup.scale.setScalar(transform.scale)
+
+    fieldGroup!.add(nodeGroup)
+
+    cardNodes.push({
+      article,
+      index,
+      group: nodeGroup,
+      mesh,
+      materials,
+      activeTexture,
+      inactiveTexture,
+      targetPos: new THREE.Vector3(...transform.position),
+      targetRot: new THREE.Euler(...transform.rotation),
+      targetScale: transform.scale,
+      targetOpacity: transform.opacity,
+      currentOpacity: transform.opacity,
+    })
+  })
+
+  // Relationship lines connecting same-category articles
+  setupRelationshipLines()
+
+  updateNodeTargets()
+
+  // Start Animation Loop
   let lastTime = performance.now()
   function loop(now: number) {
     animFrameId = requestAnimationFrame(loop)
+    if (!isVisible) return
+
     const delta = Math.min((now - lastTime) / 1000, 0.1)
     lastTime = now
+    const time = now * 0.001
 
-    // Smooth horizontal bookshelf rotation from drag or gentle breathing
-    if (shelfGroup) {
-      if (!isDragging) {
-        const idleRot = Math.sin(now * 0.0003) * 0.012
-        targetDragRotationY = THREE.MathUtils.lerp(targetDragRotationY, idleRot, 0.02)
-      }
-      dragRotationY = THREE.MathUtils.lerp(dragRotationY, targetDragRotationY, 0.08)
-      shelfGroup.rotation.y = dragRotationY
+    // 1. Smooth Field Rotation Damping
+    currentFieldRotY = THREE.MathUtils.lerp(currentFieldRotY, targetFieldRotY, delta * 4.5)
+    currentFieldRotX = THREE.MathUtils.lerp(currentFieldRotX, targetFieldRotX, delta * 4.5)
+    if (fieldGroup) {
+      fieldGroup.rotation.y = currentFieldRotY
+      fieldGroup.rotation.x = currentFieldRotX
     }
 
-    // Update Books (Glide Forward, Rotate, and Open Cover on Click)
-    const activeCat = selectedCategory.value
-    bookMeshes.forEach(item => {
-      const isSelected = item.article.id === selectedArticleId.value
-      const isHovered = item.article.id === hoveredArticle.value?.id
-      const matchesCategory = activeCat === 'ALL' || item.article.category === activeCat
+    // 2. Camera Parallax Damping
+    currentCamX = THREE.MathUtils.lerp(currentCamX, targetCamX, delta * 3.5)
+    currentCamY = THREE.MathUtils.lerp(currentCamY, targetCamY, delta * 3.5)
+    if (camera) {
+      camera.position.x = currentCamX
+      camera.position.y = 0.15 + currentCamY
+      camera.lookAt(0, 0, 0)
+    }
 
-      // Determine Target Position & Angles
-      item.targetPosition.copy(item.basePosition)
-      item.targetRotationY = item.baseRotationY
-
-      if (isSelected) {
-        // SELECTED: Glides forward to reading position, turns to face camera, and swings open!
-        item.targetPosition.z = 1.35
-        item.targetPosition.y = 0.05
-        item.targetPosition.x = 0.30 // centered in reading zone
-        item.targetRotationY = 0.0    // face camera directly
-        item.targetHingeAngle = -Math.PI * 0.75 // Cover swings open ~135 degrees!
-      } else if (isHovered) {
-        // HOVERED: Lifts slightly and steps forward
-        item.targetPosition.z = item.basePosition.z + 0.12
-        item.targetPosition.y = item.basePosition.y + 0.04
-        item.targetHingeAngle = 0.0 // stays closed
-      } else {
-        item.targetHingeAngle = 0.0 // closed flat on shelf
+    // 3. Interpolate Card Node Positions, Rotations, Scales, and Opacity
+    cardNodes.forEach((node, i) => {
+      // Natural idle floating motion
+      let floatY = 0
+      let floatRotZ = 0
+      if (!prefersReducedMotion.value) {
+        floatY = Math.sin(time * 0.85 + i * 1.35) * 0.05
+        floatRotZ = Math.cos(time * 0.65 + i * 1.1) * 0.012
       }
 
-      // Smooth Position & Rotation Lerp
-      item.rootGroup.position.lerp(item.targetPosition, 0.09)
-      item.rootGroup.rotation.y = THREE.MathUtils.lerp(item.rootGroup.rotation.y, item.targetRotationY, 0.09)
+      const tempPos = node.targetPos.clone()
+      tempPos.y += floatY
 
-      // Smooth Cover Hinge Swing ("Buka Bukunya")
-      item.currentHingeAngle = THREE.MathUtils.lerp(item.currentHingeAngle, item.targetHingeAngle, 0.08)
-      item.coverHingeGroup.rotation.y = item.currentHingeAngle
+      const tempRot = node.targetRot.clone()
+      tempRot.z += floatRotZ
 
-      // Category Filter Damping
-      const targetOpacity = matchesCategory ? 1.0 : 0.18
-      const coverMat = (item.coverMesh.material as THREE.Material[])[4] as THREE.MeshStandardMaterial
-      if (coverMat) {
-        coverMat.opacity = THREE.MathUtils.lerp(coverMat.opacity, targetOpacity, 0.1)
-        coverMat.transparent = targetOpacity < 0.99
+      // Subtle hover elevation
+      let scaleMult = 1.0
+      if (hoveredArticle.value?.id === node.article.id && node.article.id !== selectedArticleId.value) {
+        tempPos.z += 0.18
+        scaleMult = 1.05
       }
+
+      node.group.position.lerp(tempPos, delta * 4.8)
+
+      // Slerp rotation via quaternion
+      const targetQuat = new THREE.Quaternion().setFromEuler(tempRot)
+      node.group.quaternion.slerp(targetQuat, delta * 4.8)
+
+      // Scale lerp
+      const finalScale = node.targetScale * scaleMult
+      node.group.scale.lerp(new THREE.Vector3(finalScale, finalScale, finalScale), delta * 4.8)
+
+      // Opacity lerp
+      node.currentOpacity = THREE.MathUtils.lerp(node.currentOpacity, node.targetOpacity, delta * 4.8)
+      node.materials.forEach(mat => {
+        mat.opacity = node.currentOpacity
+      })
     })
 
-    // Accent Spotlight follows opened book
-    if (accentSpotLight && shelfGroup) {
-      const selectedBook = bookMeshes.find(b => b.article.id === selectedArticleId.value)
-      if (selectedBook) {
-        const wp = new THREE.Vector3()
-        selectedBook.rootGroup.getWorldPosition(wp)
-        accentSpotLight.position.set(wp.x + 0.2, wp.y + 0.3, wp.z + 1.2)
-      }
-    }
+    // 4. Update Relationship Lines endpoints
+    updateLinesPositions()
 
     if (renderer && scene && camera) {
       renderer.render(scene, camera)
@@ -826,296 +534,249 @@ function initScene() {
   animFrameId = requestAnimationFrame(loop)
 }
 
-// 1 Susun (Single Architectural Floating Shelf Ledge)
-function buildSingleShelfStructure() {
-  if (!shelfGroup) return
+function setupRelationshipLines() {
+  if (!fieldGroup) return
 
-  const shelfWidth = 4.8
-  const shelfDepth = 0.85
-  const plankThickness = 0.045
-  const shelfY = -0.68
+  linesGeometry = new THREE.BufferGeometry()
+  const pairs = buildRelationshipPairs(articles.value, selectedCategory.value)
+  const positions = new Float32Array(pairs.length * 6)
+  linesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
 
-  // Dark graphite brushed metal material
-  const ledgeMat = new THREE.MeshStandardMaterial({
-    color: 0x141722,
-    roughness: 0.78,
-    metalness: 0.35,
+  const linesMaterial = new THREE.LineBasicMaterial({
+    color: 0x64748b,
+    transparent: true,
+    opacity: 0.16,
+    depthWrite: false,
   })
 
-  // 1. Single Main Shelf Plank (Ledge)
-  const plankGeo = new THREE.BoxGeometry(shelfWidth, plankThickness, shelfDepth)
-  const plankMesh = new THREE.Mesh(plankGeo, ledgeMat)
-  plankMesh.position.set(0, shelfY, 0)
-  shelfGroup.add(plankMesh)
-
-  // 2. Subtle Edge Highlight Line along front edge
-  const edgeGeo = new THREE.BoxGeometry(shelfWidth, 0.006, 0.015)
-  const edgeMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.45 })
-  const edgeMesh = new THREE.Mesh(edgeGeo, edgeMat)
-  edgeMesh.position.set(0, shelfY + plankThickness / 2, shelfDepth / 2)
-  shelfGroup.add(edgeMesh)
-
-  // 3. Architectural Floating Wall Brackets underneath
-  const bracketMat = new THREE.MeshStandardMaterial({
-    color: 0x1a1e2a,
-    roughness: 0.7,
-    metalness: 0.5,
-  })
-
-  ;[-1.6, 0, 1.6].forEach(bx => {
-    const bracketGeo = new THREE.BoxGeometry(0.04, 0.25, shelfDepth * 0.9)
-    const bracketMesh = new THREE.Mesh(bracketGeo, bracketMat)
-    bracketMesh.position.set(bx, shelfY - 0.14, -0.04)
-    shelfGroup!.add(bracketMesh)
-  })
+  linesMesh = new THREE.LineSegments(linesGeometry, linesMaterial)
+  fieldGroup.add(linesMesh)
 }
 
-// Prominent Opening Books
-function buildBooks() {
-  if (!shelfGroup) return
-  bookMeshes = []
-  interactiveMeshes.length = 0
+function updateLinesPositions() {
+  if (!linesGeometry || !linesMesh) return
 
-  const shelfY = -0.68
-  const plankThickness = 0.045
-  const shelfTopY = shelfY + plankThickness / 2
-
-  // Spacing positions along the single shelf ledge
-  const slotXPositions = [-1.55, -1.05, -0.55, -0.05, 0.50, 1.05, 1.60]
-
-  articles.value.forEach((article, idx) => {
-    const dims = article.dimensions
-    const slotX = slotXPositions[idx % slotXPositions.length]
-
-    // Base Y: resting on the single shelf ledge
-    const baseY = shelfTopY + dims.height / 2
-    // Base Z: aligned so spine is at the front of the shelf
-    const baseZ = -0.05
-    const basePosition = new THREE.Vector3(slotX, baseY, baseZ)
-    // Resting rotation Y: Math.PI / 2 brings the spine facing directly towards the camera!
-    const baseRotationY = Math.PI / 2 + (article.tiltZ || 0)
-
-    // Generate High-Res Textures
-    const spineTexture = generateSpineTexture(article.shortTitle, article.category, article.year)
-    const frontCoverTexture = generateFrontCoverTexture(article.title, article.category, article.date)
-    const insideLeftPageTexture = generateInsideLeftPageTexture(article)
-    const insideRightPageTexture = generateInsideRightPageTexture(article)
-
-    // Root Group for the Book
-    const bookRoot = new THREE.Group()
-    bookRoot.position.copy(basePosition)
-    bookRoot.rotation.y = baseRotationY
-    shelfGroup!.add(bookRoot)
-
-    // A. Core Pages Block:
-    // Box dimensions: depth D, height H, thickness T
-    // Centered at x = D / 2, y = 0, z = 0 (origin x = 0 is the spine crease)
-    const blockGeo = new THREE.BoxGeometry(dims.depth, dims.height, dims.thickness)
-    const blockMaterials: THREE.Material[] = [
-      // 0: +X (Fore-edge paper)
-      new THREE.MeshStandardMaterial({ color: 0xcfd4dc, roughness: 0.9 }),
-      // 1: -X (Spine inner joint)
-      new THREE.MeshStandardMaterial({ color: 0x11141c, roughness: 0.8 }),
-      // 2: +Y (Top pages)
-      new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9 }),
-      // 3: -Y (Bottom pages)
-      new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9 }),
-      // 4: +Z (Right Open Page: displayed when cover swings open!)
-      new THREE.MeshStandardMaterial({ map: insideRightPageTexture, roughness: 0.7 }),
-      // 5: -Z (Back Cover outside)
-      new THREE.MeshStandardMaterial({ color: 0x11141c, roughness: 0.8 }),
-    ]
-    const blockMesh = new THREE.Mesh(blockGeo, blockMaterials)
-    blockMesh.position.set(dims.depth / 2, 0, 0)
-    blockMesh.userData = { articleId: article.id }
-    bookRoot.add(blockMesh)
-
-    // B. Spine Strip (visible when closed on the shelf):
-    // Positioned at x = 0, spanning Y and Z
-    const spineGeo = new THREE.BoxGeometry(0.015, dims.height, dims.thickness)
-    const spineMat = new THREE.MeshStandardMaterial({
-      map: spineTexture,
-      roughness: 0.6,
-      metalness: 0.1,
-    })
-    const spineMesh = new THREE.Mesh(spineGeo, [
-      new THREE.MeshBasicMaterial({ color: 0x11141c }),
-      spineMat, // -X face: faces viewer when book is rotated Math.PI/2 on shelf!
-      new THREE.MeshBasicMaterial({ color: 0x11141c }),
-      new THREE.MeshBasicMaterial({ color: 0x11141c }),
-      new THREE.MeshBasicMaterial({ color: 0x11141c }),
-      new THREE.MeshBasicMaterial({ color: 0x11141c }),
-    ])
-    spineMesh.position.set(0, 0, 0)
-    spineMesh.userData = { articleId: article.id }
-    bookRoot.add(spineMesh)
-
-    // C. Hinged Front Cover Group ("Buka Bukunya"):
-    // Origin at the spine crease: x = 0, y = 0, z = dims.thickness / 2
-    const coverHinge = new THREE.Group()
-    coverHinge.position.set(0, 0, dims.thickness / 2)
-    bookRoot.add(coverHinge)
-
-    // Cover Mesh inside Hinge Group:
-    // Extends from x = 0 to x = dims.depth
-    const coverThickness = 0.016
-    const coverGeo = new THREE.BoxGeometry(dims.depth, dims.height + 0.02, coverThickness)
-    const coverMaterials: THREE.Material[] = [
-      new THREE.MeshStandardMaterial({ color: 0x11141c, roughness: 0.8 }), // +X tip
-      new THREE.MeshStandardMaterial({ color: 0x11141c, roughness: 0.8 }), // -X hinge
-      new THREE.MeshStandardMaterial({ color: 0x11141c, roughness: 0.8 }), // +Y
-      new THREE.MeshStandardMaterial({ color: 0x11141c, roughness: 0.8 }), // -Y
-      // 4: +Z (Front Cover Outside)
-      new THREE.MeshStandardMaterial({ map: frontCoverTexture, roughness: 0.65 }),
-      // 5: -Z (Inside Left Page: turns to face viewer when cover swings open!)
-      new THREE.MeshStandardMaterial({ map: insideLeftPageTexture, roughness: 0.7 }),
-    ]
-    const coverMesh = new THREE.Mesh(coverGeo, coverMaterials)
-    coverMesh.position.set(dims.depth / 2, 0, coverThickness / 2)
-    coverMesh.userData = { articleId: article.id }
-    coverHinge.add(coverMesh)
-
-    interactiveMeshes.push(blockMesh, spineMesh, coverMesh)
-
-    bookMeshes.push({
-      article,
-      rootGroup: bookRoot,
-      coverHingeGroup: coverHinge,
-      coverMesh,
-      blockMesh,
-      basePosition,
-      baseRotationY,
-      targetPosition: basePosition.clone(),
-      targetRotationY: baseRotationY,
-      targetHingeAngle: 0.0,
-      currentHingeAngle: 0.0,
-    })
-  })
-}
-
-// Raycasting & Pointer Handlers
-function onPointerDown(e: PointerEvent) {
-  isDragging = true
-  prevPointerX = e.clientX
-  checkRaycast(e, true)
-}
-
-function onPointerMove(e: PointerEvent) {
-  if (!container.value) return
-  const rect = container.value.getBoundingClientRect()
-  mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
-  mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
-
-  if (isDragging) {
-    const dx = e.clientX - prevPointerX
-    prevPointerX = e.clientX
-    targetDragRotationY = THREE.MathUtils.clamp(targetDragRotationY + dx * 0.003, -0.22, 0.22)
-  } else {
-    checkRaycast(e, false)
+  const pairs = buildRelationshipPairs(articles.value, selectedCategory.value)
+  const posAttr = linesGeometry.getAttribute('position') as THREE.BufferAttribute
+  if (!posAttr || posAttr.count !== pairs.length * 2) {
+    // Rebuild attribute if count changed
+    linesGeometry.dispose()
+    const positions = new Float32Array(pairs.length * 6)
+    linesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
   }
-}
 
-function onPointerUp() {
-  isDragging = false
-}
+  const currentPosAttr = linesGeometry.getAttribute('position') as THREE.BufferAttribute
+  const array = currentPosAttr.array as Float32Array
 
-function onWheel(e: WheelEvent) {
-  e.preventDefault()
-  const now = performance.now()
-  if (now - wheelThrottleTimeout > 250) {
-    wheelThrottleTimeout = now
-    if (e.deltaY > 0) nextArticle()
-    else prevArticle()
-  }
-}
+  let idx = 0
+  for (const [i1, i2] of pairs) {
+    const node1 = cardNodes[i1]
+    const node2 = cardNodes[i2]
+    if (node1 && node2) {
+      array[idx++] = node1.group.position.x
+      array[idx++] = node1.group.position.y
+      array[idx++] = node1.group.position.z
 
-function checkRaycast(e: PointerEvent, isClick: boolean) {
-  if (!camera || !container.value || !scene) return
-
-  raycaster.setFromCamera(mouseNDC, camera)
-  const hits = raycaster.intersectObjects(interactiveMeshes, true)
-
-  if (hits.length > 0) {
-    const hitObj = hits[0].object
-    const articleId = hitObj.userData?.articleId
-    const found = articles.value.find(a => a.id === articleId)
-
-    if (found) {
-      if (isClick) {
-        selectedArticleId.value = found.id
-        if (selectedCategory.value !== 'ALL' && found.category !== selectedCategory.value) {
-          selectedCategory.value = 'ALL'
-        }
-      } else {
-        hoveredArticle.value = found
-        hoverScreenPos.value = { x: e.clientX, y: e.clientY }
-        if (canvas.value) canvas.value.style.cursor = 'pointer'
-      }
-      return
+      array[idx++] = node2.group.position.x
+      array[idx++] = node2.group.position.y
+      array[idx++] = node2.group.position.z
     }
   }
 
-  if (!isClick) {
+  currentPosAttr.needsUpdate = true
+}
+
+function updateNodeTargets() {
+  cardNodes.forEach(node => {
+    const isSelected = node.article.id === selectedArticleId.value
+    const transform = calculateNodeTransform(
+      node.article,
+      articles.value,
+      selectedArticleId.value,
+      selectedCategory.value,
+      isMobile.value.valueOf()
+    )
+
+    node.targetPos.set(...transform.position)
+    node.targetRot.set(...transform.rotation)
+    node.targetScale = transform.scale
+    node.targetOpacity = transform.opacity
+
+    // Update front face texture
+    const frontMat = node.materials[4] as THREE.MeshStandardMaterial
+    frontMat.map = isSelected ? node.activeTexture : node.inactiveTexture
+    frontMat.needsUpdate = true
+  })
+}
+
+// Watchers
+watch([selectedArticleId, selectedCategory], () => {
+  updateNodeTargets()
+})
+
+// Pointer & Interaction Handlers
+function onPointerDown(e: PointerEvent) {
+  isDragging = true
+  prevPointerX = e.clientX
+  prevPointerY = e.clientY
+}
+
+function onPointerMove(e: PointerEvent) {
+  if (!container.value || !camera) return
+
+  const rect = container.value.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+
+  // Normalized coords for raycaster
+  mouse.x = (x / rect.width) * 2 - 1
+  mouse.y = -(y / rect.height) * 2 + 1
+
+  // Parallax target
+  targetCamX = mouse.x * 0.22
+  targetCamY = mouse.y * 0.16
+
+  if (isDragging) {
+    const dx = e.clientX - prevPointerX
+    const dy = e.clientY - prevPointerY
+    prevPointerX = e.clientX
+    prevPointerY = e.clientY
+
+    targetFieldRotY = THREE.MathUtils.clamp(targetFieldRotY + dx * 0.0035, -0.42, 0.42)
+    targetFieldRotX = THREE.MathUtils.clamp(targetFieldRotX + dy * 0.0025, -0.22, 0.22)
+  } else {
+    // Raycasting for hover
+    raycaster.setFromCamera(mouse, camera)
+    const meshes = cardNodes.map(n => n.mesh)
+    const intersects = raycaster.intersectObjects(meshes)
+
+    if (intersects.length > 0) {
+      const hitMesh = intersects[0].object
+      const articleId = hitMesh.userData.articleId
+      const found = articles.value.find(a => a.id === articleId)
+      if (found && (selectedCategory.value === 'ALL' || found.category === selectedCategory.value)) {
+        hoveredArticle.value = found
+        hoverScreenPos.value = { x: e.clientX, y: e.clientY }
+        if (canvas.value) canvas.value.style.cursor = 'pointer'
+        return
+      }
+    }
+
     hoveredArticle.value = null
     if (canvas.value) canvas.value.style.cursor = isDragging ? 'grabbing' : 'grab'
   }
 }
 
+function onPointerUp(e: PointerEvent) {
+  if (isDragging) {
+    const dist = Math.hypot(e.clientX - prevPointerX, e.clientY - prevPointerY)
+    if (dist < 4 && camera) {
+      // It was a click
+      raycaster.setFromCamera(mouse, camera)
+      const meshes = cardNodes.map(n => n.mesh)
+      const intersects = raycaster.intersectObjects(meshes)
+      if (intersects.length > 0) {
+        const articleId = intersects[0].object.userData.articleId
+        if (articleId) {
+          selectArticle(articleId)
+        }
+      }
+    }
+  }
+  isDragging = false
+  if (canvas.value) canvas.value.style.cursor = 'grab'
+}
+
+function onWheel(e: WheelEvent) {
+  // Subtle camera depth adjust on wheel
+  if (!camera) return
+  camera.position.z = THREE.MathUtils.clamp(
+    camera.position.z + e.deltaY * 0.003,
+    isMobile.value ? 7.2 : 6.5,
+    isMobile.value ? 9.8 : 9.2
+  )
+}
+
 function onBackgroundClick() {
-  // Clear hover state
+  // Keep active article in focus
 }
 
 function onResize() {
-  if (!container.value || !camera || !renderer || !shelfGroup) return
-  const w = container.value.clientWidth || window.innerWidth
-  const h = container.value.clientHeight || window.innerHeight
-  const isMobile = w < 768
+  if (!container.value || !camera || !renderer) return
+  const width = container.value.clientWidth || window.innerWidth
+  const height = container.value.clientHeight || window.innerHeight
 
-  shelfGroup.position.set(isMobile ? 0 : 0.35, isMobile ? 0.05 : 0.0, 0)
+  isMobile.value = width < 768
 
-  camera.aspect = w / h
-  camera.position.set(isMobile ? 0 : -0.15, isMobile ? 0.1 : 0.05, isMobile ? 5.8 : 4.8)
-  camera.lookAt(isMobile ? 0 : 0.35, isMobile ? 0.05 : -0.05, 0)
+  camera.aspect = width / height
+  camera.position.z = isMobile.value ? 8.6 : 7.8
   camera.updateProjectionMatrix()
 
-  renderer.setSize(w, h)
+  renderer.setSize(width, height)
+  updateNodeTargets()
 }
 
-onMounted(() => {
-  initScene()
-  window.addEventListener('resize', onResize)
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'ArrowLeft') {
+    prevArticle()
+  } else if (e.key === 'ArrowRight') {
+    nextArticle()
+  } else if (e.key === 'Enter') {
+    if (selectedArticle.value?.url) {
+      window.open(selectedArticle.value.url, '_blank', 'noopener,noreferrer')
+    }
+  }
+}
 
-  unregisterContentNav = registerContentNavigator((direction) => {
+let unregisterNavigator: (() => void) | null = null
+
+onMounted(() => {
+  initThree()
+
+  window.addEventListener('resize', onResize)
+  window.addEventListener('keydown', onKeyDown)
+
+  unregisterNavigator = registerContentNavigator((direction: 'prev' | 'next') => {
     if (direction === 'prev') prevArticle()
     else nextArticle()
   })
+
+  if (container.value) {
+    observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting
+    })
+    observer.observe(container.value)
+  }
 })
 
 onBeforeUnmount(() => {
-  unregisterContentNav?.()
-  window.removeEventListener('resize', onResize)
-
+  if (observer) observer.disconnect()
   if (animFrameId) cancelAnimationFrame(animFrameId)
 
-  if (scene) {
-    scene.traverse(obj => {
-      if (obj instanceof THREE.Mesh || obj instanceof THREE.LineSegments) {
-        if (obj.geometry) obj.geometry.dispose()
-        if (obj.material) {
-          if (Array.isArray(obj.material)) {
-            obj.material.forEach(m => {
-              if (m.map) m.map.dispose()
-              m.dispose()
-            })
-          } else {
-            if (obj.material.map) obj.material.map.dispose()
-            obj.material.dispose()
-          }
-        }
-      }
-    })
-    scene.clear()
-    scene = null
+  window.removeEventListener('resize', onResize)
+  window.removeEventListener('keydown', onKeyDown)
+
+  if (unregisterNavigator) unregisterNavigator()
+
+  // Dispose Three.js objects
+  cardNodes.forEach(node => {
+    node.activeTexture.dispose()
+    node.inactiveTexture.dispose()
+    node.materials.forEach(m => m.dispose())
+  })
+  cardNodes.length = 0
+
+  if (sharedBoxGeometry) sharedBoxGeometry.dispose()
+  if (sharedShadowGeometry) sharedShadowGeometry.dispose()
+  if (sharedShadowMaterial) {
+    if (sharedShadowMaterial.map) sharedShadowMaterial.map.dispose()
+    sharedShadowMaterial.dispose()
+  }
+
+  if (linesGeometry) linesGeometry.dispose()
+  if (linesMesh) {
+    if (Array.isArray(linesMesh.material)) linesMesh.material.forEach(m => m.dispose())
+    else linesMesh.material.dispose()
   }
 
   if (renderer) {
@@ -1127,25 +788,11 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* Quiet Dark Gallery Atmosphere Vignette */
+.writing-knowledge-field-scene {
+  background: radial-gradient(circle at 65% 40%, #080b10 0%, #03060b 80%);
+}
+
 .gallery-ambient-vignette {
-  background: radial-gradient(circle at 60% 45%, rgba(14, 23, 42, 0.18) 0%, rgba(3, 6, 11, 0.8) 65%, #03060b 100%);
-}
-
-.editorial-fade-enter-active,
-.editorial-fade-leave-active {
-  transition: opacity 300ms ease, transform 300ms ease;
-}
-
-.editorial-fade-enter-from,
-.editorial-fade-leave-to {
-  opacity: 0;
-  transform: translateY(12px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .editorial-card {
-    transition: opacity 150ms ease !important;
-  }
+  background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(3, 6, 11, 0.75) 100%);
 }
 </style>
