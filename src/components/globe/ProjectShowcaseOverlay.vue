@@ -7,7 +7,7 @@
         role="dialog"
         aria-modal="true"
         aria-label="3D Project Showcase"
-        @keydown.esc="handleClose"
+        @keydown.esc="handleKeyEsc"
         @keydown.left="handlePrev"
         @keydown.right="handleNext"
         tabindex="-1"
@@ -23,30 +23,56 @@
         <div class="absolute inset-0 z-0 flex items-center justify-center showcase-globe-stage">
           <GlobeScene
             :active-id="activeMarker.id"
+            :is-zoomed="isSatelliteZoomed"
+            :active-cluster-id="activeClusterId"
             :fallback-text="content.fallbackNotice"
             @select="onSelectMarker"
+            @zoom-cluster="onZoomCluster"
+            @zoom-out="onZoomOut"
           />
         </div>
 
         <!-- Top Header Navigation Bar -->
         <header class="relative z-10 w-full px-5 py-5 sm:px-8 sm:py-6 flex items-center justify-between pointer-events-none">
-          <!-- Exit Showcase Button -->
-          <button
-            type="button"
-            class="pointer-events-auto inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-white/15 bg-black/40 hover:bg-white/10 hover:border-white/35 active:scale-95 text-zinc-300 hover:text-white transition-all duration-200 cursor-pointer font-mono text-xs uppercase tracking-wider group focus:outline-none focus:ring-1 focus:ring-white/40"
-            @click="handleClose"
-            :aria-label="content.exitLabel"
-          >
-            <span class="px-1.5 py-0.5 rounded text-[10px] bg-white/10 border border-white/10 text-zinc-400 group-hover:text-zinc-200">
-              {{ content.escHint }}
-            </span>
-            <span class="text-[11px] font-medium">{{ content.exitLabel }}</span>
-          </button>
+          <div class="flex items-center gap-2.5 pointer-events-auto">
+            <!-- Exit Showcase Button -->
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/15 bg-black/40 hover:bg-white/10 hover:border-white/35 active:scale-95 text-zinc-300 hover:text-white transition-all duration-200 cursor-pointer font-mono text-xs uppercase tracking-wider group focus:outline-none focus:ring-1 focus:ring-white/40"
+              @click="handleClose"
+              :aria-label="content.exitLabel"
+            >
+              <span class="px-1.5 py-0.5 rounded text-[10px] bg-white/10 border border-white/10 text-zinc-400 group-hover:text-zinc-200">
+                {{ content.escHint }}
+              </span>
+              <span class="text-[11px] font-medium">{{ content.exitLabel }}</span>
+            </button>
+
+            <!-- Satellite Zoom Out Button (Visible when zoomed in) -->
+            <Transition name="fade">
+              <button
+                v-if="isSatelliteZoomed"
+                type="button"
+                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-400/40 bg-blue-500/15 hover:bg-blue-500/25 active:scale-95 text-blue-300 hover:text-white transition-all duration-200 cursor-pointer font-mono text-xs uppercase tracking-wider focus:outline-none"
+                @click="onZoomOut"
+                title="Return to full global view"
+              >
+                <span>‹</span>
+                <span class="text-[11px] font-medium">GLOBAL VIEW</span>
+              </button>
+            </Transition>
+          </div>
 
           <!-- Status Indicator / Current Title -->
-          <div class="hidden sm:flex items-center gap-3 font-mono text-[11px] tracking-widest text-zinc-400 uppercase">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true"></span>
-            <span>SHOWCASE MODE · {{ String(activeMarkerIndex + 1).padStart(2, '0') }} / {{ String(totalProjects).padStart(2, '0') }}</span>
+          <div class="hidden sm:flex items-center gap-3 font-mono text-[11px] tracking-widest uppercase">
+            <template v-if="isSatelliteZoomed">
+              <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping" aria-hidden="true"></span>
+              <span class="text-blue-300">SATELLITE VIEW · {{ activeCluster?.name }} ({{ clusterProjects.length }} PROJECTS)</span>
+            </template>
+            <template v-else>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true"></span>
+              <span class="text-zinc-400">GLOBAL ORBIT · {{ String(activeMarkerIndex + 1).padStart(2, '0') }} / {{ String(totalProjects).padStart(2, '0') }}</span>
+            </template>
           </div>
         </header>
 
@@ -54,11 +80,42 @@
         <footer class="relative z-10 w-full px-4 pb-6 sm:pb-8 flex flex-col items-center pointer-events-none">
           <!-- Floating Info Panel -->
           <div class="pointer-events-auto w-full max-w-xl rounded-2xl border border-white/10 bg-black/65 backdrop-blur-xl p-5 sm:p-6 shadow-2xl transition-all duration-300">
+            <!-- Cluster Sub-Navigation Pills (when in Satellite Zoom or multi-project cluster) -->
+            <div v-if="isSatelliteZoomed && clusterProjects.length > 1" class="flex items-center gap-1.5 overflow-x-auto pb-3 mb-3 border-b border-white/10 scrollbar-none">
+              <span class="font-mono text-[9px] uppercase tracking-wider text-blue-400 font-semibold shrink-0 mr-1">
+                CLUSTER SATELLITES:
+              </span>
+              <button
+                v-for="p in clusterProjects"
+                :key="p.id"
+                type="button"
+                class="px-2.5 py-1 rounded-full font-mono text-[10px] tracking-wide transition-all cursor-pointer shrink-0 border"
+                :class="activeMarker.id === p.id
+                  ? 'border-blue-400/80 bg-blue-500/25 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]'
+                  : 'border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10'"
+                @click="onSelectMarker(p.id)"
+              >
+                {{ p.title }}
+              </button>
+            </div>
+
             <!-- Top Sub-Header & Navigation Controls -->
             <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
-              <span class="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-zinc-400 font-medium">
-                {{ activeMarker.subtitle }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-zinc-400 font-medium">
+                  {{ activeMarker.subtitle }}
+                </span>
+                <!-- Satellite trigger button if in global view for multi-project cluster -->
+                <button
+                  v-if="!isSatelliteZoomed && isMultiClusterProject"
+                  type="button"
+                  class="px-2 py-0.5 rounded-full border border-blue-400/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 font-mono text-[9px] tracking-wide cursor-pointer transition-colors"
+                  @click="onZoomCluster(activeMarker.clusterId)"
+                  title="Zoom in satellite view"
+                >
+                  ⊕ SATELLITE ({{ currentClusterCount }})
+                </button>
+              </div>
 
               <!-- Project Prev / Next Pagination -->
               <div class="flex items-center gap-3 font-mono text-xs text-zinc-300">
@@ -158,7 +215,12 @@
 
           <!-- Interaction Hint -->
           <p class="mt-3 text-center font-mono text-[10px] text-zinc-500 tracking-wider">
-            {{ content.interactionHint }}
+            <template v-if="isSatelliteZoomed">
+              Satellite inspection mode · Click satellite node or arrows to inspect · Esc or button to zoom out
+            </template>
+            <template v-else>
+              {{ content.interactionHint }} · Click cluster counter to zoom in
+            </template>
           </p>
         </footer>
       </div>
@@ -172,12 +234,18 @@ import {
   isShowcaseOpen,
   activeMarker,
   activeMarkerIndex,
+  isSatelliteZoomed,
+  activeClusterId,
+  activeCluster,
+  clusterProjects,
   closeShowcase,
+  zoomInToCluster,
+  zoomOutToGlobal,
   nextProject,
   prevProject,
   setActiveProjectId,
 } from '@/composables/useShowcase'
-import { globeMarkers } from './globeData'
+import { globeMarkers, globeClusters } from './globeData'
 import { portfolioContent } from '@/content/portfolioContent'
 
 const GlobeScene = defineAsyncComponent(() => import('./GlobeScene.vue'))
@@ -186,12 +254,30 @@ const overlayRef = ref<HTMLElement | null>(null)
 
 const totalProjects = computed(() => globeMarkers.value.length)
 
+const isMultiClusterProject = computed(() => {
+  const cluster = globeClusters.value.find(c => c.id === activeMarker.value.clusterId)
+  return cluster ? cluster.projectCount > 1 : false
+})
+
+const currentClusterCount = computed(() => {
+  const cluster = globeClusters.value.find(c => c.id === activeMarker.value.clusterId)
+  return cluster ? cluster.projectCount : 1
+})
+
 function isValidUrl(val?: string) {
   return !!val && /^https?:\/\//i.test(val)
 }
 
 function handleClose() {
   closeShowcase()
+}
+
+function handleKeyEsc() {
+  if (isSatelliteZoomed.value) {
+    zoomOutToGlobal()
+  } else {
+    closeShowcase()
+  }
 }
 
 function handlePrev() {
@@ -206,6 +292,14 @@ function onSelectMarker(id: string) {
   setActiveProjectId(id)
 }
 
+function onZoomCluster(clusterId: string) {
+  zoomInToCluster(clusterId)
+}
+
+function onZoomOut() {
+  zoomOutToGlobal()
+}
+
 function navigateToProjects() {
   closeShowcase()
   nextTick(() => {
@@ -218,7 +312,7 @@ function onGlobalKeydown(e: KeyboardEvent) {
   if (!isShowcaseOpen.value) return
   if (e.key === 'Escape') {
     e.preventDefault()
-    handleClose()
+    handleKeyEsc()
   } else if (e.key === 'ArrowLeft') {
     e.preventDefault()
     handlePrev()
@@ -260,6 +354,16 @@ onBeforeUnmount(() => {
   background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.15) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 250ms ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 /* 600-900ms Entrance & Exit Transition */

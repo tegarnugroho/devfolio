@@ -3,6 +3,8 @@ import { portfolioContent } from '@/content/portfolioContent'
 
 export interface GlobeMarker {
   id: string
+  clusterId: string
+  clusterName: string
   title: string
   fullTitle: string
   subtitle: string
@@ -11,11 +13,23 @@ export interface GlobeMarker {
   tech: string[]
   lat: number
   lng: number
+  satelliteAngle: number
+  satelliteRadius: number
   accentColor: string
   link?: string
   repo?: string
   image?: string
   images?: string[]
+}
+
+export interface GlobeCluster {
+  id: string
+  name: string
+  region: string
+  lat: number
+  lng: number
+  accentColor: string
+  projectCount: number
 }
 
 export interface GlobeArc {
@@ -28,6 +42,8 @@ export interface GlobeArc {
 
 interface ProjectGeoMetadata {
   matchKey: string
+  clusterId: string
+  clusterName: string
   shortTitle: string
   subtitle: string
   category: string
@@ -37,35 +53,33 @@ interface ProjectGeoMetadata {
 }
 
 const geoMetadata: ProjectGeoMetadata[] = [
+  // Indonesia Hub (Multi-project cluster)
   {
-    matchKey: 'Table Parser',
-    shortTitle: 'Table Parser',
-    subtitle: 'Flutter Package',
-    category: 'Open Source Package',
-    lat: 35.6762,
-    lng: 139.6503, // Tokyo / East Asia
-    accentColor: '#06b6d4',
+    matchKey: 'Tribelio',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
+    shortTitle: 'Tribelio',
+    subtitle: 'Creator Platform',
+    category: 'Community & Commerce',
+    lat: -6.2088,
+    lng: 106.8456, // Jakarta (Central Hub)
+    accentColor: '#a855f7',
   },
   {
-    matchKey: 'VSCode Clone',
-    shortTitle: 'VSCode Web',
-    subtitle: 'Web Experience',
-    category: 'Personal Portfolio',
-    lat: -33.8688,
-    lng: 151.2093, // Sydney
-    accentColor: '#38bdf8',
-  },
-  {
-    matchKey: 'Excel Translator',
-    shortTitle: 'Excel Translator',
-    subtitle: 'Localization Tool',
-    category: 'Flutter Package',
-    lat: 51.5074,
-    lng: -0.1278, // London
-    accentColor: '#10b981',
+    matchKey: 'Waroong Retjeh',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
+    shortTitle: 'Waroong Retjeh',
+    subtitle: 'Restaurant App',
+    category: 'F&B POS Platform',
+    lat: -7.2575,
+    lng: 112.7521, // Surabaya
+    accentColor: '#ef4444',
   },
   {
     matchKey: 'Danafix',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
     shortTitle: 'Danafix',
     subtitle: 'Online Loan App',
     category: 'Fintech Application',
@@ -74,16 +88,9 @@ const geoMetadata: ProjectGeoMetadata[] = [
     accentColor: '#6366f1',
   },
   {
-    matchKey: 'Tribelio',
-    shortTitle: 'Tribelio',
-    subtitle: 'Creator Platform',
-    category: 'Community & Commerce',
-    lat: -6.2088,
-    lng: 106.8456, // Jakarta (Home Base)
-    accentColor: '#a855f7',
-  },
-  {
     matchKey: 'Cicle',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
     shortTitle: 'Cicle',
     subtitle: 'Remote Team Tool',
     category: 'Team Collaboration',
@@ -93,6 +100,8 @@ const geoMetadata: ProjectGeoMetadata[] = [
   },
   {
     matchKey: 'IZILOH',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
     shortTitle: 'IZILOH',
     subtitle: 'Innovative Laundry',
     category: 'On-Demand Service',
@@ -101,25 +110,9 @@ const geoMetadata: ProjectGeoMetadata[] = [
     accentColor: '#3b82f6',
   },
   {
-    matchKey: 'Waroong Retjeh',
-    shortTitle: 'Waroong Retjeh',
-    subtitle: 'Restaurant App',
-    category: 'F&B POS Platform',
-    lat: -7.2575,
-    lng: 112.7521, // Surabaya
-    accentColor: '#ef4444',
-  },
-  {
-    matchKey: 'Flambe',
-    shortTitle: 'Flambe',
-    subtitle: 'Food Delivery App',
-    category: 'Food Delivery Platform',
-    lat: -8.6705,
-    lng: 115.2126, // Denpasar / Bali
-    accentColor: '#f97316',
-  },
-  {
     matchKey: 'NU Card',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
     shortTitle: 'NU Card',
     subtitle: 'Digital Wallet App',
     category: 'Fintech / E-Wallet',
@@ -128,25 +121,33 @@ const geoMetadata: ProjectGeoMetadata[] = [
     accentColor: '#14b8a6',
   },
   {
-    matchKey: 'ValtHub',
-    shortTitle: 'ValtHub',
-    subtitle: 'Secrets Manager',
-    category: 'Developer Tooling',
-    lat: 37.7749,
-    lng: -122.4194, // San Francisco
-    accentColor: '#ec4899',
+    matchKey: 'Flambe',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
+    shortTitle: 'Flambe',
+    subtitle: 'Food Delivery App',
+    category: 'Food Delivery Platform',
+    lat: -8.6705,
+    lng: 115.2126, // Denpasar / Bali
+    accentColor: '#f97316',
   },
+
+  // Europe Hub (Multi-project cluster)
   {
-    matchKey: 'Codeary',
-    shortTitle: 'Codeary',
-    subtitle: 'Developer Platform',
-    category: 'Tech Publication',
-    lat: 1.3521,
-    lng: 103.8198, // Singapore
+    matchKey: 'Excel Translator',
+    clusterId: 'cluster-eu',
+    clusterName: 'Europe Hub',
+    shortTitle: 'Excel Translator',
+    subtitle: 'Localization Tool',
+    category: 'Flutter Package',
+    lat: 51.5074,
+    lng: -0.1278, // London
     accentColor: '#10b981',
   },
   {
     matchKey: 'flutter_v_keyboard',
+    clusterId: 'cluster-eu',
+    clusterName: 'Europe Hub',
     shortTitle: 'Virtual Keyboard',
     subtitle: 'Flutter Package',
     category: 'Open Source Package',
@@ -154,25 +155,98 @@ const geoMetadata: ProjectGeoMetadata[] = [
     lng: 13.4050, // Berlin
     accentColor: '#8b5cf6',
   },
+
+  // East Asia Hub
+  {
+    matchKey: 'Table Parser',
+    clusterId: 'cluster-ea',
+    clusterName: 'East Asia Hub',
+    shortTitle: 'Table Parser',
+    subtitle: 'Flutter Package',
+    category: 'Open Source Package',
+    lat: 35.6762,
+    lng: 139.6503, // Tokyo
+    accentColor: '#06b6d4',
+  },
+
+  // Americas Hub
+  {
+    matchKey: 'ValtHub',
+    clusterId: 'cluster-us',
+    clusterName: 'Americas Hub',
+    shortTitle: 'ValtHub',
+    subtitle: 'Secrets Manager',
+    category: 'Developer Tooling',
+    lat: 37.7749,
+    lng: -122.4194, // San Francisco
+    accentColor: '#ec4899',
+  },
+
+  // Singapore Hub
+  {
+    matchKey: 'Codeary',
+    clusterId: 'cluster-sg',
+    clusterName: 'Singapore Hub',
+    shortTitle: 'Codeary',
+    subtitle: 'Developer Platform',
+    category: 'Tech Publication',
+    lat: 1.3521,
+    lng: 103.8198, // Singapore
+    accentColor: '#10b981',
+  },
+
+  // Oceania Hub
+  {
+    matchKey: 'VSCode Clone',
+    clusterId: 'cluster-oc',
+    clusterName: 'Oceania Hub',
+    shortTitle: 'VSCode Web',
+    subtitle: 'Web Experience',
+    category: 'Personal Portfolio',
+    lat: -33.8688,
+    lng: 151.2093, // Sydney
+    accentColor: '#38bdf8',
+  },
 ]
 
 /**
- * Derives globe markers directly from the portfolio's published projects.
- * Kept reactively in sync with the current active locale and content updates.
+ * Derives globe markers directly from publishedProjects.
+ * Groups co-located projects into clusters with satellite orbit parameters for zoom inspection.
  */
 export const globeMarkers = computed<GlobeMarker[]>(() => {
   const published = portfolioContent.projects.items.filter(p => p.status === 'published')
 
+  // Count items per cluster to compute angular satellite offsets
+  const clusterCounts: Record<string, number> = {}
+  const clusterIndices: Record<string, number> = {}
+
+  for (const proj of published) {
+    const meta = geoMetadata.find(m => proj.title.includes(m.matchKey))
+    const cId = meta?.clusterId || 'cluster-default'
+    clusterCounts[cId] = (clusterCounts[cId] || 0) + 1
+  }
+
   return published.map((proj, index) => {
     const meta = geoMetadata.find(m => proj.title.includes(m.matchKey)) || {
       matchKey: proj.title,
+      clusterId: 'cluster-id',
+      clusterName: 'Indonesia Hub',
       shortTitle: proj.title.split(' - ')[0] || proj.title,
       subtitle: proj.tech[0] || 'Project',
       category: 'Software Application',
-      lat: -6.2088 + (index * 4.5),
-      lng: 106.8456 + (index * 7.5),
+      lat: -6.2088,
+      lng: 106.8456,
       accentColor: '#3b82f6',
     }
+
+    const cId = meta.clusterId
+    const countInCluster = clusterCounts[cId] || 1
+    const idxInCluster = clusterIndices[cId] || 0
+    clusterIndices[cId] = idxInCluster + 1
+
+    // Compute satellite angle and radius
+    const satelliteRadius = countInCluster > 1 ? 0.32 : 0
+    const satelliteAngle = countInCluster > 1 ? (idxInCluster * 2 * Math.PI) / countInCluster : 0
 
     const slug = proj.title
       .toLowerCase()
@@ -182,6 +256,8 @@ export const globeMarkers = computed<GlobeMarker[]>(() => {
 
     return {
       id: `${slug}-${index}`,
+      clusterId: meta.clusterId,
+      clusterName: meta.clusterName,
       title: meta.shortTitle,
       fullTitle: proj.title,
       subtitle: meta.subtitle,
@@ -190,6 +266,8 @@ export const globeMarkers = computed<GlobeMarker[]>(() => {
       tech: proj.tech,
       lat: meta.lat,
       lng: meta.lng,
+      satelliteAngle,
+      satelliteRadius,
       accentColor: meta.accentColor,
       link: proj.link,
       repo: proj.repo,
@@ -200,7 +278,34 @@ export const globeMarkers = computed<GlobeMarker[]>(() => {
 })
 
 /**
- * Geographic connection arcs radiating from Jakarta (home base) to destinations worldwide.
+ * Returns distinct cluster hubs with their aggregated project counts.
+ */
+export const globeClusters = computed<GlobeCluster[]>(() => {
+  const markers = globeMarkers.value
+  const map = new Map<string, GlobeCluster>()
+
+  for (const m of markers) {
+    if (!map.has(m.clusterId)) {
+      map.set(m.clusterId, {
+        id: m.clusterId,
+        name: m.clusterName,
+        region: m.category,
+        lat: m.lat,
+        lng: m.lng,
+        accentColor: m.accentColor,
+        projectCount: 1,
+      })
+    } else {
+      const existing = map.get(m.clusterId)!
+      existing.projectCount += 1
+    }
+  }
+
+  return Array.from(map.values())
+})
+
+/**
+ * Connection arcs radiating from home base (Jakarta) to destinations worldwide.
  */
 export const globeArcs = computed<GlobeArc[]>(() => {
   const markers = globeMarkers.value
