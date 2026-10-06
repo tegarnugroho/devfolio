@@ -219,6 +219,23 @@ let arcMeshList: {
 let satelliteBeamLines: THREE.LineSegments | null = null
 let beamLinePositions: Float32Array | null = null
 
+// Technical Globe Meshes (Dark Mode)
+let baseSphere: THREE.Mesh | null = null
+let gridLineMesh: THREE.LineSegments | null = null
+let landPointsMesh: THREE.Points | null = null
+let coastMesh: THREE.LineSegments | null = null
+
+// Photorealistic Real Earth Meshes & Textures (Light Mode)
+let realEarthMesh: THREE.Mesh | null = null
+let realEarthMat: THREE.MeshStandardMaterial | null = null
+let cloudsMesh: THREE.Mesh | null = null
+let cloudsMat: THREE.MeshStandardMaterial | null = null
+let atmosphereMesh: THREE.Mesh | null = null
+let atmosphereMat: THREE.ShaderMaterial | null = null
+let dayTexture: THREE.Texture | null = null
+let cloudsTexture: THREE.Texture | null = null
+let specularTexture: THREE.Texture | null = null
+
 // Dynamic Theme Materials
 let baseSphereMat: THREE.MeshBasicMaterial | null = null
 let gridLineMat: THREE.LineBasicMaterial | null = null
@@ -339,6 +356,16 @@ function computeSatellitePosition(centerPos: THREE.Vector3, angle: number, radiu
 }
 
 function applyThemeMaterials(dark: boolean) {
+  // Toggle Technical Globe (Dark Mode) vs Photorealistic Real Earth (Light Mode)
+  if (baseSphere) baseSphere.visible = dark
+  if (gridLineMesh) gridLineMesh.visible = dark
+  if (landPointsMesh) landPointsMesh.visible = dark
+  if (coastMesh) coastMesh.visible = dark
+
+  if (realEarthMesh) realEarthMesh.visible = !dark
+  if (cloudsMesh) cloudsMesh.visible = !dark
+  if (atmosphereMesh) atmosphereMesh.visible = !dark
+
   if (baseSphereMat) {
     baseSphereMat.color.setHex(dark ? 0x07090e : 0xf1f5f9)
     baseSphereMat.opacity = dark ? 0.98 : 0.98
@@ -361,15 +388,15 @@ function applyThemeMaterials(dark: boolean) {
   }
   for (const a of arcMeshList) {
     const lMat = a.line.material as THREE.LineBasicMaterial
-    lMat.color.setHex(dark ? 0x64748b : 0x94a3b8)
+    lMat.color.setHex(dark ? 0x64748b : 0x2563eb)
     const pMat = a.pulseMesh.material as THREE.MeshBasicMaterial
-    pMat.color.setHex(dark ? 0xf8fafc : 0x2563eb)
+    pMat.color.setHex(dark ? 0xf8fafc : 0x1d4ed8)
   }
 
   // Celestial Objects Theme Updates
   if (starPointsMat) {
     starPointsMat.color.setHex(dark ? 0xf8fafc : 0x64748b)
-    starPointsMat.opacity = dark ? 0.65 : 0.35
+    starPointsMat.opacity = dark ? 0.65 : 0.25
   }
   if (moonMat) {
     moonMat.color.setHex(dark ? 0xe2e8f0 : 0x94a3b8)
@@ -396,10 +423,10 @@ function applyThemeMaterials(dark: boolean) {
     jupiterMat.color.setHex(dark ? 0xfde68a : 0xc2410c)
   }
   if (sunLight) {
-    sunLight.intensity = dark ? 2.4 : 1.8
+    sunLight.intensity = dark ? 2.4 : 2.8
   }
   if (ambientLight) {
-    ambientLight.intensity = dark ? 0.4 : 0.65
+    ambientLight.intensity = dark ? 0.4 : 0.75
   }
   if (meteorMat) {
     meteorMat.color.setHex(dark ? 0xffffff : 0x0284c7)
@@ -466,27 +493,27 @@ function initThree() {
   globeGroup.rotation.z = 0.12
   scene.add(globeGroup)
 
-  // 4. Base Sphere
+  // 4. Base Sphere (Technical Dark Globe)
   const sphereGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64)
   baseSphereMat = new THREE.MeshBasicMaterial({
     color: 0x07090e,
     transparent: true,
     opacity: 0.98,
   })
-  const baseSphere = new THREE.Mesh(sphereGeo, baseSphereMat)
+  baseSphere = new THREE.Mesh(sphereGeo, baseSphereMat)
   globeGroup.add(baseSphere)
 
-  // 5. Lat/Long Grid Lines
+  // 5. Lat/Long Grid Lines (Technical Dark Globe)
   const gridGeo = createGridLines(GLOBE_RADIUS * 1.002)
   gridLineMat = new THREE.LineBasicMaterial({
     color: 0x334155,
     transparent: true,
     opacity: 0.16,
   })
-  const gridLineMesh = new THREE.LineSegments(gridGeo, gridLineMat)
+  gridLineMesh = new THREE.LineSegments(gridGeo, gridLineMat)
   globeGroup.add(gridLineMesh)
 
-  // 7. Land Point Cloud
+  // 6. Land Point Cloud (Technical Dark Globe)
   const landPointsGeo = createLandPointsGeometry(GLOBE_RADIUS * 1.006)
   landPointsMat = new THREE.PointsMaterial({
     color: 0x94a3b8,
@@ -494,18 +521,88 @@ function initThree() {
     transparent: true,
     opacity: 0.8,
   })
-  const landPointsMesh = new THREE.Points(landPointsGeo, landPointsMat)
+  landPointsMesh = new THREE.Points(landPointsGeo, landPointsMat)
   globeGroup.add(landPointsMesh)
 
-  // 8. Coastlines
+  // 7. Coastlines (Technical Dark Globe)
   const coastGeo = createCoastlineGeometry(GLOBE_RADIUS * 1.008)
   coastMat = new THREE.LineBasicMaterial({
     color: 0x475569,
     transparent: true,
     opacity: 0.35,
   })
-  const coastMesh = new THREE.LineSegments(coastGeo, coastMat)
+  coastMesh = new THREE.LineSegments(coastGeo, coastMat)
   globeGroup.add(coastMesh)
+
+  // 8. Photorealistic Real Earth & Dynamic Atmosphere (for Light Mode)
+  const textureLoader = new THREE.TextureLoader()
+  dayTexture = textureLoader.load('/textures/earth/earth_day.jpg')
+  dayTexture.colorSpace = THREE.SRGBColorSpace
+
+  cloudsTexture = textureLoader.load('/textures/earth/earth_clouds.png')
+
+  specularTexture = textureLoader.load('/textures/earth/earth_specular.jpg')
+
+  const realEarthGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64)
+  realEarthMat = new THREE.MeshStandardMaterial({
+    map: dayTexture,
+    roughnessMap: specularTexture,
+    roughness: 0.65,
+    metalness: 0.08,
+  })
+  realEarthMesh = new THREE.Mesh(realEarthGeo, realEarthMat)
+  realEarthMesh.visible = !isDark.value
+  globeGroup.add(realEarthMesh)
+
+  // Dynamic Clouds Layer (semi-transparent, floating slightly above ground)
+  const cloudsGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.01, 64, 64)
+  cloudsMat = new THREE.MeshStandardMaterial({
+    map: cloudsTexture,
+    transparent: true,
+    opacity: 0.82,
+    blending: THREE.NormalBlending,
+    depthWrite: false,
+    roughness: 0.9,
+  })
+  cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat)
+  cloudsMesh.visible = !isDark.value
+  globeGroup.add(cloudsMesh)
+
+  // Outer Atmospheric Fresnel Glow (Cyan/Sky Halo wrapping around the planet limb)
+  const atmosphereGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.026, 64, 64)
+  atmosphereMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    uniforms: {
+      uAtmosphereColor: { value: new THREE.Color(0x38bdf8) },
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vViewPosition;
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vViewPosition = -mvPosition.xyz;
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vNormal;
+      varying vec3 vViewPosition;
+      uniform vec3 uAtmosphereColor;
+      void main() {
+        vec3 viewDir = normalize(vViewPosition);
+        float fresnel = dot(vNormal, viewDir);
+        float intensity = pow(clamp(fresnel, 0.0, 1.0), 2.2);
+        gl_FragColor = vec4(uAtmosphereColor, clamp(intensity * 1.15, 0.0, 1.0));
+      }
+    `,
+  })
+  atmosphereMesh = new THREE.Mesh(atmosphereGeo, atmosphereMat)
+  atmosphereMesh.visible = !isDark.value
+  globeGroup.add(atmosphereMesh)
 
   // 9. Arcs, Hubs & Markers
   buildArcs()
@@ -1062,6 +1159,11 @@ function animate(currentTime: number) {
         globeGroup.rotation.y += delta * 0.02
       }
     }
+
+    // Dynamic relative drifting of cloud layer over Real Earth
+    if (cloudsMesh && cloudsMesh.visible && !reducedMotion) {
+      cloudsMesh.rotation.y += delta * 0.012
+    }
   }
 
   // 3. Camera Parallax
@@ -1392,6 +1494,38 @@ onBeforeUnmount(() => {
       }
     })
   }
+  if (dayTexture) {
+    dayTexture.dispose()
+    dayTexture = null
+  }
+  if (cloudsTexture) {
+    cloudsTexture.dispose()
+    cloudsTexture = null
+  }
+  if (specularTexture) {
+    specularTexture.dispose()
+    specularTexture = null
+  }
+  if (realEarthMat) {
+    realEarthMat.dispose()
+    realEarthMat = null
+  }
+  if (cloudsMat) {
+    cloudsMat.dispose()
+    cloudsMat = null
+  }
+  if (atmosphereMat) {
+    atmosphereMat.dispose()
+    atmosphereMat = null
+  }
+  realEarthMesh = null
+  cloudsMesh = null
+  atmosphereMesh = null
+  baseSphere = null
+  gridLineMesh = null
+  landPointsMesh = null
+  coastMesh = null
+
   renderer?.dispose()
   renderer = null
   scene = null
