@@ -345,12 +345,21 @@ function onResize() {
   renderer.setSize(w, h)
 }
 
+import { registerContentNavigator } from '@/composables/useShowcase'
+
+let unregisterNav: (() => void) | null = null
+
 onMounted(() => {
   initScene()
   window.addEventListener('resize', onResize)
+  unregisterNav = registerContentNavigator((dir) => {
+    if (dir === 'next') nextMilestone()
+    else prevMilestone()
+  })
 })
 
 onBeforeUnmount(() => {
+  unregisterNav?.()
   window.removeEventListener('resize', onResize)
   if (animFrameId) cancelAnimationFrame(animFrameId)
   if (scene) {

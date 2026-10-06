@@ -164,7 +164,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import GlobeScene from '@/components/globe/GlobeScene.vue'
 import {
   activeMarker,
@@ -176,12 +176,14 @@ import {
   nextProject,
   prevProject,
   setActiveProjectId,
+  registerContentNavigator,
 } from '@/composables/useShowcase'
 import { globeMarkers } from '@/components/globe/globeData'
 import { portfolioContent } from '@/content/portfolioContent'
 
 const globeMode = ref<'real' | 'tech'>('real')
 const globeFallbackText = portfolioContent.globe.fallbackNotice
+let unregisterNav: (() => void) | null = null
 
 function onSelectMarker(id: string) {
   setActiveProjectId(id)
@@ -194,6 +196,17 @@ function onZoomCluster(clusterId: string) {
 function onZoomOut() {
   zoomOutToGlobal()
 }
+
+onMounted(() => {
+  unregisterNav = registerContentNavigator((dir) => {
+    if (dir === 'next') nextProject()
+    else prevProject()
+  })
+})
+
+onBeforeUnmount(() => {
+  unregisterNav?.()
+})
 </script>
 
 <style scoped>

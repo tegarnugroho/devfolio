@@ -449,12 +449,33 @@ function onResize() {
   renderer.setSize(w, h)
 }
 
+function prevNode() {
+  const currentIdx = nodesData.findIndex(n => n.id === selectedNodeId.value)
+  const prevIdx = (currentIdx - 1 + nodesData.length) % nodesData.length
+  selectNodeById(nodesData[prevIdx].id)
+}
+
+function nextNode() {
+  const currentIdx = nodesData.findIndex(n => n.id === selectedNodeId.value)
+  const nextIdx = (currentIdx + 1) % nodesData.length
+  selectNodeById(nodesData[nextIdx].id)
+}
+
+import { registerContentNavigator } from '@/composables/useShowcase'
+
+let unregisterNav: (() => void) | null = null
+
 onMounted(() => {
   initScene()
   window.addEventListener('resize', onResize)
+  unregisterNav = registerContentNavigator((dir) => {
+    if (dir === 'next') nextNode()
+    else prevNode()
+  })
 })
 
 onBeforeUnmount(() => {
+  unregisterNav?.()
   window.removeEventListener('resize', onResize)
   if (animFrameId) cancelAnimationFrame(animFrameId)
   if (scene) {

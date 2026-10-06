@@ -10,6 +10,8 @@
         aria-label="Interactive 3D Portfolio Showcase"
         tabindex="-1"
         @keydown.esc.prevent="closeShowcase"
+        @keydown.up.prevent="prevSection"
+        @keydown.down.prevent="nextSection"
         @keydown.left.prevent="handleKeyLeft"
         @keydown.right.prevent="handleKeyRight"
       >
@@ -45,25 +47,25 @@
             <ShowcaseNavigation />
           </div>
 
-          <!-- Right: Arrow Navigation Shortcuts -->
+          <!-- Right: Up/Down Arrow Section Navigation Shortcuts (Matches Normal Mode) -->
           <div class="pointer-events-auto flex items-center gap-1.5 font-mono text-xs text-zinc-400">
             <button
               type="button"
               class="w-8 h-8 rounded-full border border-white/15 bg-black/60 hover:bg-white/15 flex items-center justify-center text-zinc-300 hover:text-white active:scale-95 transition cursor-pointer"
               @click="prevSection"
-              title="Previous section (←)"
+              title="Previous section (↑)"
               aria-label="Previous showcase section"
             >
-              ←
+              ↑
             </button>
             <button
               type="button"
               class="w-8 h-8 rounded-full border border-white/15 bg-black/60 hover:bg-white/15 flex items-center justify-center text-zinc-300 hover:text-white active:scale-95 transition cursor-pointer"
               @click="nextSection"
-              title="Next section (→)"
+              title="Next section (↓)"
               aria-label="Next showcase section"
             >
-              →
+              ↓
             </button>
           </div>
         </header>
@@ -92,7 +94,7 @@ import ShowcaseError from './ShowcaseError.vue'
 import { portfolioContent } from '@/content/portfolioContent'
 
 const globeContent = portfolioContent.globe
-const { isOpen, currentSection, closeShowcase, nextSection, prevSection } = useShowcase()
+const { isOpen, currentSection, closeShowcase, nextSection, prevSection, navigateContent } = useShowcase()
 
 const overlayRef = ref<HTMLElement | null>(null)
 
@@ -104,15 +106,13 @@ watch(isOpen, async (open) => {
   }
 })
 
-// Arrow key navigation (only if not zooming within project satellite inspection)
+// Arrow key navigation: Left/Right navigates within the 3D scene content
 function handleKeyLeft() {
-  if (currentSection.value === 'projects' && isSatelliteZoomed.value) return
-  prevSection()
+  navigateContent('prev')
 }
 
 function handleKeyRight() {
-  if (currentSection.value === 'projects' && isSatelliteZoomed.value) return
-  nextSection()
+  navigateContent('next')
 }
 
 // Lazy-loaded 3D Scene Components with Async Component wrappers

@@ -198,6 +198,27 @@ export function setActiveProjectId(id: string) {
   }
 }
 
+// ==========================================
+// SCENE CONTENT NAVIGATION (LEFT / RIGHT)
+// ==========================================
+type ContentNavHandler = (direction: 'prev' | 'next') => void
+let currentContentNavigator: ContentNavHandler | null = null
+
+export function registerContentNavigator(fn: ContentNavHandler) {
+  currentContentNavigator = fn
+  return () => {
+    if (currentContentNavigator === fn) {
+      currentContentNavigator = null
+    }
+  }
+}
+
+export function navigateContent(direction: 'prev' | 'next') {
+  if (currentContentNavigator) {
+    currentContentNavigator(direction)
+  }
+}
+
 /**
  * useShowcase() composable hook
  */
@@ -215,6 +236,8 @@ export function useShowcase() {
     setSection,
     nextSection,
     prevSection,
+    navigateContent,
+    registerContentNavigator,
     // Project specifics
     activeMarker,
     activeCluster,
