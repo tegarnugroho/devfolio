@@ -9,7 +9,25 @@
           </header>
           <div class="showcase-body">
             <div class="showcase-gallery">
-              <figure data-blueprint="GALLERY_VIEWPORT" ref="galleryCanvas" class="gallery-canvas" @pointerenter="onZoomEnter" @pointermove="onZoomMove" @pointerleave="onZoomLeave" @touchstart="onTouchStart" @touchmove.prevent="onTouchMove" @touchend="onTouchEnd" @touchcancel="cancelTouch" @contextmenu.prevent>
+              <figure
+                data-blueprint="GALLERY_VIEWPORT"
+                ref="galleryCanvas"
+                class="gallery-canvas"
+                :class="{ 'is-zoomed': isZoomed }"
+                role="button"
+                tabindex="0"
+                :aria-label="isZoomed ? content.zoomOutLabel : content.zoomInLabel"
+                :aria-pressed="isZoomed"
+                @click="onCanvasClick"
+                @keydown="onCanvasKeydown"
+                @pointermove="onZoomMove"
+                @pointerleave="onZoomLeave"
+                @touchstart="onTouchStart"
+                @touchmove.prevent="onTouchMove"
+                @touchend="onTouchEnd"
+                @touchcancel="cancelTouch"
+                @contextmenu.prevent
+              >
                 <transition name="image-fade"><img ref="mainImage" @load="cacheImageBounds" v-if="displayedSource" :key="displayedSource" :src="displayedSource" :alt="content.screenshotAlt(project?.title ?? content.fallbackProject, displayedIndex + 1, images.length)" loading="eager" fetchpriority="high" decoding="async" draggable="false" @dragstart.prevent /></transition>
               <p v-if="imageError" class="image-error" role="status">{{ content.unavailableLabel }} <button @click="go(current)">{{ content.retryLabel }}</button></p>
               </figure>
@@ -110,7 +128,10 @@ function cacheImageBounds() {
   const offsetX = (canvas.clientWidth - width) / 2, offsetY = (canvas.clientHeight - height) / 2
   zoomBounds = { left: rect.left + canvas.clientLeft + offsetX, top: rect.top + canvas.clientTop + offsetY, width, height, offsetX, offsetY }
 }
+const isZoomed = ref(false)
+
 function resetZoom() {
+  isZoomed.value = false
   touchScale.value = 1
   touchPan = { x: 0, y: 0 }
   cancelTouch()
@@ -120,24 +141,66 @@ function resetZoom() {
     mainImage.value.style.transform = 'scale(1)'
     mainImage.value.style.transformOrigin = '50% 50%'
   }
-  if (galleryCanvas.value) galleryCanvas.value.style.cursor = ''
 }
-function onZoomEnter(event: PointerEvent) { if (event.pointerType === 'mouse') { cacheImageBounds(); onZoomMove(event) } }
-function onZoomLeave(event: PointerEvent) { if (event.pointerType === 'mouse') resetZoom() }
+
+function updateZoomPosition(clientX: number, clientY: number) {
+  const bounds = zoomBounds, image = mainImage.value
+  if (!bounds || !image) return
+  const x = Math.max(0, Math.min(1, (clientX - bounds.left) / bounds.width))
+  const y = Math.max(0, Math.min(1, (clientY - bounds.top) / bounds.height))
+  // The element includes contain letterboxing, so add that offset to the focal point.
+  image.style.transformOrigin = `${bounds.offsetX + x * bounds.width}px ${bounds.offsetY + y * bounds.height}px`
+  image.style.transform = 'scale(2.2)'
+}
+
+function onCanvasClick(event: MouseEvent) {
+  if (event.button !== 0) return
+  if ((event.target as HTMLElement)?.closest('.image-error')) return
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  if (!finePointer || !displayedSource.value) return
+
+  cacheImageBounds()
+  if (!zoomBounds) return
+
+  if (isZoomed.value) {
+    resetZoom()
+  } else {
+    isZoomed.value = true
+    updateZoomPosition(event.clientX, event.clientY)
+  }
+}
+
+function onCanvasKeydown(event: KeyboardEvent) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    if (isZoomed.value) {
+      resetZoom()
+    } else {
+      cacheImageBounds()
+      if (zoomBounds) {
+        isZoomed.value = true
+        updateZoomPosition(zoomBounds.left + zoomBounds.width / 2, zoomBounds.top + zoomBounds.height / 2)
+      }
+    }
+  }
+}
+
+function onZoomLeave(event: PointerEvent) {
+  if (event.pointerType === 'mouse' && isZoomed.value) resetZoom()
+}
+
 function onZoomMove(event: PointerEvent) {
-  if (event.pointerType !== 'mouse' || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+  if (!isZoomed.value || event.pointerType !== 'mouse' || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
   zoomPointer = { x: event.clientX, y: event.clientY }
   if (zoomFrame) return
   zoomFrame = requestAnimationFrame(() => {
     zoomFrame = 0
-    const bounds = zoomBounds, image = mainImage.value
-    if (!bounds || !image || zoomPointer.x < bounds.left || zoomPointer.x > bounds.left + bounds.width || zoomPointer.y < bounds.top || zoomPointer.y > bounds.top + bounds.height) { resetZoom(); return }
-    const x = Math.max(0, Math.min(1, (zoomPointer.x - bounds.left) / bounds.width))
-    const y = Math.max(0, Math.min(1, (zoomPointer.y - bounds.top) / bounds.height))
-    // The element includes contain letterboxing, so add that offset to the focal point.
-    image.style.transformOrigin = `${bounds.offsetX + x * bounds.width}px ${bounds.offsetY + y * bounds.height}px`
-    image.style.transform = 'scale(2.2)'
-    galleryCanvas.value!.style.cursor = 'zoom-in'
+    const bounds = zoomBounds
+    if (!bounds || zoomPointer.x < bounds.left || zoomPointer.x > bounds.left + bounds.width || zoomPointer.y < bounds.top || zoomPointer.y > bounds.top + bounds.height) {
+      resetZoom()
+      return
+    }
+    updateZoomPosition(zoomPointer.x, zoomPointer.y)
   })
 }
 function notifyBlueprintLayout() { window.dispatchEvent(new Event('blueprint-layout')) }
@@ -217,7 +280,10 @@ async function go(index: number) {
   }
 }
 function onKey(event: KeyboardEvent) {
-  if (event.key === 'Escape') { event.preventDefault(); close() }
+  if (event.key === 'Escape') {
+    if (isZoomed.value) { event.preventDefault(); resetZoom(); return }
+    event.preventDefault(); close()
+  }
   else if (event.key === 'ArrowRight') { event.preventDefault(); next() }
   else if (event.key === 'ArrowLeft') { event.preventDefault(); prev() }
   else if (event.key === 'Tab') {
@@ -363,6 +429,20 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
   justify-content: center;
   overflow: hidden;
   touch-action: none;
+  cursor: zoom-in;
+}
+.gallery-canvas.is-zoomed {
+  cursor: zoom-out;
+}
+.gallery-canvas:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
+@media (hover: none), (pointer: coarse) {
+  .gallery-canvas,
+  .gallery-canvas.is-zoomed {
+    cursor: default;
+  }
 }
 .gallery-canvas img {
   position: absolute;
@@ -372,7 +452,7 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
   object-fit: contain;
   image-rendering: auto;
   transform-origin: 50% 50%;
-  transition: transform 220ms ease;
+  transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .gallery-zoom-controls { display: none; align-items: center; gap: 8px; margin-top: 10px; }
 .gallery-zoom-controls button { min-width: 44px; min-height: 44px; border: 1px solid var(--strong-border); border-radius: 4px; background: var(--surface); font-size: 20px; }
