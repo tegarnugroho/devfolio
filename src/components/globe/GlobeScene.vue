@@ -48,15 +48,15 @@
             </span>
 
             <!-- Counter Pill Badge -->
-            <div class="cluster-card py-1 px-3 rounded-full border border-blue-400/40 bg-black/85 backdrop-blur-md shadow-2xl flex items-center gap-2 group-hover:border-blue-300 group-hover:bg-black/95">
-              <span class="font-mono text-[10px] font-bold text-white tracking-wider flex items-center gap-1">
-                <span class="text-blue-400 font-extrabold">{{ cluster.projectCount }}</span>
+            <div class="cluster-card py-1 px-3 rounded-full border border-blue-500/40 bg-white/95 dark:bg-black/85 backdrop-blur-md shadow-xl dark:shadow-2xl flex items-center gap-2 group-hover:border-blue-400 group-hover:bg-white dark:group-hover:bg-black/95">
+              <span class="font-mono text-[10px] font-bold text-zinc-900 dark:text-white tracking-wider flex items-center gap-1">
+                <span class="text-blue-600 dark:text-blue-400 font-extrabold">{{ cluster.projectCount }}</span>
                 <span>PROJECTS</span>
               </span>
-              <span class="font-mono text-[9px] uppercase tracking-wider text-zinc-400 border-l border-white/20 pl-2">
+              <span class="font-mono text-[9px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 border-l border-zinc-200 dark:border-white/20 pl-2">
                 {{ cluster.name }}
               </span>
-              <span class="text-[9px] font-mono text-blue-400 group-hover:translate-x-0.5 transition-transform">⊕</span>
+              <span class="text-[9px] font-mono text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">⊕</span>
             </div>
           </button>
         </div>
@@ -84,14 +84,14 @@
 
           <!-- Label Card -->
           <div
-            class="marker-card py-1 px-2.5 rounded border border-white/10 bg-black/75 backdrop-blur-md shadow-xl text-left transition-all duration-200 group-hover:border-white/30"
-            :class="{ '!border-white/50 !bg-black/90 ring-1 ring-white/25': activeId === marker.id }"
+            class="marker-card py-1 px-2.5 rounded border border-zinc-200/90 dark:border-white/10 bg-white/95 dark:bg-black/75 backdrop-blur-md shadow-lg dark:shadow-xl text-left transition-all duration-200 group-hover:border-zinc-300 dark:group-hover:border-white/30"
+            :class="{ '!border-blue-500 !bg-white ring-1 ring-blue-500/30 dark:!border-white/50 dark:!bg-black/90 dark:ring-white/25': activeId === marker.id }"
           >
-            <p class="text-[11px] font-semibold tracking-tight text-white leading-tight flex items-center gap-1.5 whitespace-nowrap">
+            <p class="text-[11px] font-semibold tracking-tight text-zinc-900 dark:text-white leading-tight flex items-center gap-1.5 whitespace-nowrap">
               {{ marker.title }}
               <span v-if="activeId === marker.id" class="text-[9px] opacity-70">↗</span>
             </p>
-            <p class="text-[8.5px] font-mono tracking-wider uppercase text-zinc-400 leading-tight whitespace-nowrap">
+            <p class="text-[8.5px] font-mono tracking-wider uppercase text-zinc-500 dark:text-zinc-400 leading-tight whitespace-nowrap">
               {{ marker.subtitle }}
             </p>
           </div>
@@ -113,6 +113,7 @@ import {
   isWebGLAvailable,
 } from './globeMath'
 import { globeMarkers, globeClusters, globeArcs, type GlobeMarker, type GlobeCluster } from './globeData'
+import { isDark } from '@/composables/useTheme'
 
 const props = withDefaults(
   defineProps<{
@@ -218,6 +219,61 @@ let arcMeshList: {
 let satelliteBeamLines: THREE.LineSegments | null = null
 let beamLinePositions: Float32Array | null = null
 
+// Dynamic Theme Materials
+let baseSphereMat: THREE.MeshBasicMaterial | null = null
+let gridLineMat: THREE.LineBasicMaterial | null = null
+let landPointsMat: THREE.PointsMaterial | null = null
+let coastMat: THREE.LineBasicMaterial | null = null
+let satelliteBeamMat: THREE.LineBasicMaterial | null = null
+
+// Celestial Space Objects (Stars, Moon, Satellites, Planets, Meteor)
+let celestialGroup: THREE.Group | null = null
+let starPointsMesh: THREE.Points | null = null
+let starPointsMat: THREE.PointsMaterial | null = null
+let moonMesh: THREE.Mesh | null = null
+let moonMat: THREE.MeshBasicMaterial | null = null
+let moonOrbitLine: THREE.LineLoop | null = null
+let moonOrbitMat: THREE.LineBasicMaterial | null = null
+let orbitSatellites: {
+  group: THREE.Group
+  orbitRadius: number
+  inclinationX: number
+  inclinationZ: number
+  speed: number
+  phase: number
+}[] = []
+let satOrbitLinesMat: THREE.LineBasicMaterial | null = null
+let saturnGroup: THREE.Group | null = null
+let saturnMat: THREE.MeshBasicMaterial | null = null
+let saturnRingMat: THREE.MeshBasicMaterial | null = null
+let marsMesh: THREE.Mesh | null = null
+let marsMat: THREE.MeshBasicMaterial | null = null
+let jupiterMesh: THREE.Mesh | null = null
+let jupiterMat: THREE.MeshBasicMaterial | null = null
+let meteorLine: THREE.Line | null = null
+let meteorHeadMesh: THREE.Mesh | null = null
+let meteorMat: THREE.LineBasicMaterial | null = null
+let meteorHeadMat: THREE.MeshBasicMaterial | null = null
+let meteorLinePosAttr: THREE.BufferAttribute | null = null
+
+interface MeteorState {
+  active: boolean
+  startTime: number
+  duration: number
+  nextSpawnTime: number
+  startPos: THREE.Vector3
+  endPos: THREE.Vector3
+}
+
+const meteorState: MeteorState = {
+  active: false,
+  startTime: 0,
+  duration: 750,
+  nextSpawnTime: 3500,
+  startPos: new THREE.Vector3(),
+  endPos: new THREE.Vector3(),
+}
+
 let animFrameId = 0
 let resizeObserver: ResizeObserver | null = null
 
@@ -278,6 +334,75 @@ function computeSatellitePosition(centerPos: THREE.Vector3, angle: number, radiu
   return pos
 }
 
+function applyThemeMaterials(dark: boolean) {
+  if (baseSphereMat) {
+    baseSphereMat.color.setHex(dark ? 0x07090e : 0xf1f5f9)
+    baseSphereMat.opacity = dark ? 0.98 : 0.98
+  }
+  if (gridLineMat) {
+    gridLineMat.color.setHex(dark ? 0x334155 : 0x94a3b8)
+    gridLineMat.opacity = dark ? 0.16 : 0.28
+  }
+  if (landPointsMat) {
+    landPointsMat.color.setHex(dark ? 0x94a3b8 : 0x334155)
+    landPointsMat.opacity = dark ? 0.8 : 0.85
+  }
+  if (coastMat) {
+    coastMat.color.setHex(dark ? 0x475569 : 0x64748b)
+    coastMat.opacity = dark ? 0.35 : 0.45
+  }
+  if (satelliteBeamMat) {
+    satelliteBeamMat.color.setHex(dark ? 0x38bdf8 : 0x0284c7)
+    satelliteBeamMat.opacity = dark ? 0.35 : 0.5
+  }
+  for (const a of arcMeshList) {
+    const lMat = a.line.material as THREE.LineBasicMaterial
+    lMat.color.setHex(dark ? 0x64748b : 0x94a3b8)
+    const pMat = a.pulseMesh.material as THREE.MeshBasicMaterial
+    pMat.color.setHex(dark ? 0xf8fafc : 0x2563eb)
+  }
+
+  // Celestial Objects Theme Updates
+  if (starPointsMat) {
+    starPointsMat.color.setHex(dark ? 0xf8fafc : 0x64748b)
+    starPointsMat.opacity = dark ? 0.65 : 0.35
+  }
+  if (moonMat) {
+    moonMat.color.setHex(dark ? 0xd1d5db : 0x94a3b8)
+  }
+  if (moonOrbitMat) {
+    moonOrbitMat.color.setHex(dark ? 0x64748b : 0x94a3b8)
+    moonOrbitMat.opacity = dark ? 0.15 : 0.22
+  }
+  if (satOrbitLinesMat) {
+    satOrbitLinesMat.color.setHex(dark ? 0x38bdf8 : 0x0284c7)
+    satOrbitLinesMat.opacity = dark ? 0.18 : 0.26
+  }
+  if (saturnMat) {
+    saturnMat.color.setHex(dark ? 0xf59e0b : 0xd97706)
+  }
+  if (saturnRingMat) {
+    saturnRingMat.color.setHex(dark ? 0xfde68a : 0xb45309)
+    saturnRingMat.opacity = dark ? 0.45 : 0.35
+  }
+  if (marsMat) {
+    marsMat.color.setHex(dark ? 0xf87171 : 0xef4444)
+  }
+  if (jupiterMat) {
+    jupiterMat.color.setHex(dark ? 0xfde68a : 0xc2410c)
+  }
+  if (meteorMat) {
+    meteorMat.color.setHex(dark ? 0xffffff : 0x0284c7)
+  }
+  if (meteorHeadMat) {
+    meteorHeadMat.color.setHex(dark ? 0xffffff : 0x0284c7)
+  }
+}
+
+watch(isDark, dark => {
+  applyThemeMaterials(dark)
+})
+
 watch(() => props.activeId, newId => {
   if (newId) {
     calculateTargetRotation(newId)
@@ -325,38 +450,27 @@ function initThree() {
 
   // 4. Base Sphere
   const sphereGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64)
-  const sphereMat = new THREE.MeshBasicMaterial({
+  baseSphereMat = new THREE.MeshBasicMaterial({
     color: 0x07090e,
     transparent: true,
     opacity: 0.98,
   })
-  const baseSphere = new THREE.Mesh(sphereGeo, sphereMat)
+  const baseSphere = new THREE.Mesh(sphereGeo, baseSphereMat)
   globeGroup.add(baseSphere)
 
-  // 5. Subtle Atmospheric Inner Rim
-  const rimGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.018, 48, 48)
-  const rimMat = new THREE.MeshBasicMaterial({
-    color: 0x1e293b,
-    transparent: true,
-    opacity: 0.22,
-    wireframe: true,
-  })
-  const rimSphere = new THREE.Mesh(rimGeo, rimMat)
-  globeGroup.add(rimSphere)
-
-  // 6. Lat/Long Grid Lines
+  // 5. Lat/Long Grid Lines
   const gridGeo = createGridLines(GLOBE_RADIUS * 1.002)
-  const gridMat = new THREE.LineBasicMaterial({
+  gridLineMat = new THREE.LineBasicMaterial({
     color: 0x334155,
     transparent: true,
     opacity: 0.16,
   })
-  const gridLineMesh = new THREE.LineSegments(gridGeo, gridMat)
+  const gridLineMesh = new THREE.LineSegments(gridGeo, gridLineMat)
   globeGroup.add(gridLineMesh)
 
   // 7. Land Point Cloud
   const landPointsGeo = createLandPointsGeometry(GLOBE_RADIUS * 1.006)
-  const landPointsMat = new THREE.PointsMaterial({
+  landPointsMat = new THREE.PointsMaterial({
     color: 0x94a3b8,
     size: 0.024,
     transparent: true,
@@ -367,7 +481,7 @@ function initThree() {
 
   // 8. Coastlines
   const coastGeo = createCoastlineGeometry(GLOBE_RADIUS * 1.008)
-  const coastMat = new THREE.LineBasicMaterial({
+  coastMat = new THREE.LineBasicMaterial({
     color: 0x475569,
     transparent: true,
     opacity: 0.35,
@@ -380,6 +494,18 @@ function initThree() {
   buildClusterHubs()
   buildMarkers()
   buildSatelliteBeams()
+
+  // 10. Celestial Space Environment (Stars, Moon, Satellites, Planets, Meteor)
+  celestialGroup = new THREE.Group()
+  scene.add(celestialGroup)
+  buildStarfield()
+  buildMoon()
+  buildOrbitalSatellites()
+  buildDistantPlanets()
+  buildMeteor()
+
+  // Apply active theme materials
+  applyThemeMaterials(isDark.value)
 
   // Initial target alignment
   if (props.activeId) {
@@ -400,12 +526,12 @@ function buildSatelliteBeams() {
   const beamGeo = new THREE.BufferGeometry()
   beamGeo.setAttribute('position', new THREE.BufferAttribute(beamLinePositions, 3))
 
-  const beamMat = new THREE.LineBasicMaterial({
+  satelliteBeamMat = new THREE.LineBasicMaterial({
     color: 0x38bdf8,
     transparent: true,
     opacity: 0.35,
   })
-  satelliteBeamLines = new THREE.LineSegments(beamGeo, beamMat)
+  satelliteBeamLines = new THREE.LineSegments(beamGeo, satelliteBeamMat)
   satelliteBeamLines.visible = false
   globeGroup.add(satelliteBeamLines)
 }
@@ -528,6 +654,325 @@ function buildMarkers() {
   }
 }
 
+function buildStarfield() {
+  if (!celestialGroup) return
+
+  const starCount = 750
+  const positions = new Float32Array(starCount * 3)
+
+  for (let i = 0; i < starCount; i++) {
+    const r = 14 + Math.random() * 11
+    const theta = Math.random() * Math.PI * 2
+    const phi = Math.acos(2 * Math.random() - 1) - Math.PI / 2
+
+    positions[i * 3] = r * Math.cos(phi) * Math.cos(theta)
+    positions[i * 3 + 1] = r * Math.sin(phi)
+    positions[i * 3 + 2] = r * Math.cos(phi) * Math.sin(theta)
+  }
+
+  const starGeo = new THREE.BufferGeometry()
+  starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+
+  starPointsMat = new THREE.PointsMaterial({
+    color: isDark.value ? 0xf8fafc : 0x64748b,
+    size: 0.034,
+    transparent: true,
+    opacity: isDark.value ? 0.65 : 0.35,
+  })
+
+  starPointsMesh = new THREE.Points(starGeo, starPointsMat)
+  celestialGroup.add(starPointsMesh)
+}
+
+function buildMoon() {
+  if (!celestialGroup) return
+
+  const MOON_ORBIT_R = 3.05
+
+  // 1. Orbit Path Ring
+  const points: THREE.Vector3[] = []
+  const segments = 64
+  for (let i = 0; i <= segments; i++) {
+    const a = (i / segments) * Math.PI * 2
+    points.push(new THREE.Vector3(Math.cos(a) * MOON_ORBIT_R, 0, Math.sin(a) * MOON_ORBIT_R))
+  }
+  const orbitGeo = new THREE.BufferGeometry().setFromPoints(points)
+  moonOrbitMat = new THREE.LineBasicMaterial({
+    color: isDark.value ? 0x64748b : 0x94a3b8,
+    transparent: true,
+    opacity: isDark.value ? 0.15 : 0.22,
+  })
+  moonOrbitLine = new THREE.LineLoop(orbitGeo, moonOrbitMat)
+  moonOrbitLine.rotation.x = 0.38
+  moonOrbitLine.rotation.z = -0.15
+  celestialGroup.add(moonOrbitLine)
+
+  // 2. Moon Body
+  const moonGeo = new THREE.SphereGeometry(0.12, 24, 24)
+  moonMat = new THREE.MeshBasicMaterial({
+    color: isDark.value ? 0xd1d5db : 0x94a3b8,
+  })
+  moonMesh = new THREE.Mesh(moonGeo, moonMat)
+
+  // Initialize initial orbit position
+  const initAngle = 0.6
+  const localX = Math.cos(initAngle) * MOON_ORBIT_R
+  const localZ = Math.sin(initAngle) * MOON_ORBIT_R
+  const initPos = new THREE.Vector3(localX, 0, localZ)
+  initPos.applyAxisAngle(new THREE.Vector3(1, 0, 0), 0.38)
+  initPos.applyAxisAngle(new THREE.Vector3(0, 0, 1), -0.15)
+  moonMesh.position.copy(initPos)
+
+  celestialGroup.add(moonMesh)
+}
+
+function buildOrbitalSatellites() {
+  if (!celestialGroup) return
+  orbitSatellites = []
+
+  satOrbitLinesMat = new THREE.LineBasicMaterial({
+    color: isDark.value ? 0x38bdf8 : 0x0284c7,
+    transparent: true,
+    opacity: isDark.value ? 0.18 : 0.26,
+  })
+
+  const satConfigs = [
+    {
+      radius: 1.86,
+      inclinationX: 0.88,
+      inclinationZ: 0.2,
+      speed: 0.00075,
+      phase: 0.5,
+      busColor: 0xe2e8f0,
+      panelColor: 0x0284c7,
+    },
+    {
+      radius: 2.18,
+      inclinationX: 1.36,
+      inclinationZ: -0.4,
+      speed: 0.00055,
+      phase: 2.4,
+      busColor: 0xf1f5f9,
+      panelColor: 0x6366f1,
+    },
+  ]
+
+  for (const config of satConfigs) {
+    // 1. Orbit track
+    const points: THREE.Vector3[] = []
+    const segs = 64
+    for (let i = 0; i <= segs; i++) {
+      const a = (i / segs) * Math.PI * 2
+      points.push(new THREE.Vector3(Math.cos(a) * config.radius, 0, Math.sin(a) * config.radius))
+    }
+    const orbitGeo = new THREE.BufferGeometry().setFromPoints(points)
+    const trackLine = new THREE.LineLoop(orbitGeo, satOrbitLinesMat)
+    trackLine.rotation.x = config.inclinationX
+    trackLine.rotation.z = config.inclinationZ
+    celestialGroup.add(trackLine)
+
+    // 2. Satellite Group
+    const satGroup = new THREE.Group()
+
+    const busGeo = new THREE.BoxGeometry(0.038, 0.024, 0.024)
+    const busMat = new THREE.MeshBasicMaterial({ color: config.busColor })
+    const busMesh = new THREE.Mesh(busGeo, busMat)
+    satGroup.add(busMesh)
+
+    const wingGeo = new THREE.BoxGeometry(0.07, 0.002, 0.026)
+    const wingMat = new THREE.MeshBasicMaterial({ color: config.panelColor })
+    const wingLeft = new THREE.Mesh(wingGeo, wingMat)
+    wingLeft.position.x = 0.055
+    const wingRight = new THREE.Mesh(wingGeo, wingMat)
+    wingRight.position.x = -0.055
+    satGroup.add(wingLeft)
+    satGroup.add(wingRight)
+
+    const beaconGeo = new THREE.SphereGeometry(0.007, 6, 6)
+    const beaconMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+    const beaconMesh = new THREE.Mesh(beaconGeo, beaconMat)
+    beaconMesh.position.y = 0.018
+    satGroup.add(beaconMesh)
+
+    // Set initial position
+    const initPos = new THREE.Vector3(Math.cos(config.phase) * config.radius, 0, Math.sin(config.phase) * config.radius)
+    initPos.applyAxisAngle(new THREE.Vector3(1, 0, 0), config.inclinationX)
+    initPos.applyAxisAngle(new THREE.Vector3(0, 0, 1), config.inclinationZ)
+    satGroup.position.copy(initPos)
+    satGroup.rotation.y = config.phase + Math.PI / 2
+
+    celestialGroup.add(satGroup)
+
+    orbitSatellites.push({
+      group: satGroup,
+      orbitRadius: config.radius,
+      inclinationX: config.inclinationX,
+      inclinationZ: config.inclinationZ,
+      speed: config.speed,
+      phase: config.phase,
+    })
+  }
+}
+
+function buildDistantPlanets() {
+  if (!celestialGroup) return
+
+  // 1. Saturn
+  saturnGroup = new THREE.Group()
+  saturnGroup.position.set(4.3, 2.1, -4.5)
+
+  const saturnGeo = new THREE.SphereGeometry(0.24, 24, 24)
+  saturnMat = new THREE.MeshBasicMaterial({ color: isDark.value ? 0xf59e0b : 0xd97706 })
+  const saturnMesh = new THREE.Mesh(saturnGeo, saturnMat)
+  saturnGroup.add(saturnMesh)
+
+  const ringGeo = new THREE.RingGeometry(0.32, 0.54, 36)
+  saturnRingMat = new THREE.MeshBasicMaterial({
+    color: isDark.value ? 0xfde68a : 0xb45309,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: isDark.value ? 0.45 : 0.35,
+  })
+  const ringMesh = new THREE.Mesh(ringGeo, saturnRingMat)
+  ringMesh.rotation.x = 1.15
+  ringMesh.rotation.y = 0.35
+  saturnGroup.add(ringMesh)
+  celestialGroup.add(saturnGroup)
+
+  // 2. Mars
+  const marsGeo = new THREE.SphereGeometry(0.12, 18, 18)
+  marsMat = new THREE.MeshBasicMaterial({ color: isDark.value ? 0xf87171 : 0xef4444 })
+  marsMesh = new THREE.Mesh(marsGeo, marsMat)
+  marsMesh.position.set(-3.8, -1.9, -4.0)
+  celestialGroup.add(marsMesh)
+
+  // 3. Jupiter
+  const jupiterGeo = new THREE.SphereGeometry(0.36, 24, 24)
+  jupiterMat = new THREE.MeshBasicMaterial({ color: isDark.value ? 0xfde68a : 0xc2410c })
+  jupiterMesh = new THREE.Mesh(jupiterGeo, jupiterMat)
+  jupiterMesh.position.set(-4.6, 2.5, -5.5)
+  celestialGroup.add(jupiterMesh)
+}
+
+function buildMeteor() {
+  if (!celestialGroup) return
+
+  const positions = new Float32Array(2 * 3)
+  const meteorGeo = new THREE.BufferGeometry()
+  meteorLinePosAttr = new THREE.BufferAttribute(positions, 3)
+  meteorGeo.setAttribute('position', meteorLinePosAttr)
+
+  meteorMat = new THREE.LineBasicMaterial({
+    color: isDark.value ? 0xffffff : 0x0284c7,
+    transparent: true,
+    opacity: 0,
+  })
+  meteorLine = new THREE.Line(meteorGeo, meteorMat)
+  meteorLine.visible = false
+  celestialGroup.add(meteorLine)
+
+  const headGeo = new THREE.SphereGeometry(0.026, 8, 8)
+  meteorHeadMat = new THREE.MeshBasicMaterial({
+    color: isDark.value ? 0xffffff : 0x0284c7,
+    transparent: true,
+    opacity: 0,
+  })
+  meteorHeadMesh = new THREE.Mesh(headGeo, meteorHeadMat)
+  meteorHeadMesh.visible = false
+  celestialGroup.add(meteorHeadMesh)
+}
+
+function animateCelestialObjects(currentTime: number, delta: number, reducedMotion: boolean) {
+  if (!celestialGroup) return
+
+  if (!reducedMotion) {
+    celestialGroup.rotation.y = currentTime * 0.00002
+  }
+
+  // 1. Moon Orbit & Rotation
+  if (moonMesh) {
+    const moonAngle = currentTime * 0.00016
+    const r = 3.05
+    const localX = Math.cos(moonAngle) * r
+    const localZ = Math.sin(moonAngle) * r
+    const pos = new THREE.Vector3(localX, 0, localZ)
+    pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), 0.38)
+    pos.applyAxisAngle(new THREE.Vector3(0, 0, 1), -0.15)
+    moonMesh.position.copy(pos)
+    if (!reducedMotion) {
+      moonMesh.rotation.y += delta * 0.15
+    }
+  }
+
+  // 2. Artificial Satellites in Earth Orbit
+  for (const sat of orbitSatellites) {
+    const angle = currentTime * sat.speed + sat.phase
+    const r = sat.orbitRadius
+    const pos = new THREE.Vector3(Math.cos(angle) * r, 0, Math.sin(angle) * r)
+    pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), sat.inclinationX)
+    pos.applyAxisAngle(new THREE.Vector3(0, 0, 1), sat.inclinationZ)
+    sat.group.position.copy(pos)
+    sat.group.rotation.y = angle + Math.PI / 2
+  }
+
+  // 3. Distant Planets
+  if (!reducedMotion) {
+    if (saturnGroup) saturnGroup.rotation.y += delta * 0.06
+    if (jupiterMesh) jupiterMesh.rotation.y += delta * 0.04
+  }
+
+  // 4. Periodic Meteor / Shooting Star Streak
+  if (meteorLine && meteorHeadMesh && meteorLinePosAttr && !reducedMotion) {
+    if (!meteorState.active && currentTime > meteorState.nextSpawnTime) {
+      meteorState.active = true
+      meteorState.startTime = currentTime
+      meteorState.duration = 650 + Math.random() * 250
+      meteorState.nextSpawnTime = currentTime + 7000 + Math.random() * 6000
+
+      const startX = -6 + Math.random() * 12
+      const startY = 3.5 + Math.random() * 3
+      const startZ = -3 - Math.random() * 3
+      meteorState.startPos.set(startX, startY, startZ)
+
+      const dirX = startX > 0 ? -1 - Math.random() * 0.5 : 1 + Math.random() * 0.5
+      const dirY = -0.7 - Math.random() * 0.5
+      const dirZ = -0.1 + Math.random() * 0.3
+      const dir = new THREE.Vector3(dirX, dirY, dirZ).normalize()
+      const length = 9 + Math.random() * 4
+      meteorState.endPos.copy(meteorState.startPos).addScaledVector(dir, length)
+
+      meteorLine.visible = true
+      meteorHeadMesh.visible = true
+    } else if (meteorState.active) {
+      const progress = (currentTime - meteorState.startTime) / meteorState.duration
+      if (progress >= 1) {
+        meteorState.active = false
+        meteorLine.visible = false
+        meteorHeadMesh.visible = false
+      } else {
+        const headPos = new THREE.Vector3().lerpVectors(meteorState.startPos, meteorState.endPos, progress)
+        const tailProgress = Math.max(0, progress - 0.22)
+        const tailPos = new THREE.Vector3().lerpVectors(meteorState.startPos, meteorState.endPos, tailProgress)
+
+        const arr = meteorLinePosAttr.array as Float32Array
+        arr[0] = tailPos.x
+        arr[1] = tailPos.y
+        arr[2] = tailPos.z
+        arr[3] = headPos.x
+        arr[4] = headPos.y
+        arr[5] = headPos.z
+        meteorLinePosAttr.needsUpdate = true
+
+        meteorHeadMesh.position.copy(headPos)
+
+        const alpha = Math.sin(progress * Math.PI)
+        if (meteorMat) meteorMat.opacity = alpha * (isDark.value ? 0.95 : 0.8)
+        if (meteorHeadMat) meteorHeadMat.opacity = alpha
+      }
+    }
+  }
+}
+
 let lastTime = performance.now()
 
 function animate(currentTime: number) {
@@ -608,7 +1053,10 @@ function animate(currentTime: number) {
     }
   }
 
-  // 6. Raycasting Cursor State
+  // 6. Animate Celestial Space Objects (Stars, Moon, Satellites, Planets, Meteor)
+  animateCelestialObjects(currentTime, delta, reducedMotion)
+
+  // 7. Raycasting Cursor State
   if (camera && globeGroup && canvas.value) {
     raycaster.setFromCamera(mousePosNDC, camera)
     const targetHitMeshes = [
@@ -623,10 +1071,10 @@ function animate(currentTime: number) {
     }
   }
 
-  // 7. Update 2D Projected HTML Labels
+  // 8. Update 2D Projected HTML Labels
   updateHtmlLabels()
 
-  // 8. Render
+  // 9. Render
   if (renderer && scene && camera) {
     renderer.render(scene, camera)
   }
@@ -905,6 +1353,32 @@ onBeforeUnmount(() => {
   scene = null
   camera = null
   globeGroup = null
+  baseSphereMat = null
+  gridLineMat = null
+  landPointsMat = null
+  coastMat = null
+  satelliteBeamMat = null
+  celestialGroup = null
+  starPointsMesh = null
+  starPointsMat = null
+  moonMesh = null
+  moonMat = null
+  moonOrbitLine = null
+  moonOrbitMat = null
+  orbitSatellites = []
+  satOrbitLinesMat = null
+  saturnGroup = null
+  saturnMat = null
+  saturnRingMat = null
+  marsMesh = null
+  marsMat = null
+  jupiterMesh = null
+  jupiterMat = null
+  meteorLine = null
+  meteorHeadMesh = null
+  meteorMat = null
+  meteorHeadMat = null
+  meteorLinePosAttr = null
 })
 </script>
 

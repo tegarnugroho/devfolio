@@ -3,7 +3,7 @@
     <Transition name="showcase-entrance">
       <div
         v-if="isShowcaseOpen"
-        class="project-showcase-overlay fixed inset-0 z-[100] flex flex-col justify-between overflow-hidden select-none bg-[#05070a] text-zinc-100"
+        class="project-showcase-overlay fixed inset-0 z-[100] flex flex-col justify-between overflow-hidden select-none bg-[#f8fafc] dark:bg-[#05070a] text-zinc-900 dark:text-zinc-100 transition-colors duration-300"
         role="dialog"
         aria-modal="true"
         aria-label="3D Project Showcase"
@@ -14,10 +14,18 @@
         ref="overlayRef"
       >
         <!-- Subtle Ambient Radial Glow Behind Globe -->
-        <div class="pointer-events-none absolute inset-0 showcase-radial-glow" aria-hidden="true"></div>
+        <div
+          class="pointer-events-none absolute inset-0 transition-opacity duration-300"
+          :class="isDark ? 'showcase-glow-dark' : 'showcase-glow-light'"
+          aria-hidden="true"
+        ></div>
 
         <!-- Very Subtle Grid Texture -->
-        <div class="pointer-events-none absolute inset-0 opacity-[0.035] showcase-grid" aria-hidden="true"></div>
+        <div
+          class="pointer-events-none absolute inset-0 opacity-[0.035]"
+          :class="isDark ? 'showcase-grid-dark' : 'showcase-grid-light'"
+          aria-hidden="true"
+        ></div>
 
         <!-- 3D Globe Viewport (Full Viewport Centerpiece) -->
         <div class="absolute inset-0 z-0 flex items-center justify-center showcase-globe-stage">
@@ -38,11 +46,11 @@
             <!-- Exit Showcase Button -->
             <button
               type="button"
-              class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/15 bg-black/40 hover:bg-white/10 hover:border-white/35 active:scale-95 text-zinc-300 hover:text-white transition-all duration-200 cursor-pointer font-mono text-xs uppercase tracking-wider group focus:outline-none focus:ring-1 focus:ring-white/40"
+              class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-zinc-200/90 bg-white/80 hover:bg-zinc-100 hover:border-zinc-300 dark:border-white/15 dark:bg-black/40 dark:hover:bg-white/10 dark:hover:border-white/35 active:scale-95 text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-all duration-200 cursor-pointer font-mono text-xs uppercase tracking-wider group focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 shadow-sm"
               @click="handleClose"
               :aria-label="content.exitLabel"
             >
-              <span class="px-1.5 py-0.5 rounded text-[10px] bg-white/10 border border-white/10 text-zinc-400 group-hover:text-zinc-200">
+              <span class="px-1.5 py-0.5 rounded text-[10px] bg-zinc-100 border border-zinc-200 text-zinc-600 group-hover:text-zinc-900 dark:bg-white/10 dark:border-white/10 dark:text-zinc-400 dark:group-hover:text-zinc-200">
                 {{ content.escHint }}
               </span>
               <span class="text-[11px] font-medium">{{ content.exitLabel }}</span>
@@ -53,7 +61,7 @@
               <button
                 v-if="isSatelliteZoomed"
                 type="button"
-                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-400/40 bg-blue-500/15 hover:bg-blue-500/25 active:scale-95 text-blue-300 hover:text-white transition-all duration-200 cursor-pointer font-mono text-xs uppercase tracking-wider focus:outline-none"
+                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/40 bg-blue-50 dark:border-blue-400/40 dark:bg-blue-500/15 hover:bg-blue-100 dark:hover:bg-blue-500/25 active:scale-95 text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-white transition-all duration-200 cursor-pointer font-mono text-xs uppercase tracking-wider focus:outline-none shadow-sm"
                 @click="onZoomOut"
                 title="Return to full global view"
               >
@@ -61,17 +69,34 @@
                 <span class="text-[11px] font-medium">GLOBAL VIEW</span>
               </button>
             </Transition>
+
+            <!-- Quick Theme Toggle inside Showcase -->
+            <button
+              type="button"
+              class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-zinc-200/90 bg-white/80 hover:bg-zinc-100 hover:border-zinc-300 dark:border-white/15 dark:bg-black/40 dark:hover:bg-white/10 dark:hover:border-white/35 active:scale-95 text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-all duration-200 cursor-pointer shadow-sm focus:outline-none"
+              @click="toggleTheme"
+              :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+              :aria-label="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+            >
+              <svg v-if="isDark" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5" />
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+              </svg>
+              <svg v-else class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            </button>
           </div>
 
           <!-- Status Indicator / Current Title -->
           <div class="hidden sm:flex items-center gap-3 font-mono text-[11px] tracking-widest uppercase">
             <template v-if="isSatelliteZoomed">
-              <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping" aria-hidden="true"></span>
-              <span class="text-blue-300">SATELLITE VIEW · {{ activeCluster?.name }} ({{ clusterProjects.length }} PROJECTS)</span>
+              <span class="w-2 h-2 rounded-full bg-blue-500 animate-ping" aria-hidden="true"></span>
+              <span class="text-blue-600 dark:text-blue-300 font-semibold">SATELLITE VIEW · {{ activeCluster?.name }} ({{ clusterProjects.length }} PROJECTS)</span>
             </template>
             <template v-else>
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true"></span>
-              <span class="text-zinc-400">GLOBAL ORBIT · {{ String(activeMarkerIndex + 1).padStart(2, '0') }} / {{ String(totalProjects).padStart(2, '0') }}</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+              <span class="text-zinc-500 dark:text-zinc-400">GLOBAL ORBIT · {{ String(activeMarkerIndex + 1).padStart(2, '0') }} / {{ String(totalProjects).padStart(2, '0') }}</span>
             </template>
           </div>
         </header>
@@ -79,10 +104,10 @@
         <!-- Bottom Floating Project Detail & Navigation -->
         <footer class="relative z-10 w-full px-4 pb-6 sm:pb-8 flex flex-col items-center pointer-events-none">
           <!-- Floating Info Panel -->
-          <div class="pointer-events-auto w-full max-w-xl rounded-2xl border border-white/10 bg-black/65 backdrop-blur-xl p-5 sm:p-6 shadow-2xl transition-all duration-300">
+          <div class="pointer-events-auto w-full max-w-xl rounded-2xl border border-zinc-200/90 dark:border-white/10 bg-white/90 dark:bg-black/65 backdrop-blur-xl p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.12)] dark:shadow-2xl transition-all duration-300">
             <!-- Cluster Sub-Navigation Pills (when in Satellite Zoom or multi-project cluster) -->
-            <div v-if="isSatelliteZoomed && clusterProjects.length > 1" class="flex items-center gap-1.5 overflow-x-auto pb-3 mb-3 border-b border-white/10 scrollbar-none">
-              <span class="font-mono text-[9px] uppercase tracking-wider text-blue-400 font-semibold shrink-0 mr-1">
+            <div v-if="isSatelliteZoomed && clusterProjects.length > 1" class="flex items-center gap-1.5 overflow-x-auto pb-3 mb-3 border-b border-zinc-200 dark:border-white/10 scrollbar-none">
+              <span class="font-mono text-[9px] uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold shrink-0 mr-1">
                 CLUSTER SATELLITES:
               </span>
               <button
@@ -91,8 +116,8 @@
                 type="button"
                 class="px-2.5 py-1 rounded-full font-mono text-[10px] tracking-wide transition-all cursor-pointer shrink-0 border"
                 :class="activeMarker.id === p.id
-                  ? 'border-blue-400/80 bg-blue-500/25 text-white shadow-[0_0_10px_rgba(59,130,246,0.3)]'
-                  : 'border-white/10 bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10'"
+                  ? 'border-blue-500/80 bg-blue-500/15 text-blue-700 dark:border-blue-400/80 dark:bg-blue-500/25 dark:text-white shadow-sm'
+                  : 'border-zinc-200 bg-zinc-100/70 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/70 dark:border-white/10 dark:bg-white/5 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10'"
                 @click="onSelectMarker(p.id)"
               >
                 {{ p.title }}
@@ -100,16 +125,16 @@
             </div>
 
             <!-- Top Sub-Header & Navigation Controls -->
-            <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-zinc-200 dark:border-white/10">
               <div class="flex items-center gap-2">
-                <span class="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-zinc-400 font-medium">
+                <span class="font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 font-medium">
                   {{ activeMarker.subtitle }}
                 </span>
                 <!-- Satellite trigger button if in global view for multi-project cluster -->
                 <button
                   v-if="!isSatelliteZoomed && isMultiClusterProject"
                   type="button"
-                  class="px-2 py-0.5 rounded-full border border-blue-400/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 font-mono text-[9px] tracking-wide cursor-pointer transition-colors"
+                  class="px-2 py-0.5 rounded-full border border-blue-500/30 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:border-blue-400/30 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-300 font-mono text-[9px] tracking-wide cursor-pointer transition-colors"
                   @click="onZoomCluster(activeMarker.clusterId)"
                   title="Zoom in satellite view"
                 >
@@ -118,21 +143,21 @@
               </div>
 
               <!-- Project Prev / Next Pagination -->
-              <div class="flex items-center gap-3 font-mono text-xs text-zinc-300">
+              <div class="flex items-center gap-3 font-mono text-xs text-zinc-600 dark:text-zinc-300">
                 <button
                   type="button"
-                  class="px-2 py-0.5 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  class="px-2 py-0.5 rounded hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
                   @click="handlePrev"
                   :aria-label="content.prevLabel"
                 >
                   ‹ {{ content.prevLabel }}
                 </button>
-                <span class="text-[11px] text-zinc-400 tracking-wider">
+                <span class="text-[11px] text-zinc-500 dark:text-zinc-400 tracking-wider">
                   {{ String(activeMarkerIndex + 1).padStart(2, '0') }} / {{ String(totalProjects).padStart(2, '0') }}
                 </span>
                 <button
                   type="button"
-                  class="px-2 py-0.5 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  class="px-2 py-0.5 rounded hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
                   @click="handleNext"
                   :aria-label="content.nextLabel"
                 >
@@ -143,34 +168,34 @@
 
             <!-- Project Main Info with optional thumbnail -->
             <div class="flex items-start gap-4 mb-2">
-              <div v-if="activeMarker.image" class="hidden sm:block shrink-0 w-14 h-14 rounded-lg overflow-hidden border border-white/10 bg-zinc-900">
+              <div v-if="activeMarker.image" class="hidden sm:block shrink-0 w-14 h-14 rounded-lg overflow-hidden border border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-zinc-900">
                 <img :src="activeMarker.image" :alt="activeMarker.fullTitle" class="w-full h-full object-cover" />
               </div>
 
               <div class="flex-1 min-w-0">
                 <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 mb-1.5">
-                  <h2 class="text-lg sm:text-xl font-bold tracking-tight text-white truncate">
+                  <h2 class="text-lg sm:text-xl font-bold tracking-tight text-zinc-900 dark:text-white truncate">
                     {{ activeMarker.fullTitle }}
                   </h2>
-                  <span class="font-mono text-[10px] tracking-wider uppercase text-zinc-400 shrink-0">
+                  <span class="font-mono text-[10px] tracking-wider uppercase text-zinc-500 dark:text-zinc-400 shrink-0">
                     {{ activeMarker.category }}
                   </span>
                 </div>
 
                 <!-- Description -->
-                <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                <p class="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
                   {{ activeMarker.description }}
                 </p>
               </div>
             </div>
 
             <!-- Bottom Row: Tech Stack Tags & Action Buttons -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 mt-1 border-t border-white/5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 mt-1 border-t border-zinc-100 dark:border-white/5">
               <div class="flex flex-wrap gap-1.5" aria-label="Tech stack">
                 <span
                   v-for="tech in activeMarker.tech"
                   :key="tech"
-                  class="px-2 py-0.5 rounded font-mono text-[10px] text-zinc-400 border border-white/10 bg-white/5"
+                  class="px-2 py-0.5 rounded font-mono text-[10px] text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5"
                 >
                   {{ tech }}
                 </span>
@@ -194,7 +219,7 @@
                   :href="activeMarker.repo"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="px-2.5 py-1.5 rounded border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-mono text-zinc-300 inline-flex items-center gap-1"
+                  class="px-2.5 py-1.5 rounded border border-zinc-300 bg-zinc-100/80 hover:bg-zinc-200/80 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10 text-xs font-mono text-zinc-700 dark:text-zinc-300 inline-flex items-center gap-1 transition-colors"
                 >
                   <span>Code</span>
                   <span aria-hidden="true">↗</span>
@@ -202,7 +227,7 @@
 
                 <button
                   type="button"
-                  class="px-2.5 py-1.5 rounded border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-mono text-zinc-300 inline-flex items-center gap-1 cursor-pointer"
+                  class="px-2.5 py-1.5 rounded border border-zinc-300 bg-zinc-100/80 hover:bg-zinc-200/80 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10 text-xs font-mono text-zinc-700 dark:text-zinc-300 inline-flex items-center gap-1 cursor-pointer transition-colors"
                   @click="navigateToProjects"
                   title="View in portfolio list"
                 >
@@ -214,7 +239,7 @@
           </div>
 
           <!-- Interaction Hint -->
-          <p class="mt-3 text-center font-mono text-[10px] text-zinc-500 tracking-wider">
+          <p class="mt-3 text-center font-mono text-[10px] text-zinc-500 dark:text-zinc-500 tracking-wider">
             <template v-if="isSatelliteZoomed">
               Satellite inspection mode · Click satellite node or arrows to inspect · Esc or button to zoom out
             </template>
@@ -245,9 +270,11 @@ import {
   prevProject,
   setActiveProjectId,
 } from '@/composables/useShowcase'
+import { isDark, useTheme } from '@/composables/useTheme'
 import { globeMarkers, globeClusters } from './globeData'
 import { portfolioContent } from '@/content/portfolioContent'
 
+const { toggle: toggleTheme } = useTheme()
 const GlobeScene = defineAsyncComponent(() => import('./GlobeScene.vue'))
 const content = portfolioContent.globe
 const overlayRef = ref<HTMLElement | null>(null)
@@ -345,15 +372,26 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.showcase-radial-glow {
-  background: radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.3) 0%, rgba(6, 9, 15, 0.8) 55%, #05070a 100%);
+.showcase-glow-dark {
+  background: radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.35) 0%, rgba(6, 9, 15, 0.85) 55%, #05070a 100%);
 }
 
-.showcase-grid {
+.showcase-glow-light {
+  background: radial-gradient(circle at 50% 50%, rgba(219, 234, 254, 0.45) 0%, rgba(241, 245, 249, 0.85) 55%, #f8fafc 100%);
+}
+
+.showcase-grid-dark {
   background-size: 40px 40px;
   background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.15) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+}
+
+.showcase-grid-light {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
 }
 
 .fade-enter-active,
