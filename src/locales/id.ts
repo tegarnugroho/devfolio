@@ -94,6 +94,23 @@ export const id = {
   contact: {
     ...en.contact, eyebrow: 'Kontak', title: 'Mari Terhubung', description: 'Terbuka untuk proyek open source dan kolaborasi komunitas.',
   },
+  globe: {
+    badge: '04',
+    badgeLabel: '3D Globe',
+    badgeSub: 'Globe interaktif dengan lokasi proyek.',
+    number: '02',
+    eyebrow: 'Karya Terpilih',
+    title: 'Dibuat untuk Dunia.',
+    description: 'Proyek yang menjangkau pengguna di berbagai platform dan wilayah.',
+    exploreLabel: 'Jelajahi Proyek',
+    features: [
+      { num: '01', text: 'JANGKAUAN GLOBAL' },
+      { num: '02', text: 'MULTI-PLATFORM' },
+      { num: '03', text: 'PENGGUNA NYATA' },
+      { num: '04', text: 'TERUS MEMBANGUN' },
+    ],
+    interactionHint: 'Geser horizontal untuk memutar globe · Klik penanda untuk melihat proyek',
+  },
   footer: { ...en.footer, clue: 'Masih ada yang bisa kamu temukan.' },
   writing: {
     ...en.writing, eyebrow: 'Tulisan', title: 'Pemikiran, catatan & kode.',

@@ -470,6 +470,24 @@ export const blueprintContent = {
   viewportLabel: 'Viewport', breakpointLabel: 'Breakpoint', scrollLabel: 'Scroll', gridLabel: 'Grid',
 }
 
+export const globeContent = {
+  badge: '04',
+  badgeLabel: '3D Globe',
+  badgeSub: 'Interactive globe with project locations.',
+  number: '02',
+  eyebrow: 'Selected Work',
+  title: 'Built Worldwide.',
+  description: 'Projects that impact users across different platforms and regions.',
+  exploreLabel: 'Explore Projects',
+  features: [
+    { num: '01', text: 'GLOBAL REACH' },
+    { num: '02', text: 'MULTI-PLATFORM' },
+    { num: '03', text: 'REAL USERS' },
+    { num: '04', text: 'CONTINUOUSLY BUILDING' },
+  ],
+  interactionHint: 'Drag horizontally to rotate globe · Click marker to explore',
+}
+
 const languageContent = { label: 'Language', en: 'Switch to English', id: 'Switch to Indonesian' }
 
 export const en = {
@@ -480,6 +498,7 @@ export const en = {
   about: aboutContent,
   skills: skillsContent,
   projects: projectsContent,
+  globe: globeContent,
   showcase: showcaseContent,
   contact: contactContent,
   footer: footerContent,
