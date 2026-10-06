@@ -48,15 +48,15 @@
             </span>
 
             <!-- Counter Pill Badge -->
-            <div class="cluster-card py-1 px-3 rounded-full border border-blue-500/40 bg-white/95 dark:bg-black/85 backdrop-blur-md shadow-xl dark:shadow-2xl flex items-center gap-2 group-hover:border-blue-400 group-hover:bg-white dark:group-hover:bg-black/95">
-              <span class="font-mono text-[10px] font-bold text-zinc-900 dark:text-white tracking-wider flex items-center gap-1">
-                <span class="text-blue-600 dark:text-blue-400 font-extrabold">{{ cluster.projectCount }}</span>
+            <div class="cluster-card py-1 px-3 rounded-full border border-blue-400/50 bg-black/85 backdrop-blur-md shadow-2xl flex items-center gap-2 group-hover:border-blue-300 group-hover:bg-black/95">
+              <span class="font-mono text-[10px] font-bold text-white tracking-wider flex items-center gap-1">
+                <span class="text-blue-400 font-extrabold">{{ cluster.projectCount }}</span>
                 <span>PROJECTS</span>
               </span>
-              <span class="font-mono text-[9px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 border-l border-zinc-200 dark:border-white/20 pl-2">
+              <span class="font-mono text-[9px] uppercase tracking-wider text-zinc-400 border-l border-white/20 pl-2">
                 {{ cluster.name }}
               </span>
-              <span class="text-[9px] font-mono text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">⊕</span>
+              <span class="text-[9px] font-mono text-blue-400 group-hover:translate-x-0.5 transition-transform">⊕</span>
             </div>
           </button>
         </div>
@@ -84,14 +84,14 @@
 
           <!-- Label Card -->
           <div
-            class="marker-card py-1 px-2.5 rounded border border-zinc-200/90 dark:border-white/10 bg-white/95 dark:bg-black/75 backdrop-blur-md shadow-lg dark:shadow-xl text-left transition-all duration-200 group-hover:border-zinc-300 dark:group-hover:border-white/30"
-            :class="{ '!border-blue-500 !bg-white ring-1 ring-blue-500/30 dark:!border-white/50 dark:!bg-black/90 dark:ring-white/25': activeId === marker.id }"
+            class="marker-card py-1 px-2.5 rounded border border-white/15 bg-black/80 backdrop-blur-md shadow-2xl text-left transition-all duration-200 group-hover:border-white/35"
+            :class="{ '!border-blue-400 !bg-black/95 ring-1 ring-blue-400/40': activeId === marker.id }"
           >
-            <p class="text-[11px] font-semibold tracking-tight text-zinc-900 dark:text-white leading-tight flex items-center gap-1.5 whitespace-nowrap">
+            <p class="text-[11px] font-semibold tracking-tight text-white leading-tight flex items-center gap-1.5 whitespace-nowrap">
               {{ marker.title }}
-              <span v-if="activeId === marker.id" class="text-[9px] opacity-70">↗</span>
+              <span v-if="activeId === marker.id" class="text-[9px] text-blue-400">↗</span>
             </p>
-            <p class="text-[8.5px] font-mono tracking-wider uppercase text-zinc-500 dark:text-zinc-400 leading-tight whitespace-nowrap">
+            <p class="text-[8.5px] font-mono tracking-wider uppercase text-zinc-400 leading-tight whitespace-nowrap">
               {{ marker.subtitle }}
             </p>
           </div>
@@ -251,6 +251,8 @@ let ambientLight: THREE.AmbientLight | null = null
 let celestialGroup: THREE.Group | null = null
 let starPointsMesh: THREE.Points | null = null
 let starPointsMat: THREE.PointsMaterial | null = null
+let cosmicDustMesh: THREE.Points | null = null
+let cosmicDustMat: THREE.PointsMaterial | null = null
 let moonMesh: THREE.Mesh | null = null
 let moonMat: THREE.MeshStandardMaterial | null = null
 let moonOrbitLine: THREE.LineLoop | null = null
@@ -393,46 +395,49 @@ function applyThemeMaterials(dark: boolean) {
     pMat.color.setHex(dark ? 0xf8fafc : 0x1d4ed8)
   }
 
-  // Celestial Objects Theme Updates
+  // Celestial Space Environment Theme Updates
   if (starPointsMat) {
-    starPointsMat.color.setHex(dark ? 0xf8fafc : 0x64748b)
-    starPointsMat.opacity = dark ? 0.65 : 0.25
+    starPointsMat.opacity = 0.88
+  }
+  if (cosmicDustMat) {
+    cosmicDustMat.opacity = 0.45
   }
   if (moonMat) {
-    moonMat.color.setHex(dark ? 0xe2e8f0 : 0x94a3b8)
-    moonMat.roughness = dark ? 0.85 : 0.75
+    moonMat.color.setHex(0xe2e8f0)
+    moonMat.roughness = 0.82
   }
   if (moonOrbitMat) {
-    moonOrbitMat.color.setHex(dark ? 0x64748b : 0x94a3b8)
-    moonOrbitMat.opacity = dark ? 0.15 : 0.22
+    moonOrbitMat.color.setHex(dark ? 0x64748b : 0x475569)
+    moonOrbitMat.opacity = dark ? 0.15 : 0.18
   }
   if (satOrbitLinesMat) {
-    satOrbitLinesMat.color.setHex(dark ? 0x38bdf8 : 0x0284c7)
-    satOrbitLinesMat.opacity = dark ? 0.18 : 0.26
+    satOrbitLinesMat.color.setHex(0x38bdf8)
+    satOrbitLinesMat.opacity = dark ? 0.2 : 0.25
   }
   if (saturnMat) {
-    saturnMat.color.setHex(dark ? 0xf59e0b : 0xd97706)
+    saturnMat.color.setHex(0xf59e0b)
   }
   if (saturnRingMat) {
-    saturnRingMat.color.setHex(dark ? 0xfde68a : 0xb45309)
+    saturnRingMat.color.setHex(0xfde68a)
   }
   if (marsMat) {
-    marsMat.color.setHex(dark ? 0xef4444 : 0xdc2626)
+    marsMat.color.setHex(0xef4444)
   }
   if (jupiterMat) {
-    jupiterMat.color.setHex(dark ? 0xfde68a : 0xc2410c)
+    jupiterMat.color.setHex(0xfde68a)
   }
   if (sunLight) {
-    sunLight.intensity = dark ? 2.4 : 2.8
+    sunLight.intensity = dark ? 2.4 : 2.65
   }
   if (ambientLight) {
-    ambientLight.intensity = dark ? 0.4 : 0.75
+    // Night side of Earth and space objects have subtle starlight/ambient, allowing day side to pop
+    ambientLight.intensity = dark ? 0.38 : 0.42
   }
   if (meteorMat) {
-    meteorMat.color.setHex(dark ? 0xffffff : 0x0284c7)
+    meteorMat.color.setHex(0xffffff)
   }
   if (meteorHeadMat) {
-    meteorHeadMat.color.setHex(dark ? 0xffffff : 0x0284c7)
+    meteorHeadMat.color.setHex(0xffffff)
   }
 }
 
@@ -568,8 +573,8 @@ function initThree() {
   cloudsMesh.visible = !isDark.value
   globeGroup.add(cloudsMesh)
 
-  // Outer Atmospheric Fresnel Glow (Cyan/Sky Halo wrapping around the planet limb)
-  const atmosphereGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.026, 64, 64)
+  // Outer Atmospheric Fresnel Glow (Cyan/Sky Halo with twilight sunset scattering wrapping the planet limb)
+  const atmosphereGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.034, 64, 64)
   atmosphereMat = new THREE.ShaderMaterial({
     side: THREE.BackSide,
     transparent: true,
@@ -577,26 +582,44 @@ function initThree() {
     depthWrite: false,
     uniforms: {
       uAtmosphereColor: { value: new THREE.Color(0x38bdf8) },
+      uSunDirection: { value: new THREE.Vector3(6, 4, 5).normalize() },
     },
     vertexShader: `
       varying vec3 vNormal;
+      varying vec3 vWorldNormal;
       varying vec3 vViewPosition;
       void main() {
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         vViewPosition = -mvPosition.xyz;
         vNormal = normalize(normalMatrix * normal);
+        vWorldNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
         gl_Position = projectionMatrix * mvPosition;
       }
     `,
     fragmentShader: `
       varying vec3 vNormal;
+      varying vec3 vWorldNormal;
       varying vec3 vViewPosition;
       uniform vec3 uAtmosphereColor;
+      uniform vec3 uSunDirection;
       void main() {
         vec3 viewDir = normalize(vViewPosition);
-        float fresnel = dot(vNormal, viewDir);
-        float intensity = pow(clamp(fresnel, 0.0, 1.0), 2.2);
-        gl_FragColor = vec4(uAtmosphereColor, clamp(intensity * 1.15, 0.0, 1.0));
+        // Thickness from Earth limb out to outer space boundary
+        float edgeAlpha = clamp(dot(vNormal, viewDir) / 0.28, 0.0, 1.0);
+        float intensity = pow(edgeAlpha, 1.8);
+
+        // Sunlit atmosphere factor (-vWorldNormal points outwards from Earth center)
+        vec3 outwardNormal = -vWorldNormal;
+        float sunDot = dot(outwardNormal, uSunDirection);
+        float dayFactor = clamp(sunDot * 0.7 + 0.35, 0.18, 1.0);
+
+        // Twilight sunset color scattering along the terminator edge
+        vec3 daySky = uAtmosphereColor;
+        vec3 sunset = vec3(0.98, 0.46, 0.22);
+        float twilightBand = smoothstep(0.28, -0.15, sunDot) * smoothstep(-0.45, 0.1, sunDot);
+        vec3 col = mix(daySky, sunset, twilightBand * 0.65);
+
+        gl_FragColor = vec4(col, intensity * dayFactor * 1.25);
       }
     `,
   })
@@ -772,31 +795,85 @@ function buildMarkers() {
 function buildStarfield() {
   if (!celestialGroup) return
 
-  const starCount = 750
+  // 1. Primary Rich Starfield with True Astronomical Spectral Colors
+  const starCount = 2400
   const positions = new Float32Array(starCount * 3)
+  const colors = new Float32Array(starCount * 3)
 
   for (let i = 0; i < starCount; i++) {
-    const r = 14 + Math.random() * 11
+    const r = 12 + Math.random() * 18
     const theta = Math.random() * Math.PI * 2
     const phi = Math.acos(2 * Math.random() - 1) - Math.PI / 2
 
     positions[i * 3] = r * Math.cos(phi) * Math.cos(theta)
     positions[i * 3 + 1] = r * Math.sin(phi)
     positions[i * 3 + 2] = r * Math.cos(phi) * Math.sin(theta)
+
+    const randColor = Math.random()
+    if (randColor < 0.65) {
+      // Crisp brilliant white stars
+      colors[i * 3] = 0.95 + Math.random() * 0.05
+      colors[i * 3 + 1] = 0.95 + Math.random() * 0.05
+      colors[i * 3 + 2] = 1.0
+    } else if (randColor < 0.82) {
+      // Blue giants (spectral O/B)
+      colors[i * 3] = 0.68 + Math.random() * 0.1
+      colors[i * 3 + 1] = 0.85 + Math.random() * 0.1
+      colors[i * 3 + 2] = 1.0
+    } else if (randColor < 0.94) {
+      // Golden stars (spectral G/K)
+      colors[i * 3] = 1.0
+      colors[i * 3 + 1] = 0.88 + Math.random() * 0.08
+      colors[i * 3 + 2] = 0.68 + Math.random() * 0.12
+    } else {
+      // Red dwarf / orange giant
+      colors[i * 3] = 1.0
+      colors[i * 3 + 1] = 0.68 + Math.random() * 0.1
+      colors[i * 3 + 2] = 0.58 + Math.random() * 0.1
+    }
   }
 
   const starGeo = new THREE.BufferGeometry()
   starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
 
   starPointsMat = new THREE.PointsMaterial({
-    color: isDark.value ? 0xf8fafc : 0x64748b,
-    size: 0.034,
+    vertexColors: true,
+    size: 0.038,
     transparent: true,
-    opacity: isDark.value ? 0.65 : 0.35,
+    opacity: 0.88,
+    sizeAttenuation: true,
   })
 
   starPointsMesh = new THREE.Points(starGeo, starPointsMat)
   celestialGroup.add(starPointsMesh)
+
+  // 2. Deep Cosmic Star Dust (Faint, distant micro-stars giving astronomical depth)
+  const dustCount = 1400
+  const dustPositions = new Float32Array(dustCount * 3)
+  for (let i = 0; i < dustCount; i++) {
+    const r = 20 + Math.random() * 16
+    const theta = Math.random() * Math.PI * 2
+    const phi = Math.acos(2 * Math.random() - 1) - Math.PI / 2
+
+    dustPositions[i * 3] = r * Math.cos(phi) * Math.cos(theta)
+    dustPositions[i * 3 + 1] = r * Math.sin(phi)
+    dustPositions[i * 3 + 2] = r * Math.cos(phi) * Math.sin(theta)
+  }
+
+  const dustGeo = new THREE.BufferGeometry()
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3))
+
+  cosmicDustMat = new THREE.PointsMaterial({
+    color: 0xc7d2fe,
+    size: 0.022,
+    transparent: true,
+    opacity: 0.45,
+    sizeAttenuation: true,
+  })
+
+  cosmicDustMesh = new THREE.Points(dustGeo, cosmicDustMat)
+  celestialGroup.add(cosmicDustMesh)
 }
 
 function buildMoon() {
@@ -1541,6 +1618,8 @@ onBeforeUnmount(() => {
   celestialGroup = null
   starPointsMesh = null
   starPointsMat = null
+  cosmicDustMesh = null
+  cosmicDustMat = null
   moonMesh = null
   moonMat = null
   moonOrbitLine = null
