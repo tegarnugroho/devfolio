@@ -1,6 +1,19 @@
+import { ref } from 'vue'
+
 export type Theme = 'light' | 'dark'
 
 const STORAGE_KEY = 'theme'
+
+export const isDark = ref<boolean>(
+  typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : true
+)
+
+if (typeof window !== 'undefined') {
+  const observer = new MutationObserver(() => {
+    isDark.value = document.documentElement.classList.contains('dark')
+  })
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+}
 
 export function initializeTheme() {
   try {
@@ -20,17 +33,18 @@ export function useTheme() {
     return next
   }
   const set = (theme: Theme) => applyTheme(theme)
-  return { get, toggle, set }
+  return { get, toggle, set, isDark }
 }
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement
   if (theme === 'dark') root.classList.add('dark')
   else root.classList.remove('dark')
+  isDark.value = (theme === 'dark')
+
   try {
     localStorage.setItem(STORAGE_KEY, theme)
   } catch {
     // ignore storage errors
   }
 }
-

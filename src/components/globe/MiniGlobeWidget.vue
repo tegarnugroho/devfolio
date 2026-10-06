@@ -6,6 +6,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { isDark } from '@/composables/useTheme'
 
 const container = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
@@ -35,7 +36,7 @@ function render() {
   }
 
   let angle = 0
-  const tilt = 0.28 // Subtle 16 degree tilt
+  const tilt = 0.28
   const cx = (size * dpr) / 2
   const cy = (size * dpr) / 2
   const radius = (size * dpr) * 0.42
@@ -51,15 +52,17 @@ function render() {
 
     ctx!.clearRect(0, 0, size * dpr, size * dpr)
 
-    // 1. Dark Base Sphere
+    const dark = isDark.value
+
+    // 1. Base Sphere
     ctx!.beginPath()
     ctx!.arc(cx, cy, radius, 0, Math.PI * 2)
-    ctx!.fillStyle = '#07090e'
+    ctx!.fillStyle = dark ? '#07090e' : '#f8fafc'
     ctx!.fill()
 
     // Atmosphere Ring
     ctx!.lineWidth = 1 * dpr
-    ctx!.strokeStyle = 'rgba(56, 189, 248, 0.35)'
+    ctx!.strokeStyle = dark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(14, 165, 233, 0.5)'
     ctx!.stroke()
 
     // 2. Latitude Lines
@@ -72,7 +75,12 @@ function render() {
       ctx!.beginPath()
       ctx!.ellipse(cx, yLat, rLat, Math.max(0.5, Math.abs(ry)), 0, 0, Math.PI * 2)
       ctx!.lineWidth = 0.8 * dpr
-      ctx!.strokeStyle = lat === 0 ? 'rgba(56, 189, 248, 0.45)' : 'rgba(100, 116, 139, 0.25)'
+
+      if (dark) {
+        ctx!.strokeStyle = lat === 0 ? 'rgba(56, 189, 248, 0.45)' : 'rgba(100, 116, 139, 0.25)'
+      } else {
+        ctx!.strokeStyle = lat === 0 ? 'rgba(14, 165, 233, 0.55)' : 'rgba(148, 163, 184, 0.38)'
+      }
       ctx!.stroke()
     }
 
@@ -87,7 +95,12 @@ function render() {
       ctx!.beginPath()
       ctx!.ellipse(cx, cy, Math.max(0.5, rx), radius, 0, 0, Math.PI * 2)
       ctx!.lineWidth = 0.8 * dpr
-      ctx!.strokeStyle = cosA > 0 ? 'rgba(56, 189, 248, 0.3)' : 'rgba(100, 116, 139, 0.18)'
+
+      if (dark) {
+        ctx!.strokeStyle = cosA > 0 ? 'rgba(56, 189, 248, 0.3)' : 'rgba(100, 116, 139, 0.18)'
+      } else {
+        ctx!.strokeStyle = cosA > 0 ? 'rgba(51, 65, 85, 0.35)' : 'rgba(148, 163, 184, 0.2)'
+      }
       ctx!.stroke()
     }
 
@@ -99,16 +112,13 @@ function render() {
       const cosLng = Math.cos(curLng)
       const sinLng = Math.sin(curLng)
 
-      // 3D coordinates on sphere
       const x = radius * cosLat * sinLng
       const y = -radius * sinLat
       const z = radius * cosLat * cosLng
 
-      // Rotate by pitch tilt around X axis
       const rotY = y * Math.cos(tilt) - z * Math.sin(tilt)
       const rotZ = y * Math.sin(tilt) + z * Math.cos(tilt)
 
-      // Only draw if facing front (+Z)
       if (rotZ > 0) {
         const px = cx + x
         const py = cy + rotY
@@ -118,7 +128,7 @@ function render() {
         ctx!.arc(px, py, dotRadius, 0, Math.PI * 2)
         ctx!.fillStyle = d.color
         ctx!.shadowColor = d.color
-        ctx!.shadowBlur = 4 * dpr
+        ctx!.shadowBlur = (dark ? 4 : 2) * dpr
         ctx!.fill()
         ctx!.shadowBlur = 0
       }
@@ -151,4 +161,3 @@ onBeforeUnmount(() => {
   height: 26px;
 }
 </style>
-
