@@ -5,7 +5,8 @@ export const isShowcaseOpen = ref(false)
 export const activeMarkerIndex = ref(0)
 
 export const activeMarker = computed(() => {
-  return globeMarkers[activeMarkerIndex.value] || globeMarkers[0]
+  const list = globeMarkers.value
+  return list[activeMarkerIndex.value] || list[0]
 })
 
 let previousScrollY = 0
@@ -13,7 +14,7 @@ let previousOverflow = ''
 
 export function openShowcase(initialProjectId?: string) {
   if (initialProjectId) {
-    const idx = globeMarkers.findIndex(m => m.id === initialProjectId)
+    const idx = globeMarkers.value.findIndex(m => m.id === initialProjectId)
     if (idx !== -1) activeMarkerIndex.value = idx
   }
 
@@ -45,17 +46,22 @@ export function closeShowcase() {
 }
 
 export function nextProject() {
-  activeMarkerIndex.value = (activeMarkerIndex.value + 1) % globeMarkers.length
+  const count = globeMarkers.value.length
+  if (count > 0) {
+    activeMarkerIndex.value = (activeMarkerIndex.value + 1) % count
+  }
 }
 
 export function prevProject() {
-  activeMarkerIndex.value = (activeMarkerIndex.value - 1 + globeMarkers.length) % globeMarkers.length
+  const count = globeMarkers.value.length
+  if (count > 0) {
+    activeMarkerIndex.value = (activeMarkerIndex.value - 1 + count) % count
+  }
 }
 
 export function setActiveProjectId(id: string) {
-  const idx = globeMarkers.findIndex(m => m.id === id)
+  const idx = globeMarkers.value.findIndex(m => m.id === id)
   if (idx !== -1) {
     activeMarkerIndex.value = idx
   }
 }
-

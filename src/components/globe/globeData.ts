@@ -1,6 +1,10 @@
+import { computed } from 'vue'
+import { portfolioContent } from '@/content/portfolioContent'
+
 export interface GlobeMarker {
   id: string
   title: string
+  fullTitle: string
   subtitle: string
   category: string
   description: string
@@ -8,8 +12,10 @@ export interface GlobeMarker {
   lat: number
   lng: number
   accentColor: string
-  projectMatch?: string
-  url?: string
+  link?: string
+  repo?: string
+  image?: string
+  images?: string[]
 }
 
 export interface GlobeArc {
@@ -20,128 +26,198 @@ export interface GlobeArc {
   color?: string
 }
 
-/**
- * Projects featured on the 3D globe.
- * Locations represent real deployment platforms, user bases, or project headquarters.
- */
-export const globeMarkers: GlobeMarker[] = [
+interface ProjectGeoMetadata {
+  matchKey: string
+  shortTitle: string
+  subtitle: string
+  category: string
+  lat: number
+  lng: number
+  accentColor: string
+}
+
+const geoMetadata: ProjectGeoMetadata[] = [
   {
-    id: 'bilang-pos',
-    title: 'BilangPOS',
-    subtitle: 'VOICE-FIRST POS',
-    category: 'Point of Sale',
-    description: 'A voice-first POS experience designed for fast retail workflows and rapid table/order management.',
-    tech: ['Flutter', 'Android', 'Kotlin', 'Voice UI'],
-    lat: -7.2575,
-    lng: 112.7521, // Surabaya, Indonesia
-    accentColor: '#3b82f6',
-    projectMatch: 'Waroong Retjeh',
-    url: 'http://waroongretjeh.dev.ittron.co.id/',
-  },
-  {
-    id: 'creator-app',
-    title: 'Creator App',
-    subtitle: 'CREATOR PLATFORM',
-    category: 'Community & Commerce',
-    description: 'Platform for brands and creators to build engaged communities with exclusive content and monetization tools.',
-    tech: ['Flutter', 'Web', 'Community Engine', 'Analytics'],
-    lat: -6.2088,
-    lng: 106.8456, // Jakarta, Indonesia
-    accentColor: '#a855f7',
-    projectMatch: 'Tribelio',
-    url: 'https://tribelio.com/',
-  },
-  {
-    id: 'engelhorn',
-    title: 'Engelhorn',
-    subtitle: 'RETAIL POS SYSTEM',
-    category: 'Enterprise POS',
-    description: 'Windows-based POS solution with transaction processing, secondary customer displays, and real-time inventory synchronization.',
-    tech: ['Flutter for Windows', 'BLoC Cubit', 'Clean Architecture', 'WebSockets'],
-    lat: 49.4875,
-    lng: 8.466, // Mannheim, Germany
-    accentColor: '#f59e0b',
-    projectMatch: 'Engelhorn',
-    url: '#projects',
-  },
-  {
-    id: 'codeary',
-    title: 'Codeary',
-    subtitle: 'DEVELOPER PLATFORM',
-    category: 'Tech Publication',
-    description: 'A developer blogging platform for technical articles, system design patterns, and engineering insights.',
-    tech: ['React', 'TypeScript', 'Cloudflare Workers', 'Tailwind CSS'],
-    lat: 1.3521,
-    lng: 103.8198, // Singapore Edge
-    accentColor: '#10b981',
-    projectMatch: 'Codeary',
-    url: 'https://codeary.xyz/',
-  },
-  {
-    id: 'valthub',
-    title: 'ValtHub',
-    subtitle: 'SECRETS & CONFIG MANAGER',
-    category: 'Developer Tooling',
-    description: 'Centralized environment and secrets management platform for engineering teams with scoped API access and team ACLs.',
-    tech: ['Next.js', 'TypeScript', 'Cloudflare', 'REST API'],
-    lat: 37.7749,
-    lng: -122.4194, // San Francisco, USA
-    accentColor: '#ec4899',
-    projectMatch: 'ValtHub',
-    url: 'https://valthub.pages.dev/',
-  },
-  {
-    id: 'flutter-pkg',
-    title: 'Table Parser',
-    subtitle: 'DART / FLUTTER PACKAGE',
+    matchKey: 'Table Parser',
+    shortTitle: 'Table Parser',
+    subtitle: 'Flutter Package',
     category: 'Open Source Package',
-    description: 'High-efficiency parser transforming structured table formats into usable type-safe Dart & Flutter models.',
-    tech: ['Dart', 'Flutter', 'Open Source', 'Data Parsing'],
     lat: 35.6762,
     lng: 139.6503, // Tokyo / East Asia
     accentColor: '#06b6d4',
-    projectMatch: 'Table Parser',
-    url: 'https://pub.dev/packages/table_parser',
+  },
+  {
+    matchKey: 'VSCode Clone',
+    shortTitle: 'VSCode Web',
+    subtitle: 'Web Experience',
+    category: 'Personal Portfolio',
+    lat: -33.8688,
+    lng: 151.2093, // Sydney
+    accentColor: '#38bdf8',
+  },
+  {
+    matchKey: 'Excel Translator',
+    shortTitle: 'Excel Translator',
+    subtitle: 'Localization Tool',
+    category: 'Flutter Package',
+    lat: 51.5074,
+    lng: -0.1278, // London
+    accentColor: '#10b981',
+  },
+  {
+    matchKey: 'Danafix',
+    shortTitle: 'Danafix',
+    subtitle: 'Online Loan App',
+    category: 'Fintech Application',
+    lat: -6.9175,
+    lng: 107.6191, // Bandung
+    accentColor: '#6366f1',
+  },
+  {
+    matchKey: 'Tribelio',
+    shortTitle: 'Tribelio',
+    subtitle: 'Creator Platform',
+    category: 'Community & Commerce',
+    lat: -6.2088,
+    lng: 106.8456, // Jakarta (Home Base)
+    accentColor: '#a855f7',
+  },
+  {
+    matchKey: 'Cicle',
+    shortTitle: 'Cicle',
+    subtitle: 'Remote Team Tool',
+    category: 'Team Collaboration',
+    lat: -7.7956,
+    lng: 110.3695, // Yogyakarta
+    accentColor: '#f59e0b',
+  },
+  {
+    matchKey: 'IZILOH',
+    shortTitle: 'IZILOH',
+    subtitle: 'Innovative Laundry',
+    category: 'On-Demand Service',
+    lat: -6.1783,
+    lng: 106.6319, // Tangerang
+    accentColor: '#3b82f6',
+  },
+  {
+    matchKey: 'Waroong Retjeh',
+    shortTitle: 'Waroong Retjeh',
+    subtitle: 'Restaurant App',
+    category: 'F&B POS Platform',
+    lat: -7.2575,
+    lng: 112.7521, // Surabaya
+    accentColor: '#ef4444',
+  },
+  {
+    matchKey: 'Flambe',
+    shortTitle: 'Flambe',
+    subtitle: 'Food Delivery App',
+    category: 'Food Delivery Platform',
+    lat: -8.6705,
+    lng: 115.2126, // Denpasar / Bali
+    accentColor: '#f97316',
+  },
+  {
+    matchKey: 'NU Card',
+    shortTitle: 'NU Card',
+    subtitle: 'Digital Wallet App',
+    category: 'Fintech / E-Wallet',
+    lat: -6.9667,
+    lng: 110.4167, // Semarang
+    accentColor: '#14b8a6',
+  },
+  {
+    matchKey: 'ValtHub',
+    shortTitle: 'ValtHub',
+    subtitle: 'Secrets Manager',
+    category: 'Developer Tooling',
+    lat: 37.7749,
+    lng: -122.4194, // San Francisco
+    accentColor: '#ec4899',
+  },
+  {
+    matchKey: 'Codeary',
+    shortTitle: 'Codeary',
+    subtitle: 'Developer Platform',
+    category: 'Tech Publication',
+    lat: 1.3521,
+    lng: 103.8198, // Singapore
+    accentColor: '#10b981',
+  },
+  {
+    matchKey: 'flutter_v_keyboard',
+    shortTitle: 'Virtual Keyboard',
+    subtitle: 'Flutter Package',
+    category: 'Open Source Package',
+    lat: 52.5200,
+    lng: 13.4050, // Berlin
+    accentColor: '#8b5cf6',
   },
 ]
 
 /**
- * Geographic connection arcs radiating from home base (Jakarta) to project destinations.
+ * Derives globe markers directly from the portfolio's published projects.
+ * Kept reactively in sync with the current active locale and content updates.
  */
-export const globeArcs: GlobeArc[] = [
-  {
-    fromId: 'creator-app',
-    toId: 'bilang-pos',
-    fromLatLng: [-6.2088, 106.8456],
-    toLatLng: [-7.2575, 112.7521],
-    color: '#94a3b8',
-  },
-  {
-    fromId: 'creator-app',
-    toId: 'engelhorn',
-    fromLatLng: [-6.2088, 106.8456],
-    toLatLng: [49.4875, 8.466],
-    color: '#94a3b8',
-  },
-  {
-    fromId: 'creator-app',
-    toId: 'valthub',
-    fromLatLng: [-6.2088, 106.8456],
-    toLatLng: [37.7749, -122.4194],
-    color: '#94a3b8',
-  },
-  {
-    fromId: 'creator-app',
-    toId: 'codeary',
-    fromLatLng: [-6.2088, 106.8456],
-    toLatLng: [1.3521, 103.8198],
-    color: '#94a3b8',
-  },
-  {
-    fromId: 'creator-app',
-    toId: 'flutter-pkg',
-    fromLatLng: [-6.2088, 106.8456],
-    toLatLng: [35.6762, 139.6503],
-    color: '#94a3b8',
-  },
-]
+export const globeMarkers = computed<GlobeMarker[]>(() => {
+  const published = portfolioContent.projects.items.filter(p => p.status === 'published')
+
+  return published.map((proj, index) => {
+    const meta = geoMetadata.find(m => proj.title.includes(m.matchKey)) || {
+      matchKey: proj.title,
+      shortTitle: proj.title.split(' - ')[0] || proj.title,
+      subtitle: proj.tech[0] || 'Project',
+      category: 'Software Application',
+      lat: -6.2088 + (index * 4.5),
+      lng: 106.8456 + (index * 7.5),
+      accentColor: '#3b82f6',
+    }
+
+    const slug = proj.title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '')
+
+    return {
+      id: `${slug}-${index}`,
+      title: meta.shortTitle,
+      fullTitle: proj.title,
+      subtitle: meta.subtitle,
+      category: meta.category,
+      description: proj.description,
+      tech: proj.tech,
+      lat: meta.lat,
+      lng: meta.lng,
+      accentColor: meta.accentColor,
+      link: proj.link,
+      repo: proj.repo,
+      image: proj.image,
+      images: proj.images,
+    }
+  })
+})
+
+/**
+ * Geographic connection arcs radiating from Jakarta (home base) to destinations worldwide.
+ */
+export const globeArcs = computed<GlobeArc[]>(() => {
+  const markers = globeMarkers.value
+  const homeMarker = markers.find(m => m.title === 'Tribelio') || markers[0]
+  if (!homeMarker) return []
+
+  const arcs: GlobeArc[] = []
+  for (const m of markers) {
+    if (m.id === homeMarker.id) continue
+    arcs.push({
+      fromId: homeMarker.id,
+      toId: m.id,
+      fromLatLng: [homeMarker.lat, homeMarker.lng],
+      toLatLng: [m.lat, m.lng],
+      color: '#94a3b8',
+    })
+  }
+
+  return arcs
+})

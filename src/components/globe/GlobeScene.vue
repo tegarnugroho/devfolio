@@ -149,7 +149,7 @@ let lastUserInteractionTime = 0
 const GLOBE_RADIUS = 1.5
 
 function calculateTargetRotation(markerId: string) {
-  const m = globeMarkers.find(item => item.id === markerId)
+  const m = globeMarkers.value.find(item => item.id === markerId)
   if (!m) return
 
   const pos = latLngToVector3(m.lat, m.lng, GLOBE_RADIUS)
@@ -268,8 +268,9 @@ function buildArcs() {
   if (!globeGroup) return
   arcMeshList = []
 
-  for (let i = 0; i < globeArcs.length; i++) {
-    const arc = globeArcs[i]
+  const arcs = globeArcs.value
+  for (let i = 0; i < arcs.length; i++) {
+    const arc = arcs[i]
     const p1 = latLngToVector3(arc.fromLatLng[0], arc.fromLatLng[1], GLOBE_RADIUS * 1.01)
     const p2 = latLngToVector3(arc.toLatLng[0], arc.toLatLng[1], GLOBE_RADIUS * 1.01)
 
@@ -309,7 +310,8 @@ function buildMarkers() {
   if (!globeGroup) return
   markerMeshes = []
 
-  for (const m of globeMarkers) {
+  const list = globeMarkers.value
+  for (const m of list) {
     const pos = latLngToVector3(m.lat, m.lng, GLOBE_RADIUS * 1.012)
     const normal = pos.clone().normalize()
 
