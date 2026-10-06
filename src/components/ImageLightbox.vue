@@ -10,11 +10,7 @@
           <div class="showcase-body">
             <div class="showcase-gallery">
               <figure data-blueprint="GALLERY_VIEWPORT" ref="galleryCanvas" class="gallery-canvas" @pointerenter="onZoomEnter" @pointermove="onZoomMove" @pointerleave="onZoomLeave" @touchstart="onTouchStart" @touchmove.prevent="onTouchMove" @touchend="onTouchEnd" @touchcancel="cancelTouch" @contextmenu.prevent>
-                <transition :name="imageDirection > 0 ? 'image-next' : 'image-prev'" @after-enter="cacheImageBounds">
-                  <div v-if="displayedSource" :key="displayedSource" class="gallery-image-layer">
-                    <img ref="mainImage" @load="cacheImageBounds" :src="displayedSource" :alt="content.screenshotAlt(project?.title ?? content.fallbackProject, displayedIndex + 1, images.length)" loading="eager" fetchpriority="high" decoding="async" draggable="false" @dragstart.prevent />
-                  </div>
-                </transition>
+                <transition name="image-fade"><img ref="mainImage" @load="cacheImageBounds" v-if="displayedSource" :key="displayedSource" :src="displayedSource" :alt="content.screenshotAlt(project?.title ?? content.fallbackProject, displayedIndex + 1, images.length)" loading="eager" fetchpriority="high" decoding="async" draggable="false" @dragstart.prevent /></transition>
               <p v-if="imageError" class="image-error" role="status">{{ content.unavailableLabel }} <button @click="go(current)">{{ content.retryLabel }}</button></p>
               </figure>
               <div class="gallery-zoom-controls" role="group" :aria-label="content.zoomLabel">
@@ -54,7 +50,6 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>()
 const current = ref(0)
 const displayedSource = ref('')
 const displayedIndex = ref(0)
-const imageDirection = ref(1)
 const imageError = ref(false)
 let selectionVersion = 0
 let preloadVersion = 0
@@ -199,9 +194,9 @@ watch(() => props.modelValue, async open => {
 }, { immediate: true })
 watch(() => props.modelValue, async () => { await nextTick(); window.dispatchEvent(new Event('blueprint-layout')) }, { flush: 'post' })
 function close() { emit('update:modelValue', false) }
-function next() { if (props.images.length) void go((current.value + 1) % props.images.length, 1) }
-function prev() { if (props.images.length) void go((current.value - 1 + props.images.length) % props.images.length, -1) }
-async function go(index: number, direction = index >= current.value ? 1 : -1) {
+function next() { if (props.images.length) void go((current.value + 1) % props.images.length) }
+function prev() { if (props.images.length) void go((current.value - 1 + props.images.length) % props.images.length) }
+async function go(index: number) {
   const source = props.images[index]
   if (!source || !props.modelValue) return
   const version = ++selectionVersion
@@ -213,7 +208,6 @@ async function go(index: number, direction = index >= current.value ? 1 : -1) {
     await ready
     if (version !== selectionVersion || !props.modelValue || props.images[index] !== source) return
     resetZoom()
-    imageDirection.value = direction
     displayedIndex.value = index
     displayedSource.value = source
     await nextTick()
@@ -303,20 +297,83 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
 </script>
 
 <style scoped>
-.showcase-backdrop { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.72); padding: 40px; }
-.showcase-dialog { width: min(1120px,100%); max-height: calc(100dvh - 80px); overflow: auto; background: var(--secondary-background); color: var(--primary); border: 1px solid var(--strong-border); border-radius: 7px; box-shadow: 0 16px 48px rgba(0,0,0,.2); overscroll-behavior: contain; }
-.showcase-bar { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 28px; background: var(--secondary-background); }
+.showcase-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(2px);
+  padding: clamp(20px, 3.5vw, 48px);
+}
+.showcase-dialog {
+  width: min(1680px, 94vw);
+  max-height: calc(100dvh - clamp(40px, 5vh, 80px));
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--secondary-background);
+  color: var(--primary);
+  border: 1px solid var(--strong-border);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  overscroll-behavior: contain;
+}
+@media (min-width: 1920px) {
+  .showcase-dialog {
+    width: min(1720px, 92vw);
+  }
+}
+.showcase-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 32px;
+  background: var(--secondary-background);
+}
 .counter { font-family: ui-monospace,monospace; font-size: 12px; color: var(--secondary); letter-spacing: .06em; }
 .showcase-controls { display: flex; align-items: center; gap: 12px; }
 .showcase-controls button { display: grid; place-items: center; width: 48px; height: 38px; border: 1px solid var(--strong-border); border-radius: 4px; font-size: 21px; background: transparent; }
 .showcase-controls button:hover { border-color: var(--secondary); }
 .control-divider { height: 24px; width: 1px; background: var(--strong-border); margin-inline: 10px; }
 .showcase-controls .close-button { border-color: transparent; width: 36px; font-size: 28px; }
-.showcase-body { display: grid; grid-template-columns: minmax(0,1.8fr) minmax(0,1fr); gap: 40px; padding: 0 28px 36px; }
+.showcase-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(340px, 24vw, 420px);
+  gap: clamp(28px, 2.5vw, 44px);
+  padding: 0 32px 36px;
+}
 .showcase-gallery, .showcase-information { min-width: 0; }
-.gallery-canvas { position: relative; height: clamp(260px,48vh,470px); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; }
-.gallery-image-layer { position: absolute; inset: 0; }
-.gallery-canvas img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: auto; transform-origin: 50% 50%; transition: transform 220ms ease; }
+.gallery-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: clamp(380px, 64vh, 760px);
+  min-height: 280px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+}
+.gallery-canvas img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: auto;
+  transform-origin: 50% 50%;
+  transition: transform 220ms ease;
+}
 .gallery-zoom-controls { display: none; align-items: center; gap: 8px; margin-top: 10px; }
 .gallery-zoom-controls button { min-width: 44px; min-height: 44px; border: 1px solid var(--strong-border); border-radius: 4px; background: var(--surface); font-size: 20px; }
 .gallery-zoom-controls .zoom-reset { min-width: 64px; font-size: 12px; }
@@ -326,54 +383,53 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
   .gallery-zoom-controls { display: flex; }
 }
 @media (any-pointer: coarse) { .gallery-canvas img { transition: none; } }
-.gallery-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-block: 22px 4px; }
-.gallery-thumbnails button { flex: 0 0 116px; height: 82px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); overflow: hidden; opacity: .6; transition: opacity 220ms,border-color 220ms; }
+.gallery-thumbnails { display: flex; gap: 12px; overflow-x: auto; padding-block: 20px 4px; }
+.gallery-thumbnails button {
+  flex: 0 0 128px;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  overflow: hidden;
+  opacity: .6;
+  transition: opacity 220ms, border-color 220ms, transform 200ms ease;
+}
 .gallery-thumbnails button.selected { border-color: var(--primary); opacity: 1; }
-.gallery-thumbnails button:hover { opacity: 1; }
-.gallery-thumbnails img { width: 100%; height: 100%; object-fit: contain; }
-.metadata, .showcase-information h3 { font-family: ui-monospace,monospace; text-transform: uppercase; letter-spacing: .15em; font-size: 10px; color: var(--secondary); }
-.showcase-information h2 { font-size: 30px; line-height: 1.2; font-weight: 500; margin-top: 12px; overflow-wrap: anywhere; }
-.subtitle { color: var(--secondary); font-size: 15px; margin-top: 10px; }
-.description { margin-top: 26px; }
-.description p { font-size: 14px; line-height: 1.65; color: var(--secondary); margin-top: 12px; }
+.gallery-thumbnails button:hover { opacity: 1; transform: translateY(-1px); }
+.gallery-thumbnails img { width: 100%; height: 100%; object-fit: cover; }
+.metadata, .showcase-information h3 { font-family: ui-monospace,monospace; text-transform: uppercase; letter-spacing: .15em; font-size: 11px; color: var(--secondary); }
+.showcase-information h2 { font-size: clamp(26px, 2.2vw, 34px); line-height: 1.2; font-weight: 600; margin-top: 12px; overflow-wrap: anywhere; }
+.subtitle { color: var(--secondary); font-size: 15px; margin-top: 8px; }
+.description { margin-top: 24px; }
+.description p { font-size: 14px; line-height: 1.65; color: var(--secondary); margin-top: 10px; }
 .stack { padding-top: 20px; margin-top: 24px; border-top: 1px solid var(--border); }
 .stack ul { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-.stack li { font-size: 11px; color: var(--secondary); border: 1px solid var(--strong-border); border-radius: 3px; padding: 3px 9px; }
-.showcase-actions { display: flex; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border); padding-top: 18px; margin-top: 24px; }
-.showcase-actions a { display: inline-flex; align-items: center; justify-content: center; gap: 12px; flex: 1 1 130px; border: 1px solid var(--strong-border); border-radius: 4px; padding: 12px 16px; font-size: 12px; }
+.stack li { font-size: 11px; color: var(--secondary); border: 1px solid var(--strong-border); border-radius: 3px; padding: 4px 10px; }
+.showcase-actions { display: flex; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border); padding-top: 20px; margin-top: 24px; }
+.showcase-actions a { display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex: 1 1 130px; border: 1px solid var(--strong-border); border-radius: 4px; padding: 12px 18px; font-size: 13px; }
 .showcase-actions a:hover { border-color: var(--secondary); }
 .showcase-actions .primary-action { background: var(--button); color: var(--button-text); }
 .showcase-actions .primary-action:hover { background: var(--button-hover); }
-.showcase-enter-active { transition: opacity 700ms cubic-bezier(.22,.61,.36,1); }
-.showcase-enter-active .showcase-dialog { transition: opacity 620ms ease, transform 700ms cubic-bezier(.22,.61,.36,1); }
-.showcase-enter-active .showcase-gallery { transition: opacity 560ms ease 80ms, transform 620ms cubic-bezier(.22,.61,.36,1) 80ms; }
-.showcase-enter-active .showcase-information > * { transition: opacity 500ms ease, transform 500ms cubic-bezier(.22,.61,.36,1); transition-delay: 80ms; }
-.showcase-enter-active .showcase-information h2 { transition-delay: 110ms; }
-.showcase-enter-active .subtitle { transition-delay: 140ms; }
-.showcase-enter-active .description { transition-delay: 160ms; }
-.showcase-enter-active .stack { transition-delay: 180ms; }
-.showcase-enter-active .showcase-actions { transition-delay: 200ms; }
-.showcase-leave-active { pointer-events: none; transition: opacity 300ms ease; }
-.showcase-leave-active .showcase-dialog { transition: opacity 300ms ease, transform 300ms cubic-bezier(.4,0,1,1); }
+.showcase-enter-active, .showcase-leave-active { transition: opacity 220ms; }
+.showcase-enter-active .showcase-dialog, .showcase-leave-active .showcase-dialog { transition: transform 220ms; }
 .showcase-enter-from, .showcase-leave-to { opacity: 0; }
-.showcase-enter-from .showcase-dialog { opacity: 0; transform: translateY(28px); }
-.showcase-enter-from .showcase-gallery, .showcase-enter-from .showcase-information > * { opacity: 0; transform: translateY(14px); }
-.showcase-leave-to .showcase-dialog { opacity: 0; transform: translateY(12px); }
-.image-next-enter-active, .image-next-leave-active, .image-prev-enter-active, .image-prev-leave-active { transition: opacity 540ms ease, transform 540ms cubic-bezier(.22,.61,.36,1); will-change: opacity, transform; }
-.image-next-enter-active, .image-prev-enter-active { z-index: 1; }
-.image-next-leave-active, .image-prev-leave-active { pointer-events: none; }
-.image-next-enter-from, .image-prev-leave-to { opacity: 0; transform: translateX(36px); }
-.image-prev-enter-from, .image-next-leave-to { opacity: 0; transform: translateX(-36px); }
+.showcase-enter-from .showcase-dialog, .showcase-leave-to .showcase-dialog { transform: scale(.98); }
+.image-fade-enter-active, .image-fade-leave-active { transition: opacity 180ms; }
 .image-error { position: absolute; bottom: 12px; z-index: 1; padding: 5px 8px; background: var(--secondary-background); color: var(--secondary); font-size: 12px; }
 .image-error button { text-decoration: underline; margin-left: 6px; }
+.image-fade-enter-from, .image-fade-leave-to { opacity: 0; }
+@media (max-width: 1100px) {
+  .showcase-body { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px; }
+}
 @media (max-width: 960px) {
-  .showcase-backdrop { padding: 12px; }
-  .showcase-dialog { max-height: calc(100dvh - 24px); }
-  .showcase-bar { padding: 16px 18px; }
-  .showcase-body { grid-template-columns: 1fr; gap: 26px; padding: 0 18px 26px; }
-  .gallery-canvas { height: clamp(220px,42dvh,420px); }
+  .showcase-backdrop { padding: 16px; }
+  .showcase-dialog { width: 100%; max-height: calc(100dvh - 32px); }
+  .showcase-bar { padding: 16px 20px; }
+  .showcase-body { grid-template-columns: 1fr; gap: 26px; padding: 0 20px 28px; }
+  .gallery-canvas { aspect-ratio: 16 / 9; max-height: clamp(240px, 45dvh, 480px); }
   .gallery-thumbnails { padding-top: 14px; }
-  .gallery-thumbnails button { flex-basis: 92px; height: 64px; }
+  .gallery-thumbnails button { flex-basis: 96px; }
 }
 @media (max-width: 400px) { .showcase-actions { flex-direction: column; } .showcase-actions a { flex: auto; } .showcase-controls { gap: 6px; } .control-divider { display: none; } }
 @media (max-width: 767px) {
@@ -384,7 +440,7 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
   .showcase-controls button, .showcase-controls .close-button { width: 44px; height: 44px; }
   .control-divider { display: none; }
   .showcase-body { padding: 0 14px 24px; }
-  .gallery-canvas { height: min(45dvh,420px); min-height: 160px; }
+  .gallery-canvas { aspect-ratio: 16 / 9; max-height: min(48dvh,400px); min-height: 180px; }
   .showcase-actions a { min-height: 44px; font-size: 13px; }
   .stack li { font-size: 12px; max-width: 100%; overflow-wrap: anywhere; }
 }
