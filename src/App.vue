@@ -11,6 +11,7 @@
     </main>
     <SectionIndex />
     <ScrollNavigator />
+    <FloatingGlobeTrigger />
     <BlueprintOverlay />
     <footer data-blueprint="FOOTER" class="portfolio-footer max-w-5xl mx-auto px-4">
       <p>&copy; {{ year }} {{ portfolioContent.footer.owner }}</p>
@@ -32,6 +33,7 @@ import WritingSection from './sections/WritingSection.vue'
 import ProjectsSection from './sections/ProjectsSection.vue'
 import ContactSection from './sections/ContactSection.vue'
 import ProjectShowcaseOverlay from './components/globe/ProjectShowcaseOverlay.vue'
+import FloatingGlobeTrigger from './components/globe/FloatingGlobeTrigger.vue'
 import { isShowcaseOpen } from '@/composables/useShowcase'
 import { useLocaleRouting } from '@/composables/useTranslation'
 import { useSectionNavigation } from '@/composables/useSectionNavigation'
