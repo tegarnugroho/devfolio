@@ -48,19 +48,37 @@ function finishItem(element: HTMLElement) {
   activeItems.get(element)?.finish()
 }
 
+const EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
+
 function animateItem(element: HTMLElement, opacity: string, delay?: number) {
+  const isReduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (isReduced) {
+    return element.animate([{ opacity }, { opacity }], { duration: 0, fill: 'both' })
+  }
+  const isMobile = matchMedia('(max-width: 767px)').matches
   const settings = options.get(element) ?? {}
-  const distance = settings.kind === 'accent' ? 16 : 24
+  const isHeading = settings.kind === 'heading'
+  const isAccent = settings.kind === 'accent'
+
+  const distance = isMobile ? (isAccent ? 8 : 10) : (isAccent ? 12 : (isHeading ? 18 : 16))
   const from: Keyframe = { opacity: 0, translate: `0 ${distance}px` }
   const to: Keyframe = { opacity, translate: '0 0' }
-  if (settings.kind === 'heading') {
-    from.clipPath = 'inset(0 0 100% 0)'
-    to.clipPath = 'inset(0 0 0% 0)'
+  if (isHeading && !isMobile) {
+    from.scale = '0.985'
+    to.scale = '1'
   }
+
+  const duration = isMobile
+    ? (isHeading ? 460 : (isAccent ? 380 : 420))
+    : (isHeading ? 500 : (isAccent ? 420 : 460))
+
+  const baseDelay = delay ?? settings.delay ?? 0
+  const finalDelay = isMobile ? Math.round(baseDelay * 0.7) : baseDelay
+
   return element.animate([from, to], {
-    duration: settings.kind === 'heading' ? 1100 : 900,
-    delay: Math.min(1300, Math.max(0, delay ?? (settings.delay ?? 0) * 1.6)),
-    easing: 'cubic-bezier(.25,.46,.45,.94)',
+    duration,
+    delay: Math.min(600, Math.max(0, finalDelay)),
+    easing: EASING,
     fill: 'both',
   })
 }
@@ -71,12 +89,14 @@ function fallbackDuration(animations: Animation[]) {
 
 function revealVisibleItems() {
   // Offscreen rows keep their first entrance until they can actually be seen.
+  const isMobile = matchMedia('(max-width: 767px)').matches
+  const stagger = isMobile ? 45 : 60
   let index = 0
   for (const [element, section] of waitingItems) {
     if ((navigationTarget && navigationTarget !== section) || !visible(element)) continue
     finishItem(element)
     try {
-      const animation = animateItem(element, getComputedStyle(element).opacity, 120 + index++ * 180)
+      const animation = animateItem(element, getComputedStyle(element).opacity, 60 + index++ * stagger)
       const finish = () => {
         clearTimeout(timer)
         animation.cancel()
@@ -238,14 +258,36 @@ export const reveal: Directive<HTMLElement, RevealOptions | undefined> = {
       pending.delete(element)
     }
     try {
-      animation = element.animate([
-        { opacity: 0, translate: '0 8px' },
-        { opacity: getComputedStyle(element).opacity, translate: '0 0' },
-      ], { duration: 350, delay: binding.value?.delay ?? 0, easing: 'ease', fill: 'both' })
+      const isMobile = matchMedia('(max-width: 767px)').matches
+      const kind = binding.value?.kind
+      const isHeading = kind === 'heading'
+      const isAccent = kind === 'accent'
+
+      const distance = isMobile ? (isAccent ? 8 : 10) : (isAccent ? 12 : (isHeading ? 18 : 16))
+      const from: Keyframe = { opacity: 0, translate: `0 ${distance}px` }
+      const to: Keyframe = { opacity: getComputedStyle(element).opacity || '1', translate: '0 0' }
+      if (isHeading && !isMobile) {
+        from.scale = '0.985'
+        to.scale = '1'
+      }
+
+      const duration = isMobile
+        ? (isHeading ? 460 : (isAccent ? 380 : 420))
+        : (isHeading ? 520 : (isAccent ? 440 : 480))
+
+      const baseDelay = binding.value?.delay ?? 0
+      const delay = isMobile ? Math.round(baseDelay * 0.7) : baseDelay
+
+      animation = element.animate([from, to], {
+        duration,
+        delay,
+        easing: EASING,
+        fill: 'both',
+      })
       pending.set(element, finish)
       preference.addEventListener('change', finish)
       void animation.finished.then(finish, finish)
-      timer = setTimeout(finish, 1000)
+      timer = setTimeout(finish, duration + delay + 200)
     } catch { finish() }
   },
   updated(element, binding) { options.set(element, binding.value ?? {}) },

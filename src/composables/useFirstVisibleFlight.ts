@@ -12,7 +12,7 @@ export function useFirstVisibleFlight(target: Ref<HTMLElement | null>, launch: (
       if (!entries.some(entry => entry.isIntersecting)) return
       observer?.disconnect()
       // Let the existing text reveal finish before measuring its flight path.
-      timer = setTimeout(launch, 600)
+      timer = setTimeout(launch, 950)
     }, { threshold: 0.6 })
     observer.observe(target.value)
   })

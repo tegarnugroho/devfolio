@@ -1,5 +1,5 @@
 <template>
-  <div class="graphite-scroll fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+  <div v-reveal="{ delay: 340, kind: 'accent' }" class="graphite-scroll fixed bottom-6 right-6 z-50 flex flex-col gap-2">
     <!-- Top: only Next -->
     <button
       v-if="atTop && hasNext"

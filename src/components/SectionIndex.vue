@@ -1,5 +1,5 @@
 <template>
-  <nav ref="markers" class="hero-markers" :aria-label="portfolioContent.navigation.shortcutsLabel">
+  <nav ref="markers" v-reveal="{ delay: 280, kind: 'accent' }" class="hero-markers" :aria-label="portfolioContent.navigation.shortcutsLabel">
     <a v-for="(section, index) in sections" :key="section.id" :href="sectionHref(section.id)"
       :aria-label="section.label" :aria-current="active === section.id ? 'location' : undefined">
       {{ String(index + 1).padStart(2, '0') }}
