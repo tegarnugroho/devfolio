@@ -38,17 +38,28 @@
         >
           <button
             type="button"
-            class="cluster-anchor pointer-events-auto flex items-center gap-2 -translate-y-1/2 cursor-pointer transition-transform duration-200 hover:scale-105 group"
+            class="cluster-anchor pointer-events-auto flex items-center gap-2.5 -translate-y-1/2 cursor-pointer transition-transform duration-200 hover:scale-105 group"
             :aria-label="`Zoom into ${cluster.name} (${cluster.projectCount} projects)`"
             @click.stop="onClusterClick(cluster.id)"
           >
-            <!-- Glowing Cluster Core Dot -->
-            <span class="cluster-pulse-dot w-3 h-3 rounded-full shrink-0 flex items-center justify-center bg-blue-500 shadow-[0_0_14px_#3b82f6]">
+            <!-- Glowing Cluster Radar Dot -->
+            <span class="cluster-pulse-dot w-3.5 h-3.5 rounded-full shrink-0 flex items-center justify-center bg-blue-500 shadow-[0_0_16px_#3b82f6]">
               <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
             </span>
 
-            <!-- Counter Pill Badge -->
-            <div class="cluster-card py-1 px-3 rounded-full border border-blue-400/50 bg-black/85 backdrop-blur-md shadow-2xl flex items-center gap-2 group-hover:border-blue-300 group-hover:bg-black/95">
+            <!-- Counter Pill Badge with Thumbnail Previews -->
+            <div class="cluster-card py-1.5 px-3 rounded-full border border-blue-400/50 bg-black/85 backdrop-blur-xl shadow-[0_10px_30px_rgba(59,130,246,0.35)] flex items-center gap-2 group-hover:border-blue-300 group-hover:bg-black/95">
+              <!-- Mini Overlapping Avatars of projects inside this cluster -->
+              <div v-if="getClusterThumbs(cluster.id).length > 0" class="flex -space-x-1.5 overflow-hidden shrink-0">
+                <img
+                  v-for="(thumb, i) in getClusterThumbs(cluster.id)"
+                  :key="i"
+                  :src="thumb"
+                  alt=""
+                  class="w-4 h-4 rounded-full border border-black/80 object-cover"
+                />
+              </div>
+
               <span class="font-mono text-[10px] font-bold text-white tracking-wider flex items-center gap-1">
                 <span class="text-blue-400 font-extrabold">{{ cluster.projectCount }}</span>
                 <span>PROJECTS</span>
@@ -76,24 +87,44 @@
           :aria-label="`Select ${marker.title}`"
           @click.stop="onMarkerClick(marker.id)"
         >
-          <!-- Pulse Dot -->
-          <span
-            class="marker-dot-halo w-2.5 h-2.5 rounded-full shrink-0 flex items-center justify-center transition-transform duration-200"
-            :style="{ backgroundColor: marker.accentColor, boxShadow: `0 0 12px ${marker.accentColor}` }"
-          ></span>
+          <!-- Glowing Pulse Beacon Core Dot -->
+          <span class="relative flex items-center justify-center shrink-0">
+            <span
+              class="marker-dot-halo absolute w-3.5 h-3.5 rounded-full opacity-75"
+              :style="{ backgroundColor: marker.accentColor }"
+            ></span>
+            <span
+              class="w-2 h-2 rounded-full ring-2 ring-black"
+              :style="{ backgroundColor: marker.accentColor, boxShadow: `0 0 10px ${marker.accentColor}` }"
+            ></span>
+          </span>
 
-          <!-- Label Card -->
+          <!-- High-End Holographic Project Card with Thumbnail Image -->
           <div
-            class="marker-card py-1 px-2.5 rounded border border-white/15 bg-black/80 backdrop-blur-md shadow-2xl text-left transition-all duration-200 group-hover:border-white/35"
-            :class="{ '!border-blue-400 !bg-black/95 ring-1 ring-blue-400/40': activeId === marker.id }"
+            class="marker-card py-1.5 px-2.5 rounded-xl border border-white/15 bg-black/85 backdrop-blur-xl shadow-[0_12px_30px_rgba(0,0,0,0.7)] text-left flex items-center gap-2.5 transition-all duration-200 group-hover:border-white/40 group-hover:bg-black/95"
+            :class="{ '!border-blue-400 !bg-black/95 ring-2 ring-blue-400/50 scale-105 shadow-[0_0_25px_rgba(59,130,246,0.4)]': activeId === marker.id }"
           >
-            <p class="text-[11px] font-semibold tracking-tight text-white leading-tight flex items-center gap-1.5 whitespace-nowrap">
-              {{ marker.title }}
-              <span v-if="activeId === marker.id" class="text-[9px] text-blue-400">↗</span>
-            </p>
-            <p class="text-[8.5px] font-mono tracking-wider uppercase text-zinc-400 leading-tight whitespace-nowrap">
-              {{ marker.subtitle }}
-            </p>
+            <!-- Project Thumbnail / Icon -->
+            <div v-if="marker.image" class="w-7 h-7 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-zinc-900/90 shadow-sm">
+              <img :src="marker.image" :alt="marker.title" class="w-full h-full object-cover" />
+            </div>
+            <div
+              v-else
+              class="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center border font-mono text-[9px] font-bold text-white shadow-sm"
+              :style="{ backgroundColor: `${marker.accentColor}33`, borderColor: marker.accentColor }"
+            >
+              {{ marker.title.slice(0, 2).toUpperCase() }}
+            </div>
+
+            <div class="min-w-0 pr-0.5">
+              <p class="text-[11.5px] font-bold tracking-tight text-white leading-tight flex items-center gap-1.5 whitespace-nowrap">
+                {{ marker.title }}
+                <span v-if="activeId === marker.id" class="text-[9px] text-blue-400 animate-pulse">↗</span>
+              </p>
+              <p class="text-[8.5px] font-mono tracking-wider uppercase text-zinc-400 leading-tight whitespace-nowrap mt-0.5">
+                {{ marker.subtitle }}
+              </p>
+            </div>
           </div>
         </button>
       </div>
@@ -121,10 +152,12 @@ const props = withDefaults(
     isZoomed?: boolean
     activeClusterId?: string | null
     fallbackText?: string
+    globeMode?: 'real' | 'tech'
   }>(),
   {
     isZoomed: false,
     activeClusterId: null,
+    globeMode: 'real',
   }
 )
 
@@ -177,6 +210,13 @@ function onClusterClick(clusterId: string) {
   emit('zoomCluster', clusterId)
 }
 
+function getClusterThumbs(clusterId: string): string[] {
+  return globeMarkers.value
+    .filter(m => m.clusterId === clusterId && m.image)
+    .map(m => m.image!)
+    .slice(0, 3)
+}
+
 // Three.js Scene Variables
 let renderer: THREE.WebGLRenderer | null = null
 let scene: THREE.Scene | null = null
@@ -189,6 +229,9 @@ interface MarkerMeshItem {
   clusterId: string
   dotMesh: THREE.Mesh
   hitMesh: THREE.Mesh
+  beaconMesh: THREE.Mesh
+  ringMesh: THREE.Mesh
+  gemMesh: THREE.Mesh
   normalVec: THREE.Vector3
   centerPos: THREE.Vector3
   satelliteAngle: number
@@ -201,6 +244,9 @@ let clusterHubMeshes: {
   id: string
   mesh: THREE.Mesh
   hitMesh: THREE.Mesh
+  beaconMesh: THREE.Mesh
+  ringMesh: THREE.Mesh
+  stationMesh: THREE.Mesh
   pos: THREE.Vector3
   normal: THREE.Vector3
 }[] = []
@@ -441,8 +487,8 @@ function applyThemeMaterials(dark: boolean) {
   }
 }
 
-watch(isDark, dark => {
-  applyThemeMaterials(dark)
+watch(() => props.globeMode, mode => {
+  applyThemeMaterials(mode === 'tech')
 })
 
 watch(() => props.activeId, newId => {
@@ -556,7 +602,7 @@ function initThree() {
     metalness: 0.08,
   })
   realEarthMesh = new THREE.Mesh(realEarthGeo, realEarthMat)
-  realEarthMesh.visible = !isDark.value
+  realEarthMesh.visible = props.globeMode === 'real'
   globeGroup.add(realEarthMesh)
 
   // Dynamic Clouds Layer (semi-transparent, floating slightly above ground)
@@ -570,7 +616,7 @@ function initThree() {
     roughness: 0.9,
   })
   cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat)
-  cloudsMesh.visible = !isDark.value
+  cloudsMesh.visible = props.globeMode === 'real'
   globeGroup.add(cloudsMesh)
 
   // Outer Atmospheric Fresnel Glow (Cyan/Sky Halo with twilight sunset scattering wrapping the planet limb)
@@ -624,7 +670,7 @@ function initThree() {
     `,
   })
   atmosphereMesh = new THREE.Mesh(atmosphereGeo, atmosphereMat)
-  atmosphereMesh.visible = !isDark.value
+  atmosphereMesh.visible = props.globeMode === 'real'
   globeGroup.add(atmosphereMesh)
 
   // 9. Arcs, Hubs & Markers
@@ -642,8 +688,8 @@ function initThree() {
   buildDistantPlanets()
   buildMeteor()
 
-  // Apply active theme materials
-  applyThemeMaterials(isDark.value)
+  // Apply active mode materials (tech vs real)
+  applyThemeMaterials(props.globeMode === 'tech')
 
   // Initial target alignment
   if (props.activeId) {
@@ -727,26 +773,72 @@ function buildClusterHubs() {
     const pos = latLngToVector3(c.lat, c.lng, GLOBE_RADIUS * 1.012)
     const normal = pos.clone().normalize()
 
-    // Cluster Central Glowing Sphere Point
-    const hubGeo = new THREE.SphereGeometry(0.046, 16, 16)
+    // 1. Cluster Central Glowing Sphere Point
+    const hubGeo = new THREE.SphereGeometry(0.045, 16, 16)
     const hubMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6 })
     const hubMesh = new THREE.Mesh(hubGeo, hubMat)
     hubMesh.position.copy(pos)
+    globeGroup.add(hubMesh)
 
-    // Hit Sphere for Raycasting
-    const hitGeo = new THREE.SphereGeometry(0.24, 8, 8)
+    // 2. High-Powered Cluster Vertical Light Pillar
+    const beaconHeight = 0.32
+    const beaconGeo = new THREE.CylinderGeometry(0.005, 0.024, beaconHeight, 10)
+    beaconGeo.translate(0, beaconHeight / 2, 0)
+    const beaconMat = new THREE.MeshBasicMaterial({
+      color: 0x3b82f6,
+      transparent: true,
+      opacity: 0.72,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+    const beaconMesh = new THREE.Mesh(beaconGeo, beaconMat)
+    beaconMesh.position.copy(pos)
+    beaconMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal)
+    globeGroup.add(beaconMesh)
+
+    // 3. Concentric Ground Radar Pulse Rings
+    const ringGeo = new THREE.RingGeometry(0.025, 0.07, 28)
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0x60a5fa,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat)
+    ringMesh.position.copy(pos)
+    ringMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
+    globeGroup.add(ringMesh)
+
+    // 4. Floating 3D Orbital Station Core Gem
+    const stationGeo = new THREE.IcosahedronGeometry(0.034, 0)
+    const stationMat = new THREE.MeshStandardMaterial({
+      color: 0x3b82f6,
+      emissive: 0x2563eb,
+      emissiveIntensity: 0.8,
+      roughness: 0.2,
+      metalness: 0.85,
+    })
+    const stationMesh = new THREE.Mesh(stationGeo, stationMat)
+    stationMesh.position.copy(pos.clone().addScaledVector(normal, beaconHeight))
+    globeGroup.add(stationMesh)
+
+    // 5. Hit Sphere for Raycasting
+    const hitGeo = new THREE.SphereGeometry(0.25, 8, 8)
     const hitMat = new THREE.MeshBasicMaterial({ visible: false })
     const hitMesh = new THREE.Mesh(hitGeo, hitMat)
     hitMesh.position.copy(pos)
     hitMesh.userData = { clusterId: c.id }
-
-    globeGroup.add(hubMesh)
     globeGroup.add(hitMesh)
 
     clusterHubMeshes.push({
       id: c.id,
       mesh: hubMesh,
       hitMesh,
+      beaconMesh,
+      ringMesh,
+      stationMesh,
       pos,
       normal,
     })
@@ -762,20 +854,63 @@ function buildMarkers() {
     const pos = latLngToVector3(m.lat, m.lng, GLOBE_RADIUS * 1.012)
     const normal = pos.clone().normalize()
 
-    // Core 3D Dot Point
-    const dotGeo = new THREE.SphereGeometry(0.034, 16, 16)
+    // 1. Core 3D Dot Point
+    const dotGeo = new THREE.SphereGeometry(0.032, 16, 16)
     const dotMat = new THREE.MeshBasicMaterial({ color: m.accentColor })
     const dotMesh = new THREE.Mesh(dotGeo, dotMat)
     dotMesh.position.copy(pos)
+    globeGroup.add(dotMesh)
 
-    // Hit Sphere for Raycasting
-    const hitGeo = new THREE.SphereGeometry(0.16, 8, 8)
+    // 2. Vertical Light Beacon (Laser Pillar shooting upwards)
+    const beaconHeight = 0.22
+    const beaconGeo = new THREE.CylinderGeometry(0.003, 0.016, beaconHeight, 8)
+    beaconGeo.translate(0, beaconHeight / 2, 0)
+    const beaconMat = new THREE.MeshBasicMaterial({
+      color: m.accentColor,
+      transparent: true,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+    const beaconMesh = new THREE.Mesh(beaconGeo, beaconMat)
+    beaconMesh.position.copy(pos)
+    beaconMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal)
+    globeGroup.add(beaconMesh)
+
+    // 3. Pulsing Radar Ripple Ring on Ground
+    const ringGeo = new THREE.RingGeometry(0.018, 0.045, 24)
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: m.accentColor,
+      transparent: true,
+      opacity: 0.75,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat)
+    ringMesh.position.copy(pos)
+    ringMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
+    globeGroup.add(ringMesh)
+
+    // 4. 3D Floating Diamond / Gem at Beacon Apex
+    const gemGeo = new THREE.OctahedronGeometry(0.024, 0)
+    const gemMat = new THREE.MeshStandardMaterial({
+      color: m.accentColor,
+      emissive: m.accentColor,
+      emissiveIntensity: 0.7,
+      roughness: 0.2,
+      metalness: 0.8,
+    })
+    const gemMesh = new THREE.Mesh(gemGeo, gemMat)
+    gemMesh.position.copy(pos.clone().addScaledVector(normal, beaconHeight))
+    globeGroup.add(gemMesh)
+
+    // 5. Hit Sphere for Raycasting
+    const hitGeo = new THREE.SphereGeometry(0.18, 8, 8)
     const hitMat = new THREE.MeshBasicMaterial({ visible: false })
     const hitMesh = new THREE.Mesh(hitGeo, hitMat)
     hitMesh.position.copy(pos)
     hitMesh.userData = { markerId: m.id }
-
-    globeGroup.add(dotMesh)
     globeGroup.add(hitMesh)
 
     markerMeshes.push({
@@ -783,6 +918,9 @@ function buildMarkers() {
       clusterId: m.clusterId,
       dotMesh,
       hitMesh,
+      beaconMesh,
+      ringMesh,
+      gemMesh,
       normalVec: normal,
       centerPos: pos,
       satelliteAngle: m.satelliteAngle,
@@ -1276,7 +1414,45 @@ function animate(currentTime: number) {
     }
   }
 
-  // 6. Animate Celestial Space Objects (Stars, Moon, Satellites, Planets, Meteor)
+  // 6. Animate 3D Holographic Marker Gems & Sonar Radar Rings
+  if (!reducedMotion) {
+    for (let i = 0; i < markerMeshes.length; i++) {
+      const m = markerMeshes[i]
+      if (m.gemMesh.visible) {
+        m.gemMesh.rotation.y += delta * 1.6
+        m.gemMesh.rotation.x += delta * 0.9
+        const isSelected = props.activeId === m.id
+        const targetScale = isSelected ? 1.5 : 1.0
+        m.gemMesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1)
+        const bMat = m.beaconMesh.material as THREE.MeshBasicMaterial
+        bMat.opacity = isSelected ? 0.95 : 0.65
+      }
+      if (m.ringMesh.visible) {
+        const pulse = ((currentTime * 0.0016 + i * 0.22) % 1)
+        const s = 1.0 + pulse * 1.5
+        m.ringMesh.scale.set(s, s, s)
+        const rMat = m.ringMesh.material as THREE.MeshBasicMaterial
+        rMat.opacity = Math.max(0, 0.75 * (1.0 - pulse))
+      }
+    }
+
+    for (let i = 0; i < clusterHubMeshes.length; i++) {
+      const ch = clusterHubMeshes[i]
+      if (ch.stationMesh.visible) {
+        ch.stationMesh.rotation.y += delta * 1.2
+        ch.stationMesh.rotation.z += delta * 0.6
+      }
+      if (ch.ringMesh.visible) {
+        const pulse = ((currentTime * 0.0014 + i * 0.3) % 1)
+        const s = 1.0 + pulse * 1.8
+        ch.ringMesh.scale.set(s, s, s)
+        const rMat = ch.ringMesh.material as THREE.MeshBasicMaterial
+        rMat.opacity = Math.max(0, 0.85 * (1.0 - pulse))
+      }
+    }
+  }
+
+  // 7. Animate Celestial Space Objects (Stars, Moon, Satellites, Planets, Meteor)
   animateCelestialObjects(currentTime, delta, reducedMotion)
 
   // 7. Raycasting Cursor State
@@ -1316,20 +1492,34 @@ function updateSatellitePositions(currentTime: number) {
 
     // Compute updated 3D coordinate
     const newPos = computeSatellitePosition(m.centerPos, m.satelliteAngle, m.currentRadius)
+    const newNormal = newPos.clone().normalize()
+
     m.dotMesh.position.copy(newPos)
     m.hitMesh.position.copy(newPos)
+
+    if (m.beaconMesh) {
+      m.beaconMesh.position.copy(newPos)
+      m.beaconMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), newNormal)
+    }
+    if (m.ringMesh) {
+      m.ringMesh.position.copy(newPos)
+      m.ringMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), newNormal)
+    }
+    if (m.gemMesh) {
+      const beaconHeight = 0.22
+      m.gemMesh.position.copy(newPos.clone().addScaledVector(newNormal, beaconHeight))
+    }
 
     // Visibility: in global view, if part of a multi-project cluster, the individual dots merge into the cluster hub
     const cluster = globeClusters.value.find(c => c.id === m.clusterId)
     const isMultiProject = cluster && cluster.projectCount > 1
+    const isVisible = !(isMultiProject && !props.isZoomed)
 
-    if (isMultiProject && !props.isZoomed) {
-      m.dotMesh.visible = false
-      m.hitMesh.visible = false
-    } else {
-      m.dotMesh.visible = true
-      m.hitMesh.visible = true
-    }
+    m.dotMesh.visible = isVisible
+    m.hitMesh.visible = isVisible
+    if (m.beaconMesh) m.beaconMesh.visible = isVisible
+    if (m.ringMesh) m.ringMesh.visible = isVisible
+    if (m.gemMesh) m.gemMesh.visible = isVisible
 
     // Update connector beam lines from cluster center to satellite dot
     if (isThisClusterActive && satelliteBeamLines && beamLinePositions && m.currentRadius > 0.05) {
@@ -1356,8 +1546,12 @@ function updateSatellitePositions(currentTime: number) {
 
   // Cluster Hubs visibility
   for (const ch of clusterHubMeshes) {
-    ch.mesh.visible = !props.isZoomed || props.activeClusterId === ch.id
+    const isHubVisible = !props.isZoomed || props.activeClusterId === ch.id
+    ch.mesh.visible = isHubVisible
     ch.hitMesh.visible = !props.isZoomed
+    if (ch.beaconMesh) ch.beaconMesh.visible = isHubVisible
+    if (ch.ringMesh) ch.ringMesh.visible = isHubVisible
+    if (ch.stationMesh) ch.stationMesh.visible = isHubVisible
   }
 }
 

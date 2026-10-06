@@ -16,13 +16,13 @@
         <!-- Deep Space Cosmic Ambient Glow Behind Globe -->
         <div
           class="pointer-events-none absolute inset-0 transition-opacity duration-500"
-          :class="isDark ? 'showcase-glow-dark' : 'showcase-glow-light'"
+          :class="globeMode === 'tech' ? 'showcase-glow-dark' : 'showcase-glow-light'"
           aria-hidden="true"
         ></div>
 
-        <!-- Technical Coordinate Grid (Subtle in Dark Blueprint Mode, hidden in Space Mode) -->
+        <!-- Technical Coordinate Grid (Only in Tech Globe Blueprint Mode) -->
         <div
-          v-if="isDark"
+          v-if="globeMode === 'tech'"
           class="pointer-events-none absolute inset-0 opacity-[0.035] showcase-grid-dark"
           aria-hidden="true"
         ></div>
@@ -34,6 +34,7 @@
             :is-zoomed="isSatelliteZoomed"
             :active-cluster-id="activeClusterId"
             :fallback-text="content.fallbackNotice"
+            :globe-mode="globeMode"
             @select="onSelectMarker"
             @zoom-cluster="onZoomCluster"
             @zoom-out="onZoomOut"
@@ -70,22 +71,33 @@
               </button>
             </Transition>
 
-            <!-- Quick Theme Toggle inside Showcase -->
-            <button
-              type="button"
-              class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/15 bg-black/50 hover:bg-white/10 hover:border-white/30 active:scale-95 text-zinc-200 hover:text-white transition-all duration-200 cursor-pointer shadow-sm focus:outline-none backdrop-blur-md"
-              @click="toggleTheme"
-              :title="isDark ? 'Switch to Photorealistic Earth Mode' : 'Switch to Technical Globe Mode'"
-              :aria-label="isDark ? 'Switch to Photorealistic Earth Mode' : 'Switch to Technical Globe Mode'"
-            >
-              <svg v-if="isDark" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5" />
-                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-              </svg>
-              <svg v-else class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            </button>
+            <!-- Globe Visual Mode Switcher: REAL EARTH vs TECH GLOBE -->
+            <div class="inline-flex items-center rounded-full border border-white/15 bg-black/60 p-0.5 backdrop-blur-md shadow-sm">
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[10px] uppercase tracking-wider transition-all duration-200 cursor-pointer"
+                :class="globeMode === 'real'
+                  ? 'bg-blue-500/30 border border-blue-400/70 text-white font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white border border-transparent'"
+                @click="globeMode = 'real'"
+                title="Real Earth (Photorealistic Blue Marble with clouds & atmosphere)"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400" v-if="globeMode === 'real'"></span>
+                <span>REAL EARTH</span>
+              </button>
+              <button
+                type="button"
+                class="flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[10px] uppercase tracking-wider transition-all duration-200 cursor-pointer"
+                :class="globeMode === 'tech'
+                  ? 'bg-emerald-500/25 border border-emerald-400/70 text-white font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-white border border-transparent'"
+                @click="globeMode = 'tech'"
+                title="Tech Globe (Technical Vector Blueprint & coordinates)"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" v-if="globeMode === 'tech'"></span>
+                <span>TECH GLOBE</span>
+              </button>
+            </div>
           </div>
 
           <!-- Status Indicator / Current Title -->
@@ -278,6 +290,7 @@ const { toggle: toggleTheme } = useTheme()
 const GlobeScene = defineAsyncComponent(() => import('./GlobeScene.vue'))
 const content = portfolioContent.globe
 const overlayRef = ref<HTMLElement | null>(null)
+const globeMode = ref<'real' | 'tech'>('real')
 
 const totalProjects = computed(() => globeMarkers.value.length)
 
