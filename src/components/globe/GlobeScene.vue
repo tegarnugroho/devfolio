@@ -226,12 +226,16 @@ let landPointsMat: THREE.PointsMaterial | null = null
 let coastMat: THREE.LineBasicMaterial | null = null
 let satelliteBeamMat: THREE.LineBasicMaterial | null = null
 
+// Lights for 3D Volumetric Shading
+let sunLight: THREE.DirectionalLight | null = null
+let ambientLight: THREE.AmbientLight | null = null
+
 // Celestial Space Objects (Stars, Moon, Satellites, Planets, Meteor)
 let celestialGroup: THREE.Group | null = null
 let starPointsMesh: THREE.Points | null = null
 let starPointsMat: THREE.PointsMaterial | null = null
 let moonMesh: THREE.Mesh | null = null
-let moonMat: THREE.MeshBasicMaterial | null = null
+let moonMat: THREE.MeshStandardMaterial | null = null
 let moonOrbitLine: THREE.LineLoop | null = null
 let moonOrbitMat: THREE.LineBasicMaterial | null = null
 let orbitSatellites: {
@@ -244,12 +248,12 @@ let orbitSatellites: {
 }[] = []
 let satOrbitLinesMat: THREE.LineBasicMaterial | null = null
 let saturnGroup: THREE.Group | null = null
-let saturnMat: THREE.MeshBasicMaterial | null = null
-let saturnRingMat: THREE.MeshBasicMaterial | null = null
+let saturnMat: THREE.MeshStandardMaterial | null = null
+let saturnRingMat: THREE.MeshStandardMaterial | null = null
 let marsMesh: THREE.Mesh | null = null
-let marsMat: THREE.MeshBasicMaterial | null = null
+let marsMat: THREE.MeshStandardMaterial | null = null
 let jupiterMesh: THREE.Mesh | null = null
-let jupiterMat: THREE.MeshBasicMaterial | null = null
+let jupiterMat: THREE.MeshStandardMaterial | null = null
 let meteorLine: THREE.Line | null = null
 let meteorHeadMesh: THREE.Mesh | null = null
 let meteorMat: THREE.LineBasicMaterial | null = null
@@ -368,7 +372,8 @@ function applyThemeMaterials(dark: boolean) {
     starPointsMat.opacity = dark ? 0.65 : 0.35
   }
   if (moonMat) {
-    moonMat.color.setHex(dark ? 0xd1d5db : 0x94a3b8)
+    moonMat.color.setHex(dark ? 0xe2e8f0 : 0x94a3b8)
+    moonMat.roughness = dark ? 0.85 : 0.75
   }
   if (moonOrbitMat) {
     moonOrbitMat.color.setHex(dark ? 0x64748b : 0x94a3b8)
@@ -383,13 +388,18 @@ function applyThemeMaterials(dark: boolean) {
   }
   if (saturnRingMat) {
     saturnRingMat.color.setHex(dark ? 0xfde68a : 0xb45309)
-    saturnRingMat.opacity = dark ? 0.45 : 0.35
   }
   if (marsMat) {
-    marsMat.color.setHex(dark ? 0xf87171 : 0xef4444)
+    marsMat.color.setHex(dark ? 0xef4444 : 0xdc2626)
   }
   if (jupiterMat) {
     jupiterMat.color.setHex(dark ? 0xfde68a : 0xc2410c)
+  }
+  if (sunLight) {
+    sunLight.intensity = dark ? 2.4 : 1.8
+  }
+  if (ambientLight) {
+    ambientLight.intensity = dark ? 0.4 : 0.65
   }
   if (meteorMat) {
     meteorMat.color.setHex(dark ? 0xffffff : 0x0284c7)
@@ -432,6 +442,14 @@ function initThree() {
   camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100)
   const initialDist = width < 640 ? 4.8 : (width < 1024 ? 4.3 : 3.8)
   camera.position.set(0, 0, initialDist)
+
+  // Ambient & Sun Lights for Volumetric 3D Shading
+  ambientLight = new THREE.AmbientLight(0xffffff, isDark.value ? 0.4 : 0.65)
+  scene.add(ambientLight)
+
+  sunLight = new THREE.DirectionalLight(0xffffff, isDark.value ? 2.4 : 1.8)
+  sunLight.position.set(6, 4, 5)
+  scene.add(sunLight)
 
   // 2. WebGL Renderer
   renderer = new THREE.WebGLRenderer({
@@ -708,9 +726,11 @@ function buildMoon() {
   celestialGroup.add(moonOrbitLine)
 
   // 2. Moon Body
-  const moonGeo = new THREE.SphereGeometry(0.12, 24, 24)
-  moonMat = new THREE.MeshBasicMaterial({
-    color: isDark.value ? 0xd1d5db : 0x94a3b8,
+  const moonGeo = new THREE.SphereGeometry(0.14, 32, 32)
+  moonMat = new THREE.MeshStandardMaterial({
+    color: isDark.value ? 0xe2e8f0 : 0x94a3b8,
+    roughness: 0.85,
+    metalness: 0.05,
   })
   moonMesh = new THREE.Mesh(moonGeo, moonMat)
 
@@ -771,27 +791,37 @@ function buildOrbitalSatellites() {
     trackLine.rotation.z = config.inclinationZ
     celestialGroup.add(trackLine)
 
-    // 2. Satellite Group
+    // 2. Satellite Group (3D Volumetric Metallic Probe)
     const satGroup = new THREE.Group()
 
-    const busGeo = new THREE.BoxGeometry(0.038, 0.024, 0.024)
-    const busMat = new THREE.MeshBasicMaterial({ color: config.busColor })
+    // Central bus with shiny metallic foil material
+    const busGeo = new THREE.BoxGeometry(0.045, 0.028, 0.028)
+    const busMat = new THREE.MeshStandardMaterial({
+      color: config.busColor,
+      metalness: 0.85,
+      roughness: 0.25,
+    })
     const busMesh = new THREE.Mesh(busGeo, busMat)
     satGroup.add(busMesh)
 
-    const wingGeo = new THREE.BoxGeometry(0.07, 0.002, 0.026)
-    const wingMat = new THREE.MeshBasicMaterial({ color: config.panelColor })
+    // Solar array wings with blue metallic sheen
+    const wingGeo = new THREE.BoxGeometry(0.08, 0.003, 0.032)
+    const wingMat = new THREE.MeshStandardMaterial({
+      color: config.panelColor,
+      metalness: 0.9,
+      roughness: 0.15,
+    })
     const wingLeft = new THREE.Mesh(wingGeo, wingMat)
-    wingLeft.position.x = 0.055
+    wingLeft.position.x = 0.065
     const wingRight = new THREE.Mesh(wingGeo, wingMat)
-    wingRight.position.x = -0.055
+    wingRight.position.x = -0.065
     satGroup.add(wingLeft)
     satGroup.add(wingRight)
 
-    const beaconGeo = new THREE.SphereGeometry(0.007, 6, 6)
+    const beaconGeo = new THREE.SphereGeometry(0.008, 8, 8)
     const beaconMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
     const beaconMesh = new THREE.Mesh(beaconGeo, beaconMat)
-    beaconMesh.position.y = 0.018
+    beaconMesh.position.y = 0.02
     satGroup.add(beaconMesh)
 
     // Set initial position
@@ -819,19 +849,24 @@ function buildDistantPlanets() {
 
   // 1. Saturn
   saturnGroup = new THREE.Group()
-  saturnGroup.position.set(4.3, 2.1, -4.5)
+  saturnGroup.position.set(4.5, 2.2, -4.5)
 
-  const saturnGeo = new THREE.SphereGeometry(0.24, 24, 24)
-  saturnMat = new THREE.MeshBasicMaterial({ color: isDark.value ? 0xf59e0b : 0xd97706 })
+  const saturnGeo = new THREE.SphereGeometry(0.28, 32, 32)
+  saturnMat = new THREE.MeshStandardMaterial({
+    color: isDark.value ? 0xf59e0b : 0xd97706,
+    roughness: 0.55,
+    metalness: 0.15,
+  })
   const saturnMesh = new THREE.Mesh(saturnGeo, saturnMat)
   saturnGroup.add(saturnMesh)
 
-  const ringGeo = new THREE.RingGeometry(0.32, 0.54, 36)
-  saturnRingMat = new THREE.MeshBasicMaterial({
+  const ringGeo = new THREE.RingGeometry(0.36, 0.62, 48)
+  saturnRingMat = new THREE.MeshStandardMaterial({
     color: isDark.value ? 0xfde68a : 0xb45309,
     side: THREE.DoubleSide,
     transparent: true,
-    opacity: isDark.value ? 0.45 : 0.35,
+    opacity: 0.75,
+    roughness: 0.4,
   })
   const ringMesh = new THREE.Mesh(ringGeo, saturnRingMat)
   ringMesh.rotation.x = 1.15
@@ -840,17 +875,25 @@ function buildDistantPlanets() {
   celestialGroup.add(saturnGroup)
 
   // 2. Mars
-  const marsGeo = new THREE.SphereGeometry(0.12, 18, 18)
-  marsMat = new THREE.MeshBasicMaterial({ color: isDark.value ? 0xf87171 : 0xef4444 })
+  const marsGeo = new THREE.SphereGeometry(0.14, 24, 24)
+  marsMat = new THREE.MeshStandardMaterial({
+    color: isDark.value ? 0xef4444 : 0xdc2626,
+    roughness: 0.75,
+    metalness: 0.1,
+  })
   marsMesh = new THREE.Mesh(marsGeo, marsMat)
-  marsMesh.position.set(-3.8, -1.9, -4.0)
+  marsMesh.position.set(-4.0, -2.0, -4.0)
   celestialGroup.add(marsMesh)
 
   // 3. Jupiter
-  const jupiterGeo = new THREE.SphereGeometry(0.36, 24, 24)
-  jupiterMat = new THREE.MeshBasicMaterial({ color: isDark.value ? 0xfde68a : 0xc2410c })
+  const jupiterGeo = new THREE.SphereGeometry(0.40, 32, 32)
+  jupiterMat = new THREE.MeshStandardMaterial({
+    color: isDark.value ? 0xfde68a : 0xc2410c,
+    roughness: 0.6,
+    metalness: 0.1,
+  })
   jupiterMesh = new THREE.Mesh(jupiterGeo, jupiterMat)
-  jupiterMesh.position.set(-4.6, 2.5, -5.5)
+  jupiterMesh.position.set(-4.8, 2.6, -5.5)
   celestialGroup.add(jupiterMesh)
 }
 
@@ -918,6 +961,7 @@ function animateCelestialObjects(currentTime: number, delta: number, reducedMoti
   // 3. Distant Planets
   if (!reducedMotion) {
     if (saturnGroup) saturnGroup.rotation.y += delta * 0.06
+    if (marsMesh) marsMesh.rotation.y += delta * 0.08
     if (jupiterMesh) jupiterMesh.rotation.y += delta * 0.04
   }
 
@@ -1352,6 +1396,8 @@ onBeforeUnmount(() => {
   renderer = null
   scene = null
   camera = null
+  sunLight = null
+  ambientLight = null
   globeGroup = null
   baseSphereMat = null
   gridLineMat = null
