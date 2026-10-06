@@ -1,6 +1,26 @@
 <template>
   <section ref="section" v-section-reveal id="projects" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
-    <div class="projects-header"><div><p v-reveal="{ delay: 0 }" class="projects-eyebrow">{{ content.eyebrow }}</p><h2 v-reveal="{ delay: 60, kind: 'heading' }" class="projects-heading">{{ content.title }}</h2><p v-reveal="{ delay: 120 }" class="projects-intro">{{ content.description }}</p></div><p v-reveal="{ delay: 360, kind: 'accent' }" class="projects-note">{{ content.note[0] }}<br />{{ content.note[1] }}</p></div>
+    <div class="projects-header">
+      <div>
+        <p v-reveal="{ delay: 0 }" class="projects-eyebrow">{{ content.eyebrow }}</p>
+        <h2 v-reveal="{ delay: 60, kind: 'heading' }" class="projects-heading">{{ content.title }}</h2>
+        <p v-reveal="{ delay: 120 }" class="projects-intro">{{ content.description }}</p>
+      </div>
+      <div v-reveal="{ delay: 360, kind: 'accent' }" class="projects-showcase-action shrink-0">
+        <button
+          type="button"
+          class="btn-showcase-trigger group flex items-center gap-2.5 py-2 px-3.5 sm:px-4 rounded-full border border-black/15 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.08] dark:hover:bg-white/[0.09] hover:border-black/30 dark:hover:border-white/30 transition-all duration-300 cursor-pointer shadow-sm hover:shadow active:scale-95"
+          @click="openShowcase()"
+          :aria-label="content.showcaseButtonLabel ?? '3D Showcase'"
+        >
+          <MiniGlobeWidget class="w-6 h-6 sm:w-7 sm:h-7 shrink-0" />
+          <span class="font-mono text-xs font-semibold tracking-wider uppercase text-[var(--primary)] group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
+            {{ content.showcaseButtonLabel ?? '3D Showcase' }}
+          </span>
+          <span class="font-mono text-xs text-[var(--secondary)] transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
     <div ref="grid" class="projects-grid" :style="{ minHeight: gridHeight }" :aria-busy="isPaging">
       <Transition :css="false" mode="out-in" @leave="leavePage" @enter="enterPage"
         @after-enter="finishPaging" @enter-cancelled="cancelPaging" @leave-cancelled="cancelPaging">
@@ -39,6 +59,8 @@ import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { Project } from '@/types'
 import ImageLightbox from '@/components/ImageLightbox.vue'
 import ProjectCard from '@/components/ProjectCard.vue'
+import MiniGlobeWidget from '@/components/globe/MiniGlobeWidget.vue'
+import { openShowcase } from '@/composables/useShowcase'
 import { useMediaQuery } from '@/composables/useMediaQuery'
 import { revealSection } from '@/directives/reveal'
 
@@ -185,18 +207,18 @@ function openLightbox(p: Project) {
 
 #projects { position: relative; isolation: isolate; }
 #projects::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: linear-gradient(to right,var(--grid) 1px,transparent 1px),linear-gradient(to bottom,var(--grid) 1px,transparent 1px); background-size: 40px 40px; opacity: .45; mask-image: radial-gradient(ellipse at 55% 30%,black,transparent 70%); }
-.projects-header { display: flex; align-items: center; justify-content: space-between; gap: 36px; margin-bottom: 28px; }
+.projects-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
 .projects-eyebrow { font-family: ui-monospace,monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--label); }
 .projects-heading { margin-top: 10px; font-size: clamp(32px,3vw,44px); font-weight: 600; line-height: 1.2; letter-spacing: -.035em; }
 .projects-intro { color: var(--secondary); margin-top: 12px; max-width: 680px; font-size: 14px; line-height: 1.6; }
-.projects-note { color: var(--secondary); font-size: 12px; line-height: 1.6; flex-shrink: 0; }
+.projects-showcase-action { margin-bottom: 4px; }
 .projects-page { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; }
 .projects-pagination { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 32px; }
 .projects-pagination button { min-height: 44px; }
 .projects-pagination button:disabled { pointer-events: none; cursor: default; }
 .page-count { color: var(--secondary); font-size: 12px; }
 .page-short { display: none; }
-@media (max-width: 1200px) { .projects-note { display: none; } }
+@media (max-width: 768px) { .projects-header { flex-direction: column; align-items: flex-start; gap: 20px; } }
 @media (max-width: 900px) { .projects-page { grid-template-columns: minmax(0,1fr); } }
 @media (max-width: 639px) { .projects-page { gap: 18px; } .projects-pagination button { padding-inline: 14px; } .page-long { display: none; } .page-short { display: inline; } }
 </style>

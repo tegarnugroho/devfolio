@@ -81,6 +81,7 @@ export const id = {
     pageLabel: (page: number, total: number) => `Halaman ${page} dari ${total}`,
     detailsLabel: 'Lihat detail proyek', detailsHint: 'Lihat detail +', projectDetailsLabel: (title: string) => `Lihat detail proyek ${title}`,
     screenshotAlt: (title: string) => `Tangkapan layar ${title}`, imageCount: (count: number) => `${count} gambar`, liveLabel: 'Kunjungi', codeLabel: 'Kode',
+    showcaseButtonLabel: 'Showcase 3D',
     items: en.projects.items.map(project => ({ ...project, description: projectDescription(project.title) })),
   },
   showcase: {

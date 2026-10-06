@@ -104,6 +104,7 @@ export const projectsContent = {
   screenshotAlt: (title: string) => `${title} screenshot`,
   imageCount: (count: number) => `${count} images`,
   liveLabel: 'Live', codeLabel: 'Code',
+  showcaseButtonLabel: '3D Showcase',
   items: [
     {
       status: 'published',
