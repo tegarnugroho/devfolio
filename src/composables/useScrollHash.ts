@@ -3,6 +3,8 @@ import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 import { updateSectionUrl } from './useTranslation'
 import { navigationTarget } from './useSectionNavigation'
 
+export const activeScrollSection = ref<string>('hero')
+
 export function useScrollHash(selector = 'section[id]'): { current: Ref<string | null> } {
   const current = ref<string | null>(null)
   let observer: IntersectionObserver | null = null
@@ -22,6 +24,7 @@ export function useScrollHash(selector = 'section[id]'): { current: Ref<string |
         const id = (visible[0].target as HTMLElement).id
         if (id && current.value !== id) {
           current.value = id
+          activeScrollSection.value = id
           // Update hash without adding a new history entry or causing a jump
           updateSectionUrl(id)
         }

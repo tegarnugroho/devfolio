@@ -10,7 +10,7 @@
         <button
           type="button"
           class="btn-showcase-trigger group flex items-center gap-2.5 py-2 px-3.5 sm:px-4 rounded-full border border-black/15 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.08] dark:hover:bg-white/[0.09] hover:border-black/30 dark:hover:border-white/30 transition-all duration-300 cursor-pointer shadow-sm hover:shadow active:scale-95"
-          @click="openShowcase()"
+          @click="openShowcase('projects')"
           :aria-label="content.showcaseButtonLabel ?? '3D Showcase'"
         >
           <MiniGlobeWidget class="w-6 h-6 sm:w-7 sm:h-7 shrink-0" />
