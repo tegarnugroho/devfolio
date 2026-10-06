@@ -182,21 +182,21 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
 import { registerContentNavigator, setSection } from '@/composables/useShowcase'
 
-// Volcanic Mountains on Java (Topographic Displacement Peaks)
+// Volcanic Mountains on Java (Topographic Displacement Peaks - Scaled to realistic natural relief)
 const volcanicPeaks = [
-  { name: 'Semeru', lat: -8.11, lng: 112.92, h: 0.44, radius: 0.17 }, // Highest in Java (3,676m)
-  { name: 'Bromo', lat: -7.94, lng: 112.95, h: 0.32, radius: 0.14 },  // Famous Caldera
-  { name: 'Arjuno-Welirang', lat: -7.76, lng: 112.58, h: 0.38, radius: 0.16 }, // West of Sidoarjo (3,339m)
-  { name: 'Lawu', lat: -7.63, lng: 111.19, h: 0.36, radius: 0.16 },   // Solo / Karanganyar (3,265m)
-  { name: 'Merapi', lat: -7.54, lng: 110.44, h: 0.34, radius: 0.14 }, // Yogyakarta (2,930m)
-  { name: 'Merbabu', lat: -7.45, lng: 110.43, h: 0.35, radius: 0.14 },
-  { name: 'Slamet', lat: -7.24, lng: 109.21, h: 0.41, radius: 0.18 }, // Central Java (3,428m)
-  { name: 'Sindoro-Sumbing', lat: -7.30, lng: 109.99, h: 0.35, radius: 0.15 },
-  { name: 'Ciremai', lat: -6.89, lng: 108.40, h: 0.34, radius: 0.15 }, // Kuningan (3,078m)
-  { name: 'Tangkuban Perahu', lat: -6.76, lng: 107.60, h: 0.28, radius: 0.14 },
-  { name: 'Gede-Pangrango', lat: -6.78, lng: 106.98, h: 0.35, radius: 0.16 }, // West Java (3,008m)
-  { name: 'Salak', lat: -6.71, lng: 106.73, h: 0.28, radius: 0.14 },
-  { name: 'Raung-Ijen', lat: -8.06, lng: 114.24, h: 0.37, radius: 0.16 }, // East Java (3,332m)
+  { name: 'Semeru', lat: -8.11, lng: 112.92, h: 0.14, radius: 0.22 }, // Highest in Java (3,676m)
+  { name: 'Bromo', lat: -7.94, lng: 112.95, h: 0.10, radius: 0.18 },  // Famous Caldera
+  { name: 'Arjuno-Welirang', lat: -7.76, lng: 112.58, h: 0.11, radius: 0.20 }, // West of Sidoarjo (3,339m)
+  { name: 'Lawu', lat: -7.63, lng: 111.19, h: 0.12, radius: 0.20 },   // Solo / Karanganyar (3,265m)
+  { name: 'Merapi', lat: -7.54, lng: 110.44, h: 0.10, radius: 0.18 }, // Yogyakarta (2,930m)
+  { name: 'Merbabu', lat: -7.45, lng: 110.43, h: 0.10, radius: 0.18 },
+  { name: 'Slamet', lat: -7.24, lng: 109.21, h: 0.13, radius: 0.22 }, // Central Java (3,428m)
+  { name: 'Sindoro-Sumbing', lat: -7.30, lng: 109.99, h: 0.11, radius: 0.18 },
+  { name: 'Ciremai', lat: -6.89, lng: 108.40, h: 0.11, radius: 0.18 }, // Kuningan (3,078m)
+  { name: 'Tangkuban Perahu', lat: -6.76, lng: 107.60, h: 0.08, radius: 0.18 },
+  { name: 'Gede-Pangrango', lat: -6.78, lng: 106.98, h: 0.11, radius: 0.20 }, // West Java (3,008m)
+  { name: 'Salak', lat: -6.71, lng: 106.73, h: 0.08, radius: 0.18 },
+  { name: 'Raung-Ijen', lat: -8.06, lng: 114.24, h: 0.12, radius: 0.20 }, // East Java (3,332m)
 ]
 
 // Geographic Bounding Box for the Satellite View
@@ -294,9 +294,9 @@ let sequenceTimerIds: number[] = []
 function focusSidoarjo() {
   viewMode.value = 'sidoarjo'
   const isMobile = window.innerWidth < 768
-  // Perfectly framed: comfortable distance so Tegar's face and the Sidoarjo terrain are both clearly visible
-  camTargetPos.set(sda3D.x + (isMobile ? 0 : 0.8), isMobile ? 1.85 : 1.65, sda3D.z + (isMobile ? 3.8 : 3.2))
-  camLookAtTarget.set(sda3D.x, 0.72, sda3D.z)
+  // Aerial perspective looking down onto Sidoarjo with 100% unobstructed line of sight
+  camTargetPos.set(sda3D.x + (isMobile ? 0 : 0.6), isMobile ? 2.5 : 2.2, sda3D.z + (isMobile ? 2.8 : 2.3))
+  camLookAtTarget.set(sda3D.x, 0.45, sda3D.z)
 }
 
 function focusOverview() {
