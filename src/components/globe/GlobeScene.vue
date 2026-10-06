@@ -187,7 +187,6 @@ interface MarkerMeshItem {
   id: string
   clusterId: string
   dotMesh: THREE.Mesh
-  ringMesh: THREE.Mesh
   hitMesh: THREE.Mesh
   normalVec: THREE.Vector3
   centerPos: THREE.Vector3
@@ -200,7 +199,6 @@ let markerMeshes: MarkerMeshItem[] = []
 let clusterHubMeshes: {
   id: string
   mesh: THREE.Mesh
-  pulseMesh: THREE.Mesh
   hitMesh: THREE.Mesh
   pos: THREE.Vector3
   normal: THREE.Vector3
@@ -216,8 +214,7 @@ let arcMeshList: {
   offset: number
 }[] = []
 
-// Satellite Radar Reticle
-let reticleGroup: THREE.Group | null = null
+// Satellite Connector Lines
 let satelliteBeamLines: THREE.LineSegments | null = null
 let beamLinePositions: Float32Array | null = null
 
@@ -378,11 +375,11 @@ function initThree() {
   const coastMesh = new THREE.LineSegments(coastGeo, coastMat)
   globeGroup.add(coastMesh)
 
-  // 9. Arcs & Markers
+  // 9. Arcs, Hubs & Markers
   buildArcs()
   buildClusterHubs()
   buildMarkers()
-  buildSatelliteReticle()
+  buildSatelliteBeams()
 
   // Initial target alignment
   if (props.activeId) {
@@ -394,35 +391,8 @@ function initThree() {
   }
 }
 
-function buildSatelliteReticle() {
+function buildSatelliteBeams() {
   if (!globeGroup) return
-
-  reticleGroup = new THREE.Group()
-  reticleGroup.visible = false
-
-  // Reticle Outer Ring
-  const reticleRingGeo = new THREE.RingGeometry(0.38, 0.395, 48)
-  const reticleRingMat = new THREE.MeshBasicMaterial({
-    color: 0x38bdf8,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.45,
-  })
-  const reticleRing = new THREE.Mesh(reticleRingGeo, reticleRingMat)
-  reticleGroup.add(reticleRing)
-
-  // Reticle Inner Dashed Ring
-  const reticleInnerGeo = new THREE.RingGeometry(0.24, 0.248, 36)
-  const reticleInnerMat = new THREE.MeshBasicMaterial({
-    color: 0x38bdf8,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.3,
-  })
-  const reticleInner = new THREE.Mesh(reticleInnerGeo, reticleInnerMat)
-  reticleGroup.add(reticleInner)
-
-  globeGroup.add(reticleGroup)
 
   // Satellite connector lines (connecting center to fanning satellite dots)
   const maxBeams = 16
@@ -436,6 +406,7 @@ function buildSatelliteReticle() {
     opacity: 0.35,
   })
   satelliteBeamLines = new THREE.LineSegments(beamGeo, beamMat)
+  satelliteBeamLines.visible = false
   globeGroup.add(satelliteBeamLines)
 }
 
@@ -492,24 +463,11 @@ function buildClusterHubs() {
     const pos = latLngToVector3(c.lat, c.lng, GLOBE_RADIUS * 1.012)
     const normal = pos.clone().normalize()
 
-    // Cluster Central Glowing Sphere
+    // Cluster Central Glowing Sphere Point
     const hubGeo = new THREE.SphereGeometry(0.046, 16, 16)
     const hubMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6 })
     const hubMesh = new THREE.Mesh(hubGeo, hubMat)
     hubMesh.position.copy(pos)
-
-    // Pulse Halo
-    const haloGeo = new THREE.RingGeometry(0.058, 0.086, 32)
-    const haloMat = new THREE.MeshBasicMaterial({
-      color: 0x60a5fa,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.7,
-    })
-    const pulseMesh = new THREE.Mesh(haloGeo, haloMat)
-    pulseMesh.position.copy(pos.clone().add(normal.clone().multiplyScalar(0.005)))
-    pulseMesh.lookAt(pos.clone().add(normal))
-    hubMesh.add(pulseMesh)
 
     // Hit Sphere for Raycasting
     const hitGeo = new THREE.SphereGeometry(0.24, 8, 8)
@@ -524,7 +482,6 @@ function buildClusterHubs() {
     clusterHubMeshes.push({
       id: c.id,
       mesh: hubMesh,
-      pulseMesh,
       hitMesh,
       pos,
       normal,
@@ -541,24 +498,11 @@ function buildMarkers() {
     const pos = latLngToVector3(m.lat, m.lng, GLOBE_RADIUS * 1.012)
     const normal = pos.clone().normalize()
 
-    // Core 3D Dot
-    const dotGeo = new THREE.SphereGeometry(0.032, 16, 16)
+    // Core 3D Dot Point
+    const dotGeo = new THREE.SphereGeometry(0.034, 16, 16)
     const dotMat = new THREE.MeshBasicMaterial({ color: m.accentColor })
     const dotMesh = new THREE.Mesh(dotGeo, dotMat)
     dotMesh.position.copy(pos)
-
-    // Outer Ring
-    const ringGeo = new THREE.RingGeometry(0.044, 0.065, 32)
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: m.accentColor,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.65,
-    })
-    const ringMesh = new THREE.Mesh(ringGeo, ringMat)
-    ringMesh.position.copy(pos.clone().add(normal.clone().multiplyScalar(0.004)))
-    ringMesh.lookAt(pos.clone().add(normal))
-    dotMesh.add(ringMesh)
 
     // Hit Sphere for Raycasting
     const hitGeo = new THREE.SphereGeometry(0.16, 8, 8)
@@ -574,7 +518,6 @@ function buildMarkers() {
       id: m.id,
       clusterId: m.clusterId,
       dotMesh,
-      ringMesh,
       hitMesh,
       normalVec: normal,
       centerPos: pos,
@@ -691,19 +634,6 @@ function animate(currentTime: number) {
 
 function updateSatellitePositions(currentTime: number) {
   let beamIndex = 0
-  const activeCluster = clusterHubMeshes.find(c => c.id === props.activeClusterId)
-
-  // Update Satellite Reticle position and visibility
-  if (reticleGroup) {
-    if (props.isZoomed && activeCluster) {
-      reticleGroup.visible = true
-      reticleGroup.position.copy(activeCluster.pos.clone().add(activeCluster.normal.clone().multiplyScalar(0.006)))
-      reticleGroup.lookAt(activeCluster.pos.clone().add(activeCluster.normal))
-      reticleGroup.rotateZ(0.004) // Gentle radar spin
-    } else {
-      reticleGroup.visible = false
-    }
-  }
 
   // Update each marker position
   for (const m of markerMeshes) {
@@ -755,7 +685,6 @@ function updateSatellitePositions(currentTime: number) {
 
   // Cluster Hubs visibility
   for (const ch of clusterHubMeshes) {
-    // In global view, show cluster hubs; in satellite zoom view, hub becomes the central radar anchor
     ch.mesh.visible = !props.isZoomed || props.activeClusterId === ch.id
     ch.hitMesh.visible = !props.isZoomed
   }
@@ -836,9 +765,6 @@ function updateHtmlLabels() {
     const isActive = props.activeId === m.id
     const targetScale = isActive ? 1.35 : 0.95
     m.dotMesh.scale.setScalar(THREE.MathUtils.lerp(m.dotMesh.scale.x, targetScale, 0.15))
-
-    const ringMat = m.ringMesh.material as THREE.MeshBasicMaterial
-    ringMat.opacity = THREE.MathUtils.lerp(ringMat.opacity, isActive ? 0.9 : 0.4, 0.15)
 
     if (dot > 0.12) {
       const projected = worldPos.clone().project(camera)
