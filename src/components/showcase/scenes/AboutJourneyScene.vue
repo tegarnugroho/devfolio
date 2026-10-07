@@ -7,7 +7,7 @@
     <!-- WebGL Canvas -->
     <canvas
       ref="canvas"
-      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none"
+      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
@@ -22,7 +22,7 @@
     <Transition name="fade">
       <div
         v-if="!introCompleted"
-        class="pointer-events-none absolute top-6 left-1/2 -translate-x-1/2 z-30 px-3.5 py-1 rounded-full bg-zinc-950/85 border border-white/15 backdrop-blur-md flex items-center gap-2 text-[10px] font-mono text-zinc-300 shadow-2xl"
+        class="pointer-events-none absolute top-[max(1.25rem,env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-30 px-3.5 py-1 rounded-full bg-zinc-950/85 border border-white/15 backdrop-blur-md flex items-center gap-2 text-[10px] font-mono text-zinc-300 shadow-2xl"
       >
         <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
         <span class="tracking-wider uppercase text-zinc-200 font-medium">
@@ -33,7 +33,7 @@
 
     <!-- Editorial Section Typography (Left Side - Revealed in Phase 3) -->
     <div
-      class="pointer-events-none absolute top-16 sm:top-20 left-6 sm:left-12 z-10 max-w-xs space-y-2.5 transition-all duration-700 ease-out"
+      class="pointer-events-none absolute top-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] sm:top-20 left-4 sm:left-12 z-10 max-w-xs space-y-1.5 sm:space-y-2.5 transition-all duration-700 ease-out"
       :class="showDescription ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'"
     >
       <div class="flex items-center gap-2">
@@ -41,10 +41,10 @@
         <span class="w-3.5 h-[1px] bg-zinc-600"></span>
         <span class="font-mono text-[10px] text-zinc-300 uppercase tracking-widest font-medium">ABOUT // BASE LOCATION</span>
       </div>
-      <h1 class="text-2xl sm:text-3xl font-light tracking-tight text-zinc-100 font-sans leading-tight">
+      <h1 class="text-xl sm:text-3xl font-light tracking-tight text-zinc-100 font-sans leading-tight">
         Sidoarjo, Indonesia
       </h1>
-      <p class="text-[11.5px] text-zinc-400 leading-relaxed font-sans max-w-[270px] font-normal">
+      <p class="hidden sm:block text-[11.5px] text-zinc-400 leading-relaxed font-sans max-w-[270px] font-normal">
         Based in Sidoarjo, East Java. Engineering high-performance cross-platform software, mobile clients, and distributed architectures at Wolkk.
       </p>
 
@@ -90,7 +90,7 @@
 
     <!-- Compact Editorial Description Panel (Bottom-Left - Revealed in Phase 3) -->
     <div
-      class="editorial-panel absolute bottom-6 sm:bottom-10 left-6 sm:left-12 right-6 sm:right-auto z-20 max-w-sm sm:w-88 pointer-events-auto p-4 sm:p-5 rounded-xl border border-white/10 bg-zinc-950/85 backdrop-blur-xl shadow-2xl space-y-3.5 transition-all duration-700 ease-out"
+      class="editorial-panel absolute bottom-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))] sm:bottom-10 left-4 right-4 sm:left-12 sm:right-auto z-20 max-w-sm sm:w-88 pointer-events-auto p-3.5 sm:p-5 rounded-xl border border-white/10 bg-zinc-950/90 backdrop-blur-xl shadow-2xl space-y-2.5 sm:space-y-3.5 transition-all duration-700 ease-out"
       :class="showDescription ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'"
       @click.stop
     >
@@ -711,12 +711,16 @@ function updateScreenPositions() {
   }
 }
 
+let pointerStartX = 0
+let pointerStartY = 0
+
 // Interaction Handlers (Drag, Zoom, Raycasting)
 function onPointerDown(e: PointerEvent) {
   isDragging = true
   prevPointerX = e.clientX
   prevPointerY = e.clientY
-  checkRaycast(e, true)
+  pointerStartX = e.clientX
+  pointerStartY = e.clientY
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -738,8 +742,15 @@ function onPointerMove(e: PointerEvent) {
   }
 }
 
-function onPointerUp() {
+function onPointerUp(e: PointerEvent) {
+  if (isDragging) {
+    const dist = Math.hypot(e.clientX - pointerStartX, e.clientY - pointerStartY)
+    if (dist < 6) {
+      checkRaycast(e, true)
+    }
+  }
   isDragging = false
+  if (canvas.value) canvas.value.style.cursor = 'grab'
 }
 
 function onWheel(e: WheelEvent) {

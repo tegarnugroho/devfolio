@@ -29,7 +29,7 @@
     </div>
 
     <!-- HUD Sub-controls: Mode Switcher & Cluster Zoom Out -->
-    <div class="absolute top-20 sm:top-24 left-5 sm:left-8 z-10 flex items-center gap-2 pointer-events-auto">
+    <div class="absolute top-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] sm:top-24 left-4 sm:left-8 z-10 flex items-center gap-2 pointer-events-auto">
       <!-- Satellite Zoom Out Button -->
       <Transition name="fade">
         <button
@@ -74,7 +74,7 @@
     <!-- Active Project Details Card (Bottom Overlay) -->
     <div
       v-if="activeMarker"
-      class="absolute bottom-6 sm:bottom-8 left-5 sm:left-8 z-10 max-w-sm sm:max-w-md w-full pointer-events-auto"
+      class="absolute bottom-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))] sm:bottom-8 left-4 right-4 sm:left-8 sm:right-auto z-10 max-w-sm sm:max-w-md pointer-events-auto"
     >
       <div class="p-4 sm:p-5 rounded-2xl border border-white/15 bg-black/80 backdrop-blur-xl shadow-2xl space-y-3">
         <div class="flex items-start justify-between gap-3">

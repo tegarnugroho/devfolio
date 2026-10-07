@@ -2,7 +2,7 @@
   <Transition name="editorial-fade">
     <div
       v-if="article"
-      class="writing-article-panel pointer-events-auto absolute bottom-6 sm:bottom-10 right-6 sm:right-12 z-20 max-w-sm sm:w-88 p-4 sm:p-5 rounded-xl border border-white/10 bg-zinc-950/85 backdrop-blur-xl shadow-2xl space-y-3.5 select-none"
+      class="writing-article-panel pointer-events-auto absolute bottom-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))] sm:bottom-10 left-4 right-4 sm:left-auto sm:right-12 z-20 max-w-sm sm:w-88 p-3.5 sm:p-5 rounded-xl border border-white/10 bg-zinc-950/90 backdrop-blur-xl shadow-2xl space-y-2.5 sm:space-y-3.5 select-none"
       @click.stop
     >
       <!-- Panel Header -->

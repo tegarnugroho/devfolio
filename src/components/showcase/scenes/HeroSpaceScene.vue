@@ -1,24 +1,151 @@
 <template>
   <div
     ref="container"
-    class="hero-digital-core-scene relative w-full h-full select-none overflow-hidden bg-[#03060b]"
+    class="hero-digital-core-scene relative w-full h-full select-none overflow-hidden bg-[#03060b] flex flex-col justify-between md:block px-4 sm:px-5 pt-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] pb-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))] md:p-0"
   >
-    <!-- WebGL Canvas -->
-    <canvas
-      ref="canvas"
-      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none"
-      @pointerdown="onPointerDown"
-      @pointermove="onPointerMove"
-      @pointerup="onPointerUp"
-      @pointercancel="onPointerUp"
-    ></canvas>
-
     <!-- Deep Ambient Vignette (Seamless background blend) -->
     <div class="pointer-events-none absolute inset-0 gallery-ambient-vignette" aria-hidden="true"></div>
 
-    <!-- Editorial Split Layout: Left Content Column (45-50% width on Desktop) -->
+    <!-- 1. 3D Canvas Stage (Controlled 40-50dvh on Mobile, Fullscreen on Desktop) -->
     <div
-      class="pointer-events-none absolute top-24 sm:top-28 md:top-32 left-6 sm:left-12 bottom-10 sm:bottom-12 z-20 max-w-sm sm:max-w-md w-full flex flex-col justify-between select-none"
+      class="canvas-viewport relative md:absolute w-full h-[44dvh] sm:h-[48dvh] max-h-[460px] min-h-[260px] my-auto md:my-0 md:inset-0 md:h-full md:max-h-none z-10 md:z-0 rounded-2xl md:rounded-none overflow-hidden select-none flex items-center justify-center border border-white/5 md:border-0"
+    >
+      <canvas
+        ref="canvas"
+        class="w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none"
+        @pointerdown="onPointerDown"
+        @pointermove="onPointerMove"
+        @pointerup="onPointerUp"
+        @pointercancel="onPointerUp"
+      ></canvas>
+
+      <!-- WebGL Fallback -->
+      <div
+        v-if="!isWebGLSupported"
+        class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-zinc-950/90 text-zinc-300"
+      >
+        <div class="w-16 h-16 rounded-full border border-sky-400/40 flex items-center justify-center text-sky-400 mb-2">
+          ◉
+        </div>
+        <p class="font-mono text-xs font-semibold">DIGITAL ARCHITECTURE CORE</p>
+        <p class="text-[11px] text-zinc-400 mt-1">Cross-platform Flutter & Systems Architecture</p>
+      </div>
+
+      <!-- Subtle Mobile Touch Hint (Auto-fades on first user touch) -->
+      <Transition name="fade">
+        <div
+          v-if="!hasInteracted && isMobile"
+          class="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-zinc-950/85 border border-white/10 text-zinc-300 font-mono text-[9px] tracking-widest uppercase backdrop-blur-md whitespace-nowrap shadow-lg flex items-center gap-1.5"
+        >
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+          <span>↔ DRAG TO EXPLORE</span>
+        </div>
+      </Transition>
+
+      <!-- Reset View Control (Minimal ↻ button) -->
+      <button
+        type="button"
+        class="pointer-events-auto absolute top-3 right-3 z-20 w-7 h-7 rounded-full bg-black/60 hover:bg-white/15 border border-white/15 text-zinc-300 hover:text-white flex items-center justify-center font-mono text-xs backdrop-blur-md transition active:scale-95 cursor-pointer shadow-md"
+        @click="resetView"
+        title="Reset View"
+        aria-label="Reset 3D camera and rotation"
+      >
+        ↻
+      </button>
+    </div>
+
+    <!-- 2. Mobile Editorial Layout Overlays (md:hidden) -->
+    <div class="md:hidden absolute inset-0 z-20 pointer-events-none flex flex-col justify-between px-4 sm:px-5 pt-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] pb-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))] overflow-y-auto no-scrollbar">
+      <!-- Top Mobile Section Info -->
+      <div class="space-y-2 pointer-events-auto shrink-0 select-none">
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-[9.5px] text-zinc-400 tracking-widest font-semibold">01</span>
+          <span class="w-3 h-[1px] bg-zinc-600"></span>
+          <span class="font-mono text-[9.5px] text-sky-400 uppercase tracking-widest font-medium">DIGITAL CORE</span>
+          <span class="text-zinc-600 font-mono text-[9.5px]">·</span>
+          <span class="font-mono text-[9.5px] text-zinc-400 tracking-wider">FLUTTER DEV</span>
+        </div>
+
+        <div class="space-y-0.5">
+          <p class="font-mono text-[9px] uppercase tracking-[0.25em] text-zinc-400 font-semibold">
+            {{ hero.eyebrow }}
+          </p>
+          <h1 class="text-3xl font-extrabold tracking-tight text-white leading-tight">
+            {{ portfolioContent.site.name }}<span class="text-sky-400">{{ portfolioContent.site.brandPeriod }}</span>
+          </h1>
+        </div>
+
+        <p class="text-[11.5px] text-zinc-300 leading-relaxed font-sans max-w-sm line-clamp-3 font-normal">
+          {{ hero.description }}
+        </p>
+      </div>
+
+      <!-- Spacer matching middle 3D canvas viewport -->
+      <div class="pointer-events-none h-[44dvh] sm:h-[48dvh] max-h-[460px] min-h-[260px] my-auto"></div>
+
+      <!-- Bottom Mobile Controls & CTA -->
+      <div class="space-y-3 pointer-events-auto shrink-0 select-none pb-1">
+        <!-- Architecture Layer View Switcher -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="font-mono text-[9px] uppercase tracking-wider text-zinc-500 font-medium">VIEW:</span>
+            <button
+              type="button"
+              class="px-2.5 py-1 rounded text-[9px] font-mono tracking-wider transition-colors cursor-pointer border"
+              :class="
+                inspectionMode === 'assembled'
+                  ? 'bg-white/15 text-white border-white/40 font-semibold'
+                  : 'bg-black/40 text-zinc-400 hover:text-white border-white/10'
+              "
+              @click="setInspectionMode('assembled')"
+            >
+              ASSEMBLED
+            </button>
+            <button
+              type="button"
+              class="px-2.5 py-1 rounded text-[9px] font-mono tracking-wider transition-colors cursor-pointer border"
+              :class="
+                inspectionMode === 'expanded'
+                  ? 'bg-sky-500/20 text-sky-300 border-sky-400/50 font-semibold shadow-[0_0_12px_rgba(56,189,248,0.25)]'
+                  : 'bg-black/40 text-zinc-400 hover:text-white border-white/10'
+              "
+              @click="setInspectionMode('expanded')"
+            >
+              EXPLODED
+            </button>
+          </div>
+
+          <div class="flex items-center gap-1.5 font-mono text-[9px] text-zinc-400">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>CORE ONLINE</span>
+          </div>
+        </div>
+
+        <!-- Primary Call to Actions -->
+        <div class="flex items-center gap-2.5">
+          <button
+            type="button"
+            class="flex-1 py-2.5 px-4 rounded-xl bg-white text-zinc-950 font-mono text-[11px] uppercase tracking-wider font-bold transition hover:bg-zinc-200 active:scale-98 shadow-lg flex items-center justify-center gap-1.5 cursor-pointer"
+            @click="navigateToProjects"
+          >
+            <span>VIEW PROJECTS</span>
+            <span>→</span>
+          </button>
+
+          <button
+            type="button"
+            class="py-2.5 px-4 rounded-xl border border-white/20 bg-black/40 hover:bg-white/10 text-white font-mono text-[11px] uppercase tracking-wider font-medium transition active:scale-98 cursor-pointer backdrop-blur-md"
+            @click="navigateToContact"
+          >
+            CONTACT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Desktop Left Content Column (hidden md:flex) -->
+    <div
+      class="hidden md:flex pointer-events-none absolute top-24 sm:top-28 md:top-32 left-6 sm:left-12 bottom-10 sm:bottom-12 z-20 max-w-sm sm:max-w-md w-full flex-col justify-between select-none"
     >
       <!-- Top Section Info & Identity -->
       <div class="space-y-4">
@@ -130,10 +257,10 @@
       </div>
     </div>
 
-    <!-- Active Hovered Project Tooltip / Action Card -->
+    <!-- Active Hovered Project Tooltip / Action Card (Desktop) -->
     <Transition name="fade">
       <div
-        v-if="hoveredProject"
+        v-if="hoveredProject && !isMobile"
         class="pointer-events-auto absolute z-30 bottom-8 right-8 max-w-xs p-3.5 rounded-xl border border-sky-400/30 bg-zinc-950/90 backdrop-blur-xl shadow-2xl space-y-1.5 select-none"
       >
         <div class="flex items-center justify-between text-[9px] font-mono text-zinc-400">
@@ -159,6 +286,50 @@
         </button>
       </div>
     </Transition>
+
+    <!-- Compact Mobile Project Detail Panel (Dismissible bottom card above safe area) -->
+    <Transition name="fade">
+      <div
+        v-if="selectedProject && isMobile"
+        class="pointer-events-auto absolute bottom-4 left-4 right-4 z-40 p-3.5 rounded-xl border border-sky-400/40 bg-zinc-950/95 backdrop-blur-xl shadow-2xl space-y-1.5 select-none"
+      >
+        <div class="flex items-center justify-between text-[9.5px] font-mono text-zinc-400">
+          <span class="text-sky-400 font-semibold flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+            PROJECT PREVIEW
+          </span>
+          <button
+            type="button"
+            class="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-zinc-300 flex items-center justify-center text-xs cursor-pointer"
+            @click="selectedProject = null"
+            aria-label="Dismiss project preview"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="space-y-0.5">
+          <h3 class="text-sm font-bold text-white tracking-tight">
+            {{ selectedProject.title }}
+          </h3>
+          <p class="text-[10px] font-mono text-sky-300">
+            {{ selectedProject.tech }}
+          </p>
+          <p class="text-[11px] text-zinc-300 line-clamp-2 leading-relaxed">
+            {{ selectedProject.subtitle }}
+          </p>
+        </div>
+        <div class="pt-1 flex items-center justify-between border-t border-white/10">
+          <button
+            type="button"
+            class="text-[10.5px] font-mono text-sky-400 hover:text-white flex items-center gap-1 font-semibold uppercase cursor-pointer"
+            @click="openProjectLink(selectedProject)"
+          >
+            <span>VIEW PROJECT</span>
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -167,13 +338,18 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
 import { portfolioContent } from '@/content/portfolioContent'
 import { setSection } from '@/composables/useShowcase'
+import { useResponsive3D } from '@/composables/useResponsive3D'
 import type { HeroProjectItem, EngineeringDomain, InspectionMode } from '../hero/heroTypes'
 import { createProjectCardTexture, createDomainBadgeTexture } from '../hero/projectCardTexture'
 
 const hero = portfolioContent.hero
+const { isMobile, isSmallMobile, pixelRatio, prefersReducedMotion, checkWebGLSupport } = useResponsive3D()
 
 const container = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
+const isWebGLSupported = ref(checkWebGLSupport())
+const hasInteracted = ref(false)
+const selectedProject = ref<HeroProjectItem | null>(null)
 
 // Inspection mode: assembled (compact) vs expanded (exploded CAD view)
 const inspectionMode = ref<InspectionMode>('assembled')
@@ -309,13 +485,14 @@ interface Domain3DNode {
 }
 const domainNodes: Domain3DNode[] = []
 
-// Interaction & Parallax State
-const isMobile = ref(false)
-const prefersReducedMotion = ref(false)
-
 let isDragging = false
 let prevPointerX = 0
 let prevPointerY = 0
+let touchStartX = 0
+let touchStartY = 0
+let pointerDownTime = 0
+let gestureIntent: 'undecided' | 'rotate' | 'scroll' = 'undecided'
+
 let targetRotY = 0
 let targetRotX = 0
 let currentRotY = 0
@@ -334,29 +511,30 @@ let introProgress = 0
 const introDuration = 1.2 // 1200ms
 
 function initThree() {
-  if (!container.value || !canvas.value) return
+  if (!canvas.value) return
+  if (!isWebGLSupported.value) return
 
-  const width = container.value.clientWidth || window.innerWidth
-  const height = container.value.clientHeight || window.innerHeight
+  const parent = canvas.value.parentElement || container.value
+  const width = parent?.clientWidth || window.innerWidth
+  const height = parent?.clientHeight || window.innerHeight
 
-  isMobile.value = width < 768
-  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const mob = isMobile.value
 
   scene = new THREE.Scene()
 
   // Perspective camera
-  camera = new THREE.PerspectiveCamera(46, width / height, 0.1, 100)
-  camera.position.set(0, 0.1, isMobile.value ? 7.6 : 6.4)
+  camera = new THREE.PerspectiveCamera(mob ? 48 : 46, width / height, 0.1, 100)
+  camera.position.set(0, 0.1, mob ? (isSmallMobile.value ? 7.8 : 7.2) : 6.4)
 
   // WebGL Renderer
   renderer = new THREE.WebGLRenderer({
     canvas: canvas.value,
-    antialias: true,
+    antialias: !isSmallMobile.value,
     alpha: true,
     powerPreference: 'high-performance',
   })
   renderer.setSize(width, height)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75))
+  renderer.setPixelRatio(pixelRatio.value)
   renderer.outputColorSpace = THREE.SRGBColorSpace
 
   // Studio Lighting (Subtle, architectural, directional key + rim)
@@ -377,10 +555,10 @@ function initThree() {
 
   // Master Installation Group
   installationMasterGroup = new THREE.Group()
-  // Offset to the right on desktop (~45-55% viewport) to balance left editorial text
-  const groupCenterX = isMobile.value ? 0.0 : 1.35
-  const groupCenterY = isMobile.value ? -0.45 : -0.25
+  const groupCenterX = mob ? 0.0 : 1.35
+  const groupCenterY = mob ? 0.0 : -0.25
   installationMasterGroup.position.set(groupCenterX, groupCenterY, 0)
+  installationMasterGroup.scale.setScalar(mob ? (isSmallMobile.value ? 0.85 : 0.95) : 1.0)
   scene.add(installationMasterGroup)
 
   // 1. Central 3D Digital Core
@@ -569,12 +747,29 @@ function buildDigitalCore() {
 function buildProjectPreviews() {
   projectNodes.length = 0
 
-  const cardWidth = 1.45
-  const cardHeight = 1.02
+  const isMob = isMobile.value
+  const cardWidth = isMob ? 1.32 : 1.45
+  const cardHeight = isMob ? 0.94 : 1.02
   const cardDepth = 0.025
   const cardGeo = new THREE.BoxGeometry(cardWidth, cardHeight, cardDepth)
 
-  projectPreviews.forEach(proj => {
+  // Mobile: prioritize 2 key project previews positioned closer to the core
+  const list = isMob
+    ? [
+        {
+          ...projectPreviews[0],
+          offset: [-1.45, -0.32, 0.45] as [number, number, number],
+          rotation: [0.03, 0.2, -0.01] as [number, number, number],
+        },
+        {
+          ...projectPreviews[1],
+          offset: [1.45, 0.32, 0.45] as [number, number, number],
+          rotation: [-0.03, -0.2, 0.01] as [number, number, number],
+        },
+      ]
+    : projectPreviews
+
+  list.forEach(proj => {
     const nodeGroup = new THREE.Group()
 
     const activeTexture = createProjectCardTexture(proj, true)
@@ -669,7 +864,7 @@ function buildDomainLayers() {
 
 function updateProjectNodes(delta: number, time: number) {
   projectNodes.forEach((node, idx) => {
-    const isHovered = hoveredProject.value?.id === node.project.id
+    const isHovered = (hoveredProject.value?.id === node.project.id) || (selectedProject.value?.id === node.project.id)
     const targetPos = node.baseOffset.clone()
 
     // Subtle floating depth motion
@@ -729,23 +924,28 @@ function updateInspectionLayout(delta: number) {
 // Pointer & Interaction Handlers
 function onPointerDown(e: PointerEvent) {
   isDragging = true
+  touchStartX = e.clientX
+  touchStartY = e.clientY
   prevPointerX = e.clientX
   prevPointerY = e.clientY
+  pointerDownTime = performance.now()
+  gestureIntent = 'undecided'
 }
 
 function onPointerMove(e: PointerEvent) {
-  if (!container.value || !camera) return
+  if (!canvas.value || !camera) return
 
-  const rect = container.value.getBoundingClientRect()
+  const rect = canvas.value.getBoundingClientRect()
   const x = e.clientX - rect.left
   const y = e.clientY - rect.top
 
   mouse.x = (x / rect.width) * 2 - 1
   mouse.y = -(y / rect.height) * 2 + 1
 
-  // Multi-depth camera parallax
-  targetCamX = mouse.x * 0.25
-  targetCamY = mouse.y * 0.18
+  if (!isMobile.value) {
+    targetCamX = mouse.x * 0.25
+    targetCamY = mouse.y * 0.18
+  }
 
   if (isDragging) {
     const dx = e.clientX - prevPointerX
@@ -753,10 +953,28 @@ function onPointerMove(e: PointerEvent) {
     prevPointerX = e.clientX
     prevPointerY = e.clientY
 
-    targetRotY = THREE.MathUtils.clamp(targetRotY + dx * 0.0035, -0.42, 0.42)
-    targetRotX = THREE.MathUtils.clamp(targetRotX + dy * 0.0025, -0.22, 0.22)
-  } else {
-    // Raycasting against project preview slabs
+    const totalDx = Math.abs(e.clientX - touchStartX)
+    const totalDy = Math.abs(e.clientY - touchStartY)
+
+    if (gestureIntent === 'undecided') {
+      if (Math.hypot(totalDx, totalDy) > 6) {
+        if (totalDx > totalDy * 1.1) {
+          gestureIntent = 'rotate'
+          hasInteracted.value = true
+        } else {
+          gestureIntent = 'scroll'
+        }
+      }
+    }
+
+    if (gestureIntent === 'rotate' || !isMobile.value) {
+      if (e.cancelable && isMobile.value) e.preventDefault()
+      targetRotY += dx * (isMobile.value ? 0.0075 : 0.0035)
+      targetRotX = THREE.MathUtils.clamp(targetRotX + dy * (isMobile.value ? 0.005 : 0.0025), -0.45, 0.45)
+      hasInteracted.value = true
+    }
+  } else if (!isMobile.value) {
+    // Desktop raycasting for hover
     raycaster.setFromCamera(mouse, camera)
     const meshes = projectNodes.map(n => n.mesh)
     const intersects = raycaster.intersectObjects(meshes)
@@ -779,8 +997,11 @@ function onPointerMove(e: PointerEvent) {
 
 function onPointerUp(e: PointerEvent) {
   if (isDragging) {
-    const dist = Math.hypot(e.clientX - prevPointerX, e.clientY - prevPointerY)
-    if (dist < 4 && camera) {
+    const dist = Math.hypot(e.clientX - touchStartX, e.clientY - touchStartY)
+    const duration = performance.now() - pointerDownTime
+
+    if (dist < 8 && duration < 320 && camera) {
+      hasInteracted.value = true
       raycaster.setFromCamera(mouse, camera)
       const meshes = projectNodes.map(n => n.mesh)
       const intersects = raycaster.intersectObjects(meshes)
@@ -788,8 +1009,14 @@ function onPointerUp(e: PointerEvent) {
         const projId = intersects[0].object.userData.projectId
         const found = projectPreviews.find(p => p.id === projId)
         if (found) {
-          openProjectLink(found)
+          if (isMobile.value) {
+            selectedProject.value = found
+          } else {
+            openProjectLink(found)
+          }
         }
+      } else {
+        selectedProject.value = null
       }
     }
   }
@@ -797,23 +1024,36 @@ function onPointerUp(e: PointerEvent) {
   if (canvas.value) canvas.value.style.cursor = 'grab'
 }
 
+function resetView() {
+  targetRotY = 0
+  targetRotX = 0
+  targetCamX = 0
+  targetCamY = 0
+  selectedProject.value = null
+  hoveredProject.value = null
+}
+
 function onResize() {
-  if (!container.value || !camera || !renderer || !installationMasterGroup) return
+  if (!canvas.value || !camera || !renderer || !installationMasterGroup) return
 
-  const width = container.value.clientWidth || window.innerWidth
-  const height = container.value.clientHeight || window.innerHeight
+  const parent = canvas.value.parentElement || container.value
+  const width = parent?.clientWidth || window.innerWidth
+  const height = parent?.clientHeight || window.innerHeight
 
-  isMobile.value = width < 768
+  const mob = width < 768 || window.innerWidth < 768
 
   camera.aspect = width / height
-  camera.position.z = isMobile.value ? 7.6 : 6.4
+  camera.fov = mob ? (window.innerWidth < 390 ? 52 : 48) : 46
+  camera.position.z = mob ? (window.innerWidth < 390 ? 8.2 : 7.4) : 6.4
   camera.updateProjectionMatrix()
 
   renderer.setSize(width, height)
+  renderer.setPixelRatio(pixelRatio.value)
 
-  const groupCenterX = isMobile.value ? 0.0 : 1.35
-  const groupCenterY = isMobile.value ? -0.45 : -0.25
+  const groupCenterX = mob ? 0.0 : 1.35
+  const groupCenterY = mob ? 0.0 : -0.25
   installationMasterGroup.position.set(groupCenterX, groupCenterY, 0)
+  installationMasterGroup.scale.setScalar(mob ? (window.innerWidth < 390 ? 0.85 : 0.95) : 1.0)
 }
 
 onMounted(() => {

@@ -6,7 +6,7 @@
     <!-- WebGL Canvas for 3D Communication Field -->
     <canvas
       ref="canvas"
-      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none"
+      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
@@ -18,7 +18,7 @@
 
     <!-- Editorial Contact Information Panel (Left Side on Desktop ~30-35% width) -->
     <div
-      class="pointer-events-auto absolute top-16 sm:top-20 left-6 sm:left-12 z-20 max-w-xs sm:max-w-sm w-full space-y-4 select-none"
+      class="pointer-events-auto absolute top-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] sm:top-20 left-4 sm:left-12 right-4 sm:right-auto z-20 max-w-xs sm:max-w-sm space-y-2.5 sm:space-y-4 select-none"
     >
       <!-- Section Header -->
       <div class="space-y-1">
@@ -279,7 +279,7 @@ function initThree() {
 
   // Perspective camera
   camera = new THREE.PerspectiveCamera(44, width / height, 0.1, 100)
-  camera.position.set(0, 0.1, isMobile.value ? 7.6 : 6.2)
+  camera.position.set(0, 0.1, width < 390 ? 8.4 : (isMobile.value ? 7.6 : 6.2))
 
   // WebGL Renderer
   renderer = new THREE.WebGLRenderer({
@@ -667,10 +667,15 @@ function updateNodesAndSignals(delta: number, time: number) {
 }
 
 // Pointer & Interaction Handlers
+let pointerStartX = 0
+let pointerStartY = 0
+
 function onPointerDown(e: PointerEvent) {
   isDragging = true
   prevPointerX = e.clientX
   prevPointerY = e.clientY
+  pointerStartX = e.clientX
+  pointerStartY = e.clientY
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -716,8 +721,8 @@ function onPointerMove(e: PointerEvent) {
 
 function onPointerUp(e: PointerEvent) {
   if (isDragging) {
-    const dist = Math.hypot(e.clientX - prevPointerX, e.clientY - prevPointerY)
-    if (dist < 4 && camera) {
+    const dist = Math.hypot(e.clientX - pointerStartX, e.clientY - pointerStartY)
+    if (dist < 6 && camera) {
       raycaster.setFromCamera(mouse, camera)
       const meshes = nodeEntities.map(n => n.sphereMesh)
       const intersects = raycaster.intersectObjects(meshes)
@@ -743,7 +748,7 @@ function onResize() {
   isMobile.value = width < 768
 
   camera.aspect = width / height
-  camera.position.z = isMobile.value ? 7.6 : 6.2
+  camera.position.z = width < 390 ? 8.4 : (isMobile.value ? 7.6 : 6.2)
   camera.updateProjectionMatrix()
 
   renderer.setSize(width, height)

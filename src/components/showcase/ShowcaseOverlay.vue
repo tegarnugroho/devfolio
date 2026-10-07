@@ -26,25 +26,33 @@
         </div>
 
         <!-- 3. Top Header: Exit Button, Section HUD, and Shortcuts -->
-        <header class="relative z-20 w-full px-5 py-4 sm:px-8 sm:py-6 flex items-center justify-between pointer-events-none">
+        <header class="relative z-20 w-full px-4 sm:px-8 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 sm:py-6 flex items-center justify-between pointer-events-none">
           <!-- Left: Exit Showcase Button -->
           <div class="pointer-events-auto flex items-center gap-2">
             <button
               type="button"
-              class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/15 bg-black/60 hover:bg-white/10 hover:border-white/30 active:scale-95 text-zinc-200 hover:text-white transition-all duration-200 cursor-pointer font-mono text-xs uppercase tracking-wider group focus:outline-none focus:ring-1 focus:ring-white/40 shadow-sm backdrop-blur-md"
+              class="inline-flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full border border-white/15 bg-black/60 hover:bg-white/10 hover:border-white/30 active:scale-95 text-zinc-200 hover:text-white transition-all duration-200 cursor-pointer font-mono text-xs uppercase tracking-wider group focus:outline-none focus:ring-1 focus:ring-white/40 shadow-sm backdrop-blur-md min-h-[36px]"
               @click="closeShowcase"
               :aria-label="globeContent.exitLabel || 'Exit Showcase'"
             >
-              <span class="px-1.5 py-0.5 rounded text-[10px] bg-white/10 border border-white/10 text-zinc-300 group-hover:text-white">
+              <span class="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] bg-white/10 border border-white/10 text-zinc-300 group-hover:text-white">
                 ESC
               </span>
+              <span class="sm:hidden text-zinc-400 font-bold">✕</span>
               <span class="text-[11px] font-medium">{{ globeContent.exitLabel || 'EXIT' }}</span>
             </button>
           </div>
 
-          <!-- Center: Subtle Section Navigation Switcher -->
+          <!-- Center: Desktop Switcher vs Mobile Section Indicator -->
           <div class="pointer-events-auto hidden md:block">
             <ShowcaseNavigation />
+          </div>
+
+          <div class="pointer-events-auto md:hidden flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-black/60 backdrop-blur-md font-mono text-[10.5px] tracking-wider text-zinc-300">
+            <span class="text-sky-400 font-bold">{{ currentSectionMeta.number }}</span>
+            <span class="text-zinc-600">/</span>
+            <span class="text-zinc-500">06</span>
+            <span class="text-zinc-100 font-semibold uppercase ml-0.5">{{ currentSectionMeta.label }}</span>
           </div>
 
           <!-- Right: Up/Down Arrow Section Navigation Shortcuts (Matches Normal Mode) -->
@@ -71,7 +79,7 @@
         </header>
 
         <!-- Mobile Bottom Section Navigation Bar -->
-        <footer class="relative z-20 w-full px-4 pb-4 md:hidden pointer-events-none flex justify-center">
+        <footer class="relative z-20 w-full px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden pointer-events-none flex justify-center">
           <div class="pointer-events-auto w-full max-w-sm">
             <ShowcaseNavigation />
           </div>
@@ -87,6 +95,7 @@ import {
   useShowcase,
   isSatelliteZoomed,
 } from '@/composables/useShowcase'
+import { getSectionMeta } from '@/composables/useShowcaseNavigation'
 import type { ShowcaseSection } from '@/types/showcase'
 import ShowcaseNavigation from './ShowcaseNavigation.vue'
 import ShowcaseLoading from './ShowcaseLoading.vue'
@@ -95,6 +104,7 @@ import { portfolioContent } from '@/content/portfolioContent'
 
 const globeContent = portfolioContent.globe
 const { isOpen, currentSection, closeShowcase, nextSection, prevSection, navigateContent } = useShowcase()
+const currentSectionMeta = computed(() => getSectionMeta(currentSection.value))
 
 const overlayRef = ref<HTMLElement | null>(null)
 

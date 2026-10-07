@@ -7,7 +7,7 @@
     <!-- WebGL Canvas for 3D Knowledge Field -->
     <canvas
       ref="canvas"
-      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none"
+      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"

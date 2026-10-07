@@ -1,6 +1,6 @@
 <template>
   <div
-    class="writing-filters-header pointer-events-none absolute top-16 sm:top-20 left-6 sm:left-12 z-20 max-w-xs space-y-3 select-none"
+    class="writing-filters-header pointer-events-none absolute top-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] sm:top-20 left-4 sm:left-12 right-4 sm:right-auto z-20 max-w-sm space-y-2 sm:space-y-3 select-none"
   >
     <!-- Section Identifier -->
     <div class="flex items-center gap-2">
@@ -10,21 +10,21 @@
     </div>
 
     <!-- Title & Subtitle -->
-    <h1 class="text-2xl sm:text-3xl font-light tracking-tight text-zinc-100 font-sans leading-tight">
+    <h1 class="text-xl sm:text-3xl font-light tracking-tight text-zinc-100 font-sans leading-tight">
       Knowledge Field
     </h1>
 
-    <p class="text-[11.5px] text-zinc-400 leading-relaxed font-sans max-w-[270px] font-normal">
+    <p class="hidden sm:block text-[11.5px] text-zinc-400 leading-relaxed font-sans max-w-[270px] font-normal">
       A spatial field of technical ideas, engineering notes, and architectural experiments. Select a document slab to inspect.
     </p>
 
-    <!-- Category Filters -->
-    <div class="pt-2 pointer-events-auto flex flex-wrap gap-1.5 max-w-[280px]">
+    <!-- Category Filters (Horizontally scrollable on mobile) -->
+    <div class="pt-1 pointer-events-auto flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 max-w-[calc(100vw-2rem)] sm:max-w-[280px] sm:flex-wrap">
       <button
         v-for="cat in categories"
         :key="cat"
         type="button"
-        class="px-2.5 py-1 rounded text-[9.5px] font-mono tracking-wider transition-colors cursor-pointer border"
+        class="shrink-0 px-2.5 py-1 rounded text-[9.5px] font-mono tracking-wider transition-colors cursor-pointer border"
         :class="
           selectedCategory === cat
             ? 'bg-white/15 text-white border-white/30 font-medium'
@@ -37,9 +37,9 @@
     </div>
 
     <!-- Status Beacon / Interactive Hint -->
-    <div class="pt-1 flex items-center gap-2 font-mono text-[9px] text-zinc-400 tracking-wider">
+    <div class="pt-0.5 flex items-center gap-2 font-mono text-[8.5px] sm:text-[9px] text-zinc-400 tracking-wider">
       <span class="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.7)] animate-pulse"></span>
-      <span>{{ count }} ARTICLES · DRAG TO ROTATE FIELD</span>
+      <span>{{ count }} ARTICLES · DRAG FIELD</span>
     </div>
   </div>
 </template>

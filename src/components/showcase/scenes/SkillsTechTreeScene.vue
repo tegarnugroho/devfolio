@@ -7,7 +7,7 @@
     <!-- WebGL Canvas -->
     <canvas
       ref="canvas"
-      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none"
+      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
@@ -20,16 +20,16 @@
     <div class="pointer-events-none absolute inset-0 radial-vignette" aria-hidden="true"></div>
 
     <!-- Editorial Introduction (Top-Left) -->
-    <div class="pointer-events-none absolute top-16 sm:top-20 left-6 sm:left-12 z-10 max-w-xs space-y-2.5">
+    <div class="pointer-events-none absolute top-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] sm:top-20 left-4 sm:left-12 z-10 max-w-xs space-y-1.5 sm:space-y-2.5">
       <div class="flex items-center gap-2">
         <span class="font-mono text-[10px] text-zinc-500 tracking-widest font-semibold">03</span>
         <span class="w-3.5 h-[1px] bg-zinc-700"></span>
         <span class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest font-medium">SKILLS</span>
       </div>
-      <h1 class="text-2xl sm:text-3xl font-light tracking-tight text-zinc-100 font-sans leading-tight">
+      <h1 class="text-xl sm:text-3xl font-light tracking-tight text-zinc-100 font-sans leading-tight">
         Technology<br />Constellation
       </h1>
-      <p class="text-[11.5px] text-zinc-400 leading-relaxed font-sans max-w-[250px] font-normal">
+      <p class="hidden sm:block text-[11.5px] text-zinc-400 leading-relaxed font-sans max-w-[250px] font-normal">
         A 3D quantum map of the technologies I use and how they connect to build real products. Drag to rotate in full 3D space.
       </p>
     </div>
@@ -47,7 +47,7 @@
     <!-- Editorial Information Panel (Bottom-Left) -->
     <div
       v-if="selectedNode"
-      class="editorial-panel absolute bottom-6 sm:bottom-10 left-6 sm:left-12 right-6 sm:right-auto z-20 max-w-sm sm:w-80 pointer-events-auto p-4 sm:p-5 rounded-xl border border-white/10 bg-zinc-950/85 backdrop-blur-xl shadow-2xl space-y-3 transition-all duration-300"
+      class="editorial-panel absolute bottom-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))] sm:bottom-10 left-4 right-4 sm:left-12 sm:right-auto z-20 max-w-sm sm:w-80 pointer-events-auto p-3.5 sm:p-5 rounded-xl border border-white/10 bg-zinc-950/90 backdrop-blur-xl shadow-2xl space-y-2.5 sm:space-y-3 transition-all duration-300"
       @click.stop
     >
       <div class="space-y-0.5">
@@ -397,7 +397,7 @@ function initScene() {
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100)
 
-  targetCamZ = isMobile ? 6.2 : 5.1
+  targetCamZ = isMobile ? (width < 390 ? 6.9 : 6.3) : 5.1
   camera.position.set(0, 0, targetCamZ)
 
   // 2. Renderer
@@ -889,12 +889,16 @@ function updateHoverPosition() {
   }
 }
 
+let pointerStartX = 0
+let pointerStartY = 0
+
 // Interaction Handlers (Full 3D Pitch and Yaw Orbit)
 function onPointerDown(e: PointerEvent) {
   isDragging = true
   prevPointerX = e.clientX
   prevPointerY = e.clientY
-  checkRaycast(e, true)
+  pointerStartX = e.clientX
+  pointerStartY = e.clientY
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -916,8 +920,15 @@ function onPointerMove(e: PointerEvent) {
   }
 }
 
-function onPointerUp() {
+function onPointerUp(e: PointerEvent) {
+  if (isDragging) {
+    const dist = Math.hypot(e.clientX - pointerStartX, e.clientY - pointerStartY)
+    if (dist < 6) {
+      checkRaycast(e, true)
+    }
+  }
   isDragging = false
+  if (canvas.value) canvas.value.style.cursor = 'grab'
 }
 
 function onWheel(e: WheelEvent) {
@@ -967,7 +978,7 @@ function onResize() {
   const isMobile = w < 768
 
   constellationGroup.position.x = isMobile ? 0 : 0.6
-  targetCamZ = isMobile ? 6.2 : 5.1
+  targetCamZ = isMobile ? (w < 390 ? 6.9 : 6.3) : 5.1
 
   camera.aspect = w / h
   camera.updateProjectionMatrix()
