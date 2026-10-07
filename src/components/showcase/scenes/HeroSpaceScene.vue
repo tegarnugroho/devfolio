@@ -1,5 +1,8 @@
 <template>
-  <div ref="container" class="hero-space-scene relative w-full h-full select-none overflow-hidden bg-[#010206]">
+  <div
+    ref="container"
+    class="hero-digital-core-scene relative w-full h-full select-none overflow-hidden bg-[#03060b]"
+  >
     <!-- WebGL Canvas -->
     <canvas
       ref="canvas"
@@ -10,32 +13,152 @@
       @pointercancel="onPointerUp"
     ></canvas>
 
-    <!-- Technical Readout HUD Overlay (Editorial & Restrained) -->
-    <div class="pointer-events-none absolute inset-0 p-6 sm:p-8 flex flex-col justify-between">
-      <!-- Top Left Observatory Coordinate Header -->
-      <div class="space-y-1 font-mono text-[10px] tracking-wider text-zinc-400">
-        <p class="text-white font-semibold flex items-center gap-2">
-          <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-          ORBITAL OBSERVATORY // SECTOR 01
-        </p>
-        <p class="text-zinc-500 uppercase">
-          ORIGIN: JAKARTA, INDONESIA · 6.2088° S, 106.8456° E
-        </p>
-      </div>
+    <!-- Deep Ambient Vignette (Seamless background blend) -->
+    <div class="pointer-events-none absolute inset-0 gallery-ambient-vignette" aria-hidden="true"></div>
 
-      <!-- Bottom Center Editorial Motto -->
-      <div class="text-center space-y-1.5 self-center max-w-md pb-4 sm:pb-6">
-        <p class="font-mono text-[9px] uppercase tracking-[0.3em] text-blue-400 font-bold">
-          DIGITAL ARCHITECTURE & CROSS-PLATFORM SYSTEMS
-        </p>
-        <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white">
-          {{ hero.motto.join(' ') }}
-        </h2>
-        <p class="text-xs text-zinc-400 font-sans leading-relaxed">
+    <!-- Editorial Split Layout: Left Content Column (45-50% width on Desktop) -->
+    <div
+      class="pointer-events-none absolute top-24 sm:top-28 md:top-32 left-6 sm:left-12 bottom-10 sm:bottom-12 z-20 max-w-sm sm:max-w-md w-full flex flex-col justify-between select-none"
+    >
+      <!-- Top Section Info & Identity -->
+      <div class="space-y-4">
+        <!-- Section Marker -->
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-[10px] text-zinc-400 tracking-widest font-semibold">01</span>
+          <span class="w-3.5 h-[1px] bg-zinc-600"></span>
+          <span class="font-mono text-[10px] text-zinc-300 uppercase tracking-widest font-medium">DIGITAL CORE</span>
+          <span class="text-zinc-600 font-mono text-[10px]">·</span>
+          <span class="font-mono text-[10px] text-sky-400 tracking-wider">FLAGSHIP</span>
+        </div>
+
+        <!-- Eyebrow & Hero Title -->
+        <div class="space-y-1">
+          <p class="font-mono text-[10px] uppercase tracking-[0.25em] text-zinc-400 font-medium">
+            {{ hero.eyebrow }}
+          </p>
+          <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-none">
+            {{ portfolioContent.site.name }}<span class="text-sky-400">{{ portfolioContent.site.brandPeriod }}</span>
+          </h1>
+        </div>
+
+        <!-- Description -->
+        <p class="text-[12px] sm:text-[13px] text-zinc-300 leading-relaxed font-sans max-w-[340px] font-normal">
           {{ hero.description }}
         </p>
+
+        <!-- Primary Call to Actions -->
+        <div class="pt-2 pointer-events-auto flex items-center gap-3">
+          <button
+            type="button"
+            class="group inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-zinc-950 font-mono text-[11px] uppercase tracking-wider font-bold transition hover:bg-zinc-200 active:scale-98 shadow-lg cursor-pointer"
+            @click="navigateToProjects"
+          >
+            <span>VIEW PROJECTS</span>
+            <span class="transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+          </button>
+
+          <button
+            type="button"
+            class="inline-flex items-center px-4 py-2 rounded-xl border border-white/20 bg-black/40 hover:bg-white/10 text-white font-mono text-[11px] uppercase tracking-wider font-medium transition active:scale-98 cursor-pointer backdrop-blur-md"
+            @click="navigateToContact"
+          >
+            CONTACT
+          </button>
+        </div>
+
+        <!-- Interactive Architecture Layer Switcher -->
+        <div class="pt-3 pointer-events-auto flex items-center gap-2">
+          <span class="font-mono text-[9px] uppercase tracking-widest text-zinc-400 font-medium">
+            VIEW:
+          </span>
+          <button
+            type="button"
+            class="px-2.5 py-1 rounded text-[9.5px] font-mono tracking-wider transition-colors cursor-pointer border"
+            :class="
+              inspectionMode === 'assembled'
+                ? 'bg-white/15 text-white border-white/40 font-semibold'
+                : 'bg-black/40 text-zinc-400 hover:text-white border-white/10 hover:border-white/20'
+            "
+            @click="setInspectionMode('assembled')"
+          >
+            ASSEMBLED
+          </button>
+          <button
+            type="button"
+            class="px-2.5 py-1 rounded text-[9.5px] font-mono tracking-wider transition-colors cursor-pointer border"
+            :class="
+              inspectionMode === 'expanded'
+                ? 'bg-sky-500/20 text-sky-300 border-sky-400/50 font-semibold shadow-[0_0_12px_rgba(56,189,248,0.25)]'
+                : 'bg-black/40 text-zinc-400 hover:text-white border-white/10 hover:border-white/20'
+            "
+            @click="setInspectionMode('expanded')"
+          >
+            EXPLODED LAYERS
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Status & System Sequence Readout -->
+      <div class="space-y-2 max-w-[320px]">
+        <!-- System Initialization Sequence (Temporary intro HUD) -->
+        <Transition name="fade">
+          <div
+            v-if="showInitSeq"
+            class="p-2.5 rounded-lg border border-white/10 bg-zinc-950/90 backdrop-blur-md space-y-1 font-mono text-[9px] text-zinc-400"
+          >
+            <div class="flex items-center justify-between text-zinc-300 pb-1 border-b border-white/5 font-semibold">
+              <span class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+                INITIALIZING DIGITAL CORE
+              </span>
+              <span class="text-sky-400">ONLINE</span>
+            </div>
+            <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 pt-0.5 text-[8.5px]">
+              <div>IDENTITY <span class="text-emerald-400">✓</span></div>
+              <div>FLUTTER <span class="text-emerald-400">✓</span></div>
+              <div>MOBILE <span class="text-emerald-400">✓</span></div>
+              <div>ARCHITECTURE <span class="text-emerald-400">✓</span></div>
+            </div>
+          </div>
+        </Transition>
+
+        <!-- Steady State Beacon -->
+        <div class="flex items-center gap-2 font-mono text-[9px] text-zinc-400 tracking-wider">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse"></span>
+          <span>DIGITAL ARCHITECTURE CORE · DRAG TO INSPECT</span>
+        </div>
       </div>
     </div>
+
+    <!-- Active Hovered Project Tooltip / Action Card -->
+    <Transition name="fade">
+      <div
+        v-if="hoveredProject"
+        class="pointer-events-auto absolute z-30 bottom-8 right-8 max-w-xs p-3.5 rounded-xl border border-sky-400/30 bg-zinc-950/90 backdrop-blur-xl shadow-2xl space-y-1.5 select-none"
+      >
+        <div class="flex items-center justify-between text-[9px] font-mono text-zinc-400">
+          <span class="text-sky-400 font-semibold flex items-center gap-1">
+            <span class="w-1 h-1 rounded-full bg-sky-400"></span>
+            PROJECT PREVIEW
+          </span>
+          <span>{{ hoveredProject.tech }}</span>
+        </div>
+        <h3 class="text-sm font-bold text-white tracking-tight">
+          {{ hoveredProject.title }}
+        </h3>
+        <p class="text-[11px] text-zinc-400 line-clamp-2">
+          {{ hoveredProject.subtitle }}
+        </p>
+        <button
+          type="button"
+          class="pt-1 text-[10.5px] font-mono text-sky-400 hover:text-white transition-colors flex items-center gap-1 font-semibold uppercase cursor-pointer"
+          @click="openProjectLink(hoveredProject)"
+        >
+          <span>OPEN EXPERIENCE</span>
+          <span>→</span>
+        </button>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -43,248 +166,713 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
 import { portfolioContent } from '@/content/portfolioContent'
+import { setSection } from '@/composables/useShowcase'
+import type { HeroProjectItem, EngineeringDomain, InspectionMode } from '../hero/heroTypes'
+import { createProjectCardTexture, createDomainBadgeTexture } from '../hero/projectCardTexture'
 
 const hero = portfolioContent.hero
 
 const container = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
 
+// Inspection mode: assembled (compact) vs expanded (exploded CAD view)
+const inspectionMode = ref<InspectionMode>('assembled')
+const showInitSeq = ref(true)
+
+function setInspectionMode(mode: InspectionMode) {
+  inspectionMode.value = mode
+}
+
+function navigateToProjects() {
+  setSection('projects')
+}
+
+function navigateToContact() {
+  setSection('contact')
+}
+
+// Actual project previews from existing project data
+const projectPreviews: HeroProjectItem[] = [
+  {
+    id: 'valthub',
+    title: 'ValtHub',
+    subtitle: 'Secrets & Environment Variable Management Platform',
+    tech: 'Next.js · TypeScript · Cloudflare',
+    link: 'https://valthub.pages.dev/',
+    offset: [2.25, 0.05, 0.6],
+    rotation: [-0.04, -0.22, 0.02],
+  },
+  {
+    id: 'iziloh',
+    title: 'IZILOH',
+    subtitle: 'Innovative On-Demand Laundry Ecosystem & Real-time Tracking',
+    tech: 'Flutter · Clean Architecture',
+    link: 'https://iziloh.com/',
+    offset: [-2.05, -0.65, 0.55],
+    rotation: [0.04, 0.22, -0.01],
+  },
+  {
+    id: 'waroong-retjeh',
+    title: 'Waroong Retjeh',
+    subtitle: 'High-throughput Dining & Table Reservation Mobile App',
+    tech: 'Flutter · Realtime Sync',
+    link: 'http://waroongretjeh.dev.ittron.co.id/',
+    offset: [1.75, 1.15, -0.45],
+    rotation: [0.06, -0.18, -0.02],
+  },
+]
+
+// Engineering domain layers around the core
+const engineeringDomains: EngineeringDomain[] = [
+  {
+    id: 'ui',
+    label: 'UI / UX CRAFT',
+    code: 'UI',
+    description: 'Intuitive layouts, micro-interactions, responsive design',
+    offset: [-2.15, 0.75, -0.5],
+    normal: [0.06, 0.18, 0.02],
+  },
+  {
+    id: 'arch',
+    label: 'CLEAN ARCHITECTURE',
+    code: 'ARCH',
+    description: 'Decoupled domain use-cases, reactive state isolation',
+    offset: [-0.15, 1.35, -0.8],
+    normal: [0.08, -0.05, -0.01],
+  },
+  {
+    id: 'mobile',
+    label: 'CROSS-PLATFORM',
+    code: 'MOBILE',
+    description: 'Multi-target compilation for iOS, Android, macOS & Web',
+    offset: [-2.15, -1.55, -0.45],
+    normal: [0.05, 0.2, 0.03],
+  },
+  {
+    id: 'perf',
+    label: 'APIs & PERFORMANCE',
+    code: 'PERF',
+    description: 'Low-latency isolate streams, zero-copy memory buffers',
+    offset: [2.05, -1.25, -0.55],
+    normal: [-0.05, -0.18, -0.02],
+  },
+]
+
+const hoveredProject = ref<HeroProjectItem | null>(null)
+
+function openProjectLink(proj: HeroProjectItem) {
+  if (proj.link && proj.link !== '#') {
+    window.open(proj.link, '_blank', 'noopener,noreferrer')
+  } else {
+    navigateToProjects()
+  }
+}
+
+// -------------------------------------------------------------
+// THREE.JS DIGITAL ARCHITECTURE INSTALLATION
+// -------------------------------------------------------------
 let scene: THREE.Scene | null = null
 let camera: THREE.PerspectiveCamera | null = null
 let renderer: THREE.WebGLRenderer | null = null
 let animFrameId = 0
-let observatoryGroup: THREE.Group | null = null
-let satelliteProbes: { mesh: THREE.Mesh; orbitRadius: number; speed: number; angle: number; tilt: number }[] = []
+let isVisible = true
+let observer: IntersectionObserver | null = null
 
-// Interaction Drag state
+// Hierarchical Three.js Groups
+let installationMasterGroup: THREE.Group | null = null
+let coreMasterGroup: THREE.Group | null = null
+let outerFrameMesh: THREE.LineSegments | null = null
+let crystalShellMesh: THREE.Mesh | null = null
+let wireframeGridMesh: THREE.LineSegments | null = null
+let innerQuantumCoreMesh: THREE.Mesh | null = null
+let centerLightNexus: THREE.Mesh | null = null
+let datumRings: THREE.Mesh[] = []
+
+// Project preview 3D nodes
+interface Project3DNode {
+  project: HeroProjectItem
+  group: THREE.Group
+  mesh: THREE.Mesh
+  activeTexture: THREE.CanvasTexture
+  inactiveTexture: THREE.CanvasTexture
+  baseOffset: THREE.Vector3
+  baseRotation: THREE.Euler
+}
+const projectNodes: Project3DNode[] = []
+
+// Domain 3D nodes
+interface Domain3DNode {
+  domain: EngineeringDomain
+  group: THREE.Group
+  mesh: THREE.Mesh
+  baseOffset: THREE.Vector3
+}
+const domainNodes: Domain3DNode[] = []
+
+// Interaction & Parallax State
+const isMobile = ref(false)
+const prefersReducedMotion = ref(false)
+
 let isDragging = false
-let prevMouseX = 0
-let prevMouseY = 0
-let rotVelocityX = 0
-let rotVelocityY = 0.002
+let prevPointerX = 0
+let prevPointerY = 0
+let targetRotY = 0
+let targetRotX = 0
+let currentRotY = 0
+let currentRotX = 0
 
-function initScene() {
+let targetCamX = 0
+let targetCamY = 0
+let currentCamX = 0
+let currentCamY = 0
+
+const raycaster = new THREE.Raycaster()
+const mouse = new THREE.Vector2(-999, -999)
+
+// Intro animation progress
+let introProgress = 0
+const introDuration = 1.2 // 1200ms
+
+function initThree() {
   if (!container.value || !canvas.value) return
 
   const width = container.value.clientWidth || window.innerWidth
   const height = container.value.clientHeight || window.innerHeight
-  const isMobile = width < 768
 
-  // 1. Scene & Camera
+  isMobile.value = width < 768
+  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
   scene = new THREE.Scene()
-  camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100)
-  camera.position.set(0, 0, isMobile ? 6.2 : 5.0)
 
-  // 2. Renderer
+  // Perspective camera
+  camera = new THREE.PerspectiveCamera(46, width / height, 0.1, 100)
+  camera.position.set(0, 0.1, isMobile.value ? 7.6 : 6.4)
+
+  // WebGL Renderer
   renderer = new THREE.WebGLRenderer({
     canvas: canvas.value,
-    antialias: !isMobile,
+    antialias: true,
     alpha: true,
     powerPreference: 'high-performance',
   })
   renderer.setSize(width, height)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75))
+  renderer.outputColorSpace = THREE.SRGBColorSpace
 
-  // 3. Ambient & Directional Light
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+  // Studio Lighting (Subtle, architectural, directional key + rim)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
   scene.add(ambientLight)
-  const dirLight = new THREE.DirectionalLight(0x60a5fa, 2.0)
-  dirLight.position.set(5, 5, 4)
-  scene.add(dirLight)
 
-  // 4. Distant Starfield
-  const starCount = isMobile ? 800 : 2000
-  const starPositions = new Float32Array(starCount * 3)
-  const starColors = new Float32Array(starCount * 3)
-  for (let i = 0; i < starCount; i++) {
-    const r = 15 + Math.random() * 20
-    const theta = Math.random() * Math.PI * 2
-    const phi = Math.acos(2 * Math.random() - 1) - Math.PI / 2
-    starPositions[i * 3] = r * Math.cos(phi) * Math.cos(theta)
-    starPositions[i * 3 + 1] = r * Math.sin(phi)
-    starPositions[i * 3 + 2] = r * Math.cos(phi) * Math.sin(theta)
+  const keyLight = new THREE.DirectionalLight(0xffffff, 0.95)
+  keyLight.position.set(4, 5, 5)
+  scene.add(keyLight)
 
-    const c = Math.random()
-    if (c > 0.8) {
-      starColors[i * 3] = 0.5; starColors[i * 3 + 1] = 0.8; starColors[i * 3 + 2] = 1.0 // cyan/blue
-    } else {
-      starColors[i * 3] = 0.9; starColors[i * 3 + 1] = 0.95; starColors[i * 3 + 2] = 1.0 // white
-    }
-  }
-  const starGeo = new THREE.BufferGeometry()
-  starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3))
-  starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3))
-  const starMat = new THREE.PointsMaterial({
-    vertexColors: true,
-    size: 0.035,
-    transparent: true,
-    opacity: 0.85,
-  })
-  const starPoints = new THREE.Points(starGeo, starMat)
-  scene.add(starPoints)
+  const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.6)
+  rimLight.position.set(-4, -3, -3)
+  scene.add(rimLight)
 
-  // 5. Main Orbital Observatory Structure
-  observatoryGroup = new THREE.Group()
-  scene.add(observatoryGroup)
+  // Subtle localized PointLight in the core
+  const corePointLight = new THREE.PointLight(0x38bdf8, 1.2, 5.0)
+  scene.add(corePointLight)
 
-  // Central Crystalline Core
-  const coreGeo = new THREE.OctahedronGeometry(0.38, 0)
-  const coreMat = new THREE.MeshStandardMaterial({
-    color: 0x3b82f6,
-    metalness: 0.9,
-    roughness: 0.2,
-    emissive: 0x1d4ed8,
-    emissiveIntensity: 0.6,
-  })
-  const coreMesh = new THREE.Mesh(coreGeo, coreMat)
-  observatoryGroup.add(coreMesh)
+  // Master Installation Group
+  installationMasterGroup = new THREE.Group()
+  // Offset to the right on desktop (~45-55% viewport) to balance left editorial text
+  const groupCenterX = isMobile.value ? 0.0 : 1.35
+  const groupCenterY = isMobile.value ? -0.45 : -0.25
+  installationMasterGroup.position.set(groupCenterX, groupCenterY, 0)
+  scene.add(installationMasterGroup)
 
-  // Outer Wireframe Cage around Core
-  const cageGeo = new THREE.IcosahedronGeometry(0.65, 1)
-  const cageMat = new THREE.MeshBasicMaterial({
-    color: 0x93c5fd,
-    wireframe: true,
-    transparent: true,
-    opacity: 0.22,
-  })
-  const cageMesh = new THREE.Mesh(cageGeo, cageMat)
-  observatoryGroup.add(cageMesh)
+  // 1. Central 3D Digital Core
+  buildDigitalCore()
 
-  // Concentric Gimbal Orbital Rings
-  const ringRadii = [1.1, 1.45, 1.8]
-  for (let i = 0; i < ringRadii.length; i++) {
-    const radius = ringRadii[i]
-    const torusGeo = new THREE.TorusGeometry(radius, 0.008, 12, 64)
-    const torusMat = new THREE.MeshBasicMaterial({
-      color: i === 0 ? 0x60a5fa : 0x334155,
-      transparent: true,
-      opacity: 0.45 + i * 0.1,
-    })
-    const ringMesh = new THREE.Mesh(torusGeo, torusMat)
-    ringMesh.rotation.x = 0.3 * (i + 1)
-    ringMesh.rotation.y = 0.4 * (i + 1)
-    observatoryGroup.add(ringMesh)
-  }
+  // 2. Project Preview Miniature Slabs
+  buildProjectPreviews()
 
-  // 6. Subtle Satellites Orbiting on Orbital Paths
-  satelliteProbes = []
-  const probeConfigs = [
-    { radius: 1.1, speed: 0.6, tilt: 0.3 },
-    { radius: 1.45, speed: -0.4, tilt: 0.8 },
-    { radius: 1.8, speed: 0.3, tilt: -0.5 },
-  ]
-  for (const cfg of probeConfigs) {
-    const probeGeo = new THREE.BoxGeometry(0.04, 0.04, 0.08)
-    const probeMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      emissive: 0x60a5fa,
-      emissiveIntensity: 0.8,
-      metalness: 0.8,
-    })
-    const probeMesh = new THREE.Mesh(probeGeo, probeMat)
-    observatoryGroup.add(probeMesh)
-    satelliteProbes.push({
-      mesh: probeMesh,
-      orbitRadius: cfg.radius,
-      speed: cfg.speed,
-      angle: Math.random() * Math.PI * 2,
-      tilt: cfg.tilt,
-    })
-  }
+  // 3. Engineering Domain Layers
+  buildDomainLayers()
 
-  // 7. Animation Loop
+  // Start Animation Loop
   let lastTime = performance.now()
-  function animate(now: number) {
-    animFrameId = requestAnimationFrame(animate)
+  let introElapsed = 0
+
+  function loop(now: number) {
+    animFrameId = requestAnimationFrame(loop)
+    if (!isVisible) return
+
     const delta = Math.min((now - lastTime) / 1000, 0.1)
     lastTime = now
+    const time = now * 0.001
 
-    if (observatoryGroup) {
-      if (!isDragging) {
-        rotVelocityX *= 0.95
-        rotVelocityY = THREE.MathUtils.lerp(rotVelocityY, 0.002, 0.05)
-        observatoryGroup.rotation.y += rotVelocityY
-        observatoryGroup.rotation.x += rotVelocityX
+    // Intro assembly sequence (~1200ms)
+    if (introProgress < 1.0) {
+      introElapsed += delta
+      introProgress = Math.min(1.0, introElapsed / introDuration)
+      // easeOutCubic
+      const eased = 1 - Math.pow(1 - introProgress, 3)
+      if (coreMasterGroup) {
+        coreMasterGroup.scale.setScalar(eased)
       }
-
-      coreMesh.rotation.y += delta * 0.8
-      coreMesh.rotation.x += delta * 0.4
-      cageMesh.rotation.y -= delta * 0.3
-      cageMesh.rotation.z += delta * 0.2
-
-      // Orbit satellites
-      for (const sp of satelliteProbes) {
-        sp.angle += delta * sp.speed
-        const x = Math.cos(sp.angle) * sp.orbitRadius
-        const z = Math.sin(sp.angle) * sp.orbitRadius
-        const y = Math.sin(sp.angle) * Math.sin(sp.tilt) * (sp.orbitRadius * 0.4)
-        sp.mesh.position.set(x, y, z)
-        sp.mesh.lookAt(0, 0, 0)
+      if (introProgress >= 1.0) {
+        setTimeout(() => {
+          showInitSeq.value = false
+        }, 1400)
       }
     }
+
+    // Smooth Drag Rotation with return damping
+    currentRotY = THREE.MathUtils.lerp(currentRotY, targetRotY, delta * 4.5)
+    currentRotX = THREE.MathUtils.lerp(currentRotX, targetRotX, delta * 4.5)
+    if (!isDragging) {
+      // Gently drift back toward center orientation
+      targetRotY = THREE.MathUtils.lerp(targetRotY, 0, delta * 0.5)
+      targetRotX = THREE.MathUtils.lerp(targetRotX, 0, delta * 0.5)
+    }
+    if (installationMasterGroup) {
+      installationMasterGroup.rotation.y = currentRotY
+      installationMasterGroup.rotation.x = currentRotX
+    }
+
+    // Camera Parallax
+    currentCamX = THREE.MathUtils.lerp(currentCamX, targetCamX, delta * 3.5)
+    currentCamY = THREE.MathUtils.lerp(currentCamY, targetCamY, delta * 3.5)
+    if (camera) {
+      camera.position.x = currentCamX
+      camera.position.y = 0.1 + currentCamY
+      camera.lookAt(groupCenterX * 0.35, groupCenterY, 0)
+    }
+
+    // Core Idle Motion (Slow, physical, sophisticated)
+    if (coreMasterGroup && !prefersReducedMotion.value) {
+      // Floating motion
+      coreMasterGroup.position.y = Math.sin(time * 0.7) * 0.05
+
+      // Layered rotational differentials
+      if (outerFrameMesh) outerFrameMesh.rotation.y = time * 0.06
+      if (crystalShellMesh) {
+        crystalShellMesh.rotation.y = -time * 0.04
+        crystalShellMesh.rotation.x = time * 0.03
+      }
+      if (wireframeGridMesh) {
+        wireframeGridMesh.rotation.y = time * 0.08
+        wireframeGridMesh.rotation.z = -time * 0.04
+      }
+      if (innerQuantumCoreMesh) {
+        innerQuantumCoreMesh.rotation.y = -time * 0.1
+        innerQuantumCoreMesh.rotation.x = Math.sin(time * 0.5) * 0.2
+      }
+    }
+
+    // Update Project Previews (Floating & Hover state)
+    updateProjectNodes(delta, time)
+
+    // Update Domain Layers
+    updateDomainNodes(delta, time)
+
+    // Update Inspection Mode expansion
+    updateInspectionLayout(delta)
 
     if (renderer && scene && camera) {
       renderer.render(scene, camera)
     }
   }
-  animFrameId = requestAnimationFrame(animate)
+
+  animFrameId = requestAnimationFrame(loop)
 }
 
+function buildDigitalCore() {
+  coreMasterGroup = new THREE.Group()
+  installationMasterGroup!.add(coreMasterGroup)
+
+  const radius = isMobile.value ? 0.95 : 1.15
+
+  // Layer 1: Outer Architectural Frame (Thin beveled cage)
+  const cageGeo = new THREE.BoxGeometry(radius * 1.75, radius * 1.75, radius * 1.75)
+  const cageEdges = new THREE.EdgesGeometry(cageGeo)
+  const cageMat = new THREE.LineBasicMaterial({
+    color: 0x38bdf8,
+    transparent: true,
+    opacity: 0.35,
+  })
+  outerFrameMesh = new THREE.LineSegments(cageEdges, cageMat)
+  coreMasterGroup.add(outerFrameMesh)
+
+  // Layer 2: Translucent Crystalline Shell (Glass-like geometric surface)
+  const shellGeo = new THREE.IcosahedronGeometry(radius * 1.05, 1)
+  const shellMat = new THREE.MeshPhysicalMaterial({
+    color: 0x08101a,
+    roughness: 0.12,
+    metalness: 0.2,
+    transmission: 0.72,
+    ior: 1.45,
+    thickness: 0.6,
+    transparent: true,
+    opacity: 0.82,
+  })
+  crystalShellMesh = new THREE.Mesh(shellGeo, shellMat)
+  coreMasterGroup.add(crystalShellMesh)
+
+  // Layer 3: Technical Wireframe Grid (Internal structural layer)
+  const wireGeo = new THREE.OctahedronGeometry(radius * 0.92, 1)
+  const wireEdges = new THREE.EdgesGeometry(wireGeo)
+  const wireMat = new THREE.LineBasicMaterial({
+    color: 0x94a3b8,
+    transparent: true,
+    opacity: 0.3,
+  })
+  wireframeGridMesh = new THREE.LineSegments(wireEdges, wireMat)
+  coreMasterGroup.add(wireframeGridMesh)
+
+  // Layer 4: Inner Quantum Core (Emissive crystalline node)
+  const innerGeo = new THREE.DodecahedronGeometry(radius * 0.58, 0)
+  const innerMat = new THREE.MeshStandardMaterial({
+    color: 0x0369a1,
+    emissive: 0x0284c7,
+    emissiveIntensity: 0.55,
+    roughness: 0.25,
+    metalness: 0.8,
+  })
+  innerQuantumCoreMesh = new THREE.Mesh(innerGeo, innerMat)
+  coreMasterGroup.add(innerQuantumCoreMesh)
+
+  // Layer 5: Central Light Point (Incandescent pure white nexus)
+  const nexusGeo = new THREE.SphereGeometry(radius * 0.18, 16, 16)
+  const nexusMat = new THREE.MeshBasicMaterial({ color: 0xffffff })
+  centerLightNexus = new THREE.Mesh(nexusGeo, nexusMat)
+  coreMasterGroup.add(centerLightNexus)
+
+  // Datum Latitude & Longitude Rings
+  datumRings = []
+  const ring1Geo = new THREE.TorusGeometry(radius * 1.18, 0.007, 16, 64)
+  const ring1Mat = new THREE.MeshBasicMaterial({
+    color: 0x94a3b8,
+    transparent: true,
+    opacity: 0.35,
+  })
+  const ring1 = new THREE.Mesh(ring1Geo, ring1Mat)
+  ring1.rotation.x = Math.PI / 2
+  coreMasterGroup.add(ring1)
+  datumRings.push(ring1)
+
+  const ring2Geo = new THREE.TorusGeometry(radius * 1.25, 0.007, 16, 64)
+  const ring2Mat = new THREE.MeshBasicMaterial({
+    color: 0x38bdf8,
+    transparent: true,
+    opacity: 0.25,
+  })
+  const ring2 = new THREE.Mesh(ring2Geo, ring2Mat)
+  ring2.rotation.y = Math.PI / 3
+  coreMasterGroup.add(ring2)
+  datumRings.push(ring2)
+}
+
+function buildProjectPreviews() {
+  projectNodes.length = 0
+
+  const cardWidth = 1.45
+  const cardHeight = 1.02
+  const cardDepth = 0.025
+  const cardGeo = new THREE.BoxGeometry(cardWidth, cardHeight, cardDepth)
+
+  projectPreviews.forEach(proj => {
+    const nodeGroup = new THREE.Group()
+
+    const activeTexture = createProjectCardTexture(proj, true)
+    const inactiveTexture = createProjectCardTexture(proj, false)
+
+    const sideMat = new THREE.MeshStandardMaterial({
+      color: 0x0c1017,
+      roughness: 0.8,
+      metalness: 0.2,
+      transparent: true,
+      opacity: 0.5,
+    })
+    const backMat = new THREE.MeshStandardMaterial({
+      color: 0x06080d,
+      roughness: 0.9,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.5,
+    })
+    const frontMat = new THREE.MeshStandardMaterial({
+      map: inactiveTexture,
+      roughness: 0.25,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.92,
+    })
+
+    const materials = [sideMat, sideMat, sideMat, sideMat, frontMat, backMat]
+    const mesh = new THREE.Mesh(cardGeo, materials)
+    mesh.userData = { projectId: proj.id }
+    nodeGroup.add(mesh)
+
+    const baseOffset = new THREE.Vector3(...proj.offset)
+    const baseRotation = new THREE.Euler(...proj.rotation)
+    nodeGroup.position.copy(baseOffset)
+    nodeGroup.rotation.copy(baseRotation)
+
+    installationMasterGroup!.add(nodeGroup)
+
+    projectNodes.push({
+      project: proj,
+      group: nodeGroup,
+      mesh,
+      activeTexture,
+      inactiveTexture,
+      baseOffset,
+      baseRotation,
+    })
+  })
+}
+
+function buildDomainLayers() {
+  domainNodes.length = 0
+
+  const badgeWidth = 1.15
+  const badgeHeight = 0.38
+  const badgeDepth = 0.015
+  const badgeGeo = new THREE.BoxGeometry(badgeWidth, badgeHeight, badgeDepth)
+
+  engineeringDomains.forEach(domain => {
+    const nodeGroup = new THREE.Group()
+
+    const badgeTexture = createDomainBadgeTexture(domain.label, domain.code, false)
+
+    const sideMat = new THREE.MeshBasicMaterial({ color: 0x0a0f16, transparent: true, opacity: 0.4 })
+    const frontMat = new THREE.MeshStandardMaterial({
+      map: badgeTexture,
+      roughness: 0.3,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.78,
+    })
+    const materials = [sideMat, sideMat, sideMat, sideMat, frontMat, sideMat]
+
+    const mesh = new THREE.Mesh(badgeGeo, materials)
+    nodeGroup.add(mesh)
+
+    const baseOffset = new THREE.Vector3(...domain.offset)
+    nodeGroup.position.copy(baseOffset)
+    nodeGroup.rotation.set(...domain.normal)
+
+    installationMasterGroup!.add(nodeGroup)
+
+    domainNodes.push({
+      domain,
+      group: nodeGroup,
+      mesh,
+      baseOffset,
+    })
+  })
+}
+
+function updateProjectNodes(delta: number, time: number) {
+  projectNodes.forEach((node, idx) => {
+    const isHovered = hoveredProject.value?.id === node.project.id
+    const targetPos = node.baseOffset.clone()
+
+    // Subtle floating depth motion
+    if (!prefersReducedMotion.value) {
+      targetPos.y += Math.sin(time * 0.8 + idx * 1.5) * 0.04
+      targetPos.x += Math.cos(time * 0.65 + idx * 1.2) * 0.02
+    }
+
+    if (isHovered) {
+      targetPos.z += 0.35
+    }
+
+    node.group.position.lerp(targetPos, delta * 5.0)
+
+    const targetScale = isHovered ? 1.06 : 1.0
+    node.group.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5.0)
+
+    // Swap active/inactive texture on hover
+    const frontMat = (node.mesh.material as THREE.Material[])[4] as THREE.MeshStandardMaterial
+    frontMat.map = isHovered ? node.activeTexture : node.inactiveTexture
+    frontMat.needsUpdate = true
+  })
+}
+
+function updateDomainNodes(delta: number, time: number) {
+  domainNodes.forEach((node, idx) => {
+    const targetPos = node.baseOffset.clone()
+    if (!prefersReducedMotion.value) {
+      targetPos.y += Math.sin(time * 0.75 + idx * 1.4) * 0.03
+    }
+    node.group.position.lerp(targetPos, delta * 4.5)
+  })
+}
+
+function updateInspectionLayout(delta: number) {
+  const isExpanded = inspectionMode.value === 'expanded'
+
+  // If expanded, separate layers outward along radial axes (Exploded CAD view)
+  const expandFactor = isExpanded ? 1.35 : 1.0
+
+  if (outerFrameMesh) {
+    const frameScale = isExpanded ? 1.4 : 1.0
+    outerFrameMesh.scale.lerp(new THREE.Vector3(frameScale, frameScale, frameScale), delta * 4.5)
+  }
+  if (crystalShellMesh) {
+    const shellScale = isExpanded ? 1.22 : 1.0
+    crystalShellMesh.scale.lerp(new THREE.Vector3(shellScale, shellScale, shellScale), delta * 4.5)
+  }
+
+  // Drift domain layers and project previews
+  domainNodes.forEach(node => {
+    const target = node.baseOffset.clone().multiplyScalar(expandFactor)
+    node.baseOffset.lerp(target, delta * 4.0)
+  })
+}
+
+// Pointer & Interaction Handlers
 function onPointerDown(e: PointerEvent) {
   isDragging = true
-  prevMouseX = e.clientX
-  prevMouseY = e.clientY
-  rotVelocityX = 0
-  rotVelocityY = 0
+  prevPointerX = e.clientX
+  prevPointerY = e.clientY
 }
 
 function onPointerMove(e: PointerEvent) {
-  if (!isDragging || !observatoryGroup) return
-  const dx = e.clientX - prevMouseX
-  const dy = e.clientY - prevMouseY
-  prevMouseX = e.clientX
-  prevMouseY = e.clientY
+  if (!container.value || !camera) return
 
-  observatoryGroup.rotation.y += dx * 0.006
-  observatoryGroup.rotation.x += dy * 0.006
-  rotVelocityY = dx * 0.004
-  rotVelocityX = dy * 0.004
+  const rect = container.value.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+
+  mouse.x = (x / rect.width) * 2 - 1
+  mouse.y = -(y / rect.height) * 2 + 1
+
+  // Multi-depth camera parallax
+  targetCamX = mouse.x * 0.25
+  targetCamY = mouse.y * 0.18
+
+  if (isDragging) {
+    const dx = e.clientX - prevPointerX
+    const dy = e.clientY - prevPointerY
+    prevPointerX = e.clientX
+    prevPointerY = e.clientY
+
+    targetRotY = THREE.MathUtils.clamp(targetRotY + dx * 0.0035, -0.42, 0.42)
+    targetRotX = THREE.MathUtils.clamp(targetRotX + dy * 0.0025, -0.22, 0.22)
+  } else {
+    // Raycasting against project preview slabs
+    raycaster.setFromCamera(mouse, camera)
+    const meshes = projectNodes.map(n => n.mesh)
+    const intersects = raycaster.intersectObjects(meshes)
+
+    if (intersects.length > 0) {
+      const hitMesh = intersects[0].object
+      const projId = hitMesh.userData.projectId
+      const found = projectPreviews.find(p => p.id === projId)
+      if (found) {
+        hoveredProject.value = found
+        if (canvas.value) canvas.value.style.cursor = 'pointer'
+        return
+      }
+    }
+
+    hoveredProject.value = null
+    if (canvas.value) canvas.value.style.cursor = isDragging ? 'grabbing' : 'grab'
+  }
 }
 
-function onPointerUp() {
+function onPointerUp(e: PointerEvent) {
+  if (isDragging) {
+    const dist = Math.hypot(e.clientX - prevPointerX, e.clientY - prevPointerY)
+    if (dist < 4 && camera) {
+      raycaster.setFromCamera(mouse, camera)
+      const meshes = projectNodes.map(n => n.mesh)
+      const intersects = raycaster.intersectObjects(meshes)
+      if (intersects.length > 0) {
+        const projId = intersects[0].object.userData.projectId
+        const found = projectPreviews.find(p => p.id === projId)
+        if (found) {
+          openProjectLink(found)
+        }
+      }
+    }
+  }
   isDragging = false
+  if (canvas.value) canvas.value.style.cursor = 'grab'
 }
 
 function onResize() {
-  if (!container.value || !camera || !renderer) return
-  const w = container.value.clientWidth || window.innerWidth
-  const h = container.value.clientHeight || window.innerHeight
-  camera.aspect = w / h
+  if (!container.value || !camera || !renderer || !installationMasterGroup) return
+
+  const width = container.value.clientWidth || window.innerWidth
+  const height = container.value.clientHeight || window.innerHeight
+
+  isMobile.value = width < 768
+
+  camera.aspect = width / height
+  camera.position.z = isMobile.value ? 7.6 : 6.4
   camera.updateProjectionMatrix()
-  renderer.setSize(w, h)
+
+  renderer.setSize(width, height)
+
+  const groupCenterX = isMobile.value ? 0.0 : 1.35
+  const groupCenterY = isMobile.value ? -0.45 : -0.25
+  installationMasterGroup.position.set(groupCenterX, groupCenterY, 0)
 }
 
 onMounted(() => {
-  initScene()
+  initThree()
+
   window.addEventListener('resize', onResize)
+
+  if (container.value) {
+    observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting
+    })
+    observer.observe(container.value)
+  }
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', onResize)
+  if (observer) observer.disconnect()
   if (animFrameId) cancelAnimationFrame(animFrameId)
-  if (scene) {
-    scene.traverse(obj => {
-      if (obj instanceof THREE.Mesh || obj instanceof THREE.Points) {
-        if (obj.geometry) obj.geometry.dispose()
-        if (obj.material) {
-          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose())
-          else obj.material.dispose()
-        }
-      }
-    })
-    scene.clear()
-    scene = null
+
+  window.removeEventListener('resize', onResize)
+
+  // Dispose Three.js objects
+  if (outerFrameMesh) {
+    outerFrameMesh.geometry.dispose()
+    ;(outerFrameMesh.material as THREE.Material).dispose()
   }
+  if (crystalShellMesh) {
+    crystalShellMesh.geometry.dispose()
+    ;(crystalShellMesh.material as THREE.Material).dispose()
+  }
+  if (wireframeGridMesh) {
+    wireframeGridMesh.geometry.dispose()
+    ;(wireframeGridMesh.material as THREE.Material).dispose()
+  }
+  if (innerQuantumCoreMesh) {
+    innerQuantumCoreMesh.geometry.dispose()
+    ;(innerQuantumCoreMesh.material as THREE.Material).dispose()
+  }
+  if (centerLightNexus) {
+    centerLightNexus.geometry.dispose()
+    ;(centerLightNexus.material as THREE.Material).dispose()
+  }
+  datumRings.forEach(r => {
+    r.geometry.dispose()
+    ;(r.material as THREE.Material).dispose()
+  })
+
+  projectNodes.forEach(node => {
+    node.mesh.geometry.dispose()
+    node.activeTexture.dispose()
+    node.inactiveTexture.dispose()
+    ;(node.mesh.material as THREE.Material[]).forEach(m => m.dispose())
+  })
+
+  domainNodes.forEach(node => {
+    node.mesh.geometry.dispose()
+    ;(node.mesh.material as THREE.Material[]).forEach(m => m.dispose())
+  })
+
   if (renderer) {
     renderer.dispose()
     renderer.forceContextLoss()
@@ -293,3 +881,22 @@ onBeforeUnmount(() => {
 })
 </script>
 
+<style scoped>
+.hero-digital-core-scene {
+  background: radial-gradient(circle at 65% 45%, #080d16 0%, #03060b 80%);
+}
+
+.gallery-ambient-vignette {
+  background: radial-gradient(circle at 50% 50%, transparent 45%, rgba(3, 6, 11, 0.75) 100%);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 300ms ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
