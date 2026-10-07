@@ -53,8 +53,11 @@ export function calculateNodeTransform(
   categoryFilter: CategoryFilter,
   isMobile: boolean
 ): NodeTransform {
-  // Check if article matches category
-  const matchesFilter = categoryFilter === 'ALL' || article.category === categoryFilter
+  // Check if article matches category or tags
+  const matchesFilter =
+    categoryFilter === 'ALL' ||
+    article.category === categoryFilter ||
+    Boolean(article.tags && article.tags.includes(categoryFilter))
 
   if (!matchesFilter) {
     return {
@@ -90,7 +93,11 @@ export function calculateNodeTransform(
   // For inactive articles:
   // Determine index among inactive visible articles for stable deterministic placement
   const visibleInactive = allArticles.filter(
-    a => a.id !== selectedId && (categoryFilter === 'ALL' || a.category === categoryFilter)
+    a =>
+      a.id !== selectedId &&
+      (categoryFilter === 'ALL' ||
+        a.category === categoryFilter ||
+        Boolean(a.tags && a.tags.includes(categoryFilter)))
   )
   const inactiveIndex = visibleInactive.findIndex(a => a.id === article.id)
 
@@ -117,7 +124,11 @@ export function buildRelationshipPairs(
   const visibleIndices: number[] = []
 
   articles.forEach((a, i) => {
-    if (categoryFilter === 'ALL' || a.category === categoryFilter) {
+    if (
+      categoryFilter === 'ALL' ||
+      a.category === categoryFilter ||
+      Boolean(a.tags && a.tags.includes(categoryFilter))
+    ) {
       visibleIndices.push(i)
     }
   })

@@ -168,17 +168,19 @@ function selectArticle(id: string) {
 
 function prevArticle() {
   const list = filteredArticles.value
-  if (!list.length) return
-  const currentIdx = selectedArticleIndex.value
-  const newIdx = (currentIdx - 1 + list.length) % list.length
+  if (list.length <= 1) return
+  const currentIdx = list.findIndex(a => a.id === selectedArticleId.value)
+  const safeIdx = currentIdx >= 0 ? currentIdx : 0
+  const newIdx = (safeIdx - 1 + list.length) % list.length
   selectedArticleId.value = list[newIdx].id
 }
 
 function nextArticle() {
   const list = filteredArticles.value
-  if (!list.length) return
-  const currentIdx = selectedArticleIndex.value
-  const newIdx = (currentIdx + 1) % list.length
+  if (list.length <= 1) return
+  const currentIdx = list.findIndex(a => a.id === selectedArticleId.value)
+  const safeIdx = currentIdx >= 0 ? currentIdx : 0
+  const newIdx = (safeIdx + 1) % list.length
   selectedArticleId.value = list[newIdx].id
 }
 
@@ -597,10 +599,15 @@ watch([selectedArticleId, selectedCategory], () => {
 })
 
 // Pointer & Interaction Handlers
+let pointerStartX = 0
+let pointerStartY = 0
+
 function onPointerDown(e: PointerEvent) {
   isDragging = true
   prevPointerX = e.clientX
   prevPointerY = e.clientY
+  pointerStartX = e.clientX
+  pointerStartY = e.clientY
 }
 
 function onPointerMove(e: PointerEvent) {
@@ -653,8 +660,8 @@ function onPointerMove(e: PointerEvent) {
 
 function onPointerUp(e: PointerEvent) {
   if (isDragging) {
-    const dist = Math.hypot(e.clientX - prevPointerX, e.clientY - prevPointerY)
-    if (dist < 4 && camera) {
+    const dist = Math.hypot(e.clientX - pointerStartX, e.clientY - pointerStartY)
+    if (dist < 6 && camera) {
       raycaster.setFromCamera(mouse, camera)
       const meshes = cardNodes.map(n => n.mesh)
       const intersects = raycaster.intersectObjects(meshes)
@@ -699,11 +706,7 @@ function onResize() {
 }
 
 function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'ArrowLeft') {
-    prevArticle()
-  } else if (e.key === 'ArrowRight') {
-    nextArticle()
-  } else if (e.key === 'Enter') {
+  if (e.key === 'Enter') {
     if (selectedArticle.value?.url) {
       window.open(selectedArticle.value.url, '_blank', 'noopener,noreferrer')
     }

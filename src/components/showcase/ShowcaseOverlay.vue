@@ -9,11 +9,6 @@
         aria-modal="true"
         aria-label="Interactive 3D Portfolio Showcase"
         tabindex="-1"
-        @keydown.esc.prevent="closeShowcase"
-        @keydown.up.prevent="prevSection"
-        @keydown.down.prevent="nextSection"
-        @keydown.left.prevent="handleKeyLeft"
-        @keydown.right.prevent="handleKeyRight"
       >
         <!-- 1. Ambient Background Layer -->
         <div class="pointer-events-none absolute inset-0 showcase-ambient-glow" aria-hidden="true"></div>
@@ -90,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, defineAsyncComponent, type Component } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, defineAsyncComponent, type Component } from 'vue'
 import {
   useShowcase,
   isSatelliteZoomed,
@@ -116,14 +111,44 @@ watch(isOpen, async (open) => {
   }
 })
 
-// Arrow key navigation: Left/Right navigates within the 3D scene content
-function handleKeyLeft() {
-  navigateContent('prev')
+// Global keyboard navigation: Esc (close), Up/Down (switch sections), Left/Right (scene content)
+function onGlobalKeyDown(e: KeyboardEvent) {
+  if (!isOpen.value) return
+
+  // Do not intercept if user is typing in form inputs
+  if (
+    e.target instanceof HTMLInputElement ||
+    e.target instanceof HTMLTextAreaElement ||
+    (e.target instanceof HTMLElement && e.target.isContentEditable)
+  ) {
+    return
+  }
+
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    closeShowcase()
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    prevSection()
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    nextSection()
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    navigateContent('prev')
+  } else if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    navigateContent('next')
+  }
 }
 
-function handleKeyRight() {
-  navigateContent('next')
-}
+onMounted(() => {
+  window.addEventListener('keydown', onGlobalKeyDown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onGlobalKeyDown)
+})
 
 // Lazy-loaded 3D Scene Components with Async Component wrappers
 const sceneComponents: Record<ShowcaseSection, Component> = {

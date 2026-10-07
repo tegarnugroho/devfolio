@@ -58,17 +58,19 @@
         <div class="flex items-center gap-1.5">
           <button
             type="button"
-            class="w-7 h-7 rounded border border-white/10 hover:border-white/25 hover:bg-white/5 flex items-center justify-center text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer"
-            title="Previous article (Left Arrow)"
-            @click="$emit('prev')"
+            class="w-7 h-7 rounded border border-white/10 hover:border-white/25 hover:bg-white/10 active:scale-95 flex items-center justify-center text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer select-none"
+            title="Previous article (←)"
+            aria-label="Previous article"
+            @click.stop="$emit('prev')"
           >
             ←
           </button>
           <button
             type="button"
-            class="w-7 h-7 rounded border border-white/10 hover:border-white/25 hover:bg-white/5 flex items-center justify-center text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer"
-            title="Next article (Right Arrow)"
-            @click="$emit('next')"
+            class="w-7 h-7 rounded border border-white/10 hover:border-white/25 hover:bg-white/10 active:scale-95 flex items-center justify-center text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer select-none"
+            title="Next article (→)"
+            aria-label="Next article"
+            @click.stop="$emit('next')"
           >
             →
           </button>
