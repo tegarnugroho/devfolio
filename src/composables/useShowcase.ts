@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import type { ShowcaseSection, ShowcaseTransitionState } from '@/types/showcase'
-import { SHOWCASE_SECTIONS, sectionIds, isValidShowcaseSection, activePageShowcaseSection } from './useShowcaseNavigation'
+import { SHOWCASE_SECTIONS, sectionIds, isValidShowcaseSection, activePageShowcaseSection, detectCurrentPageSection } from './useShowcaseNavigation'
 import { globeMarkers, globeClusters, type GlobeMarker, type GlobeCluster } from '@/components/globe/globeData'
 
 // ==========================================
@@ -59,7 +59,7 @@ export function openShowcase(sectionOrProjectId?: ShowcaseSection | string) {
     }
   } else {
     // Default to the current active section on page
-    currentSection.value = activePageShowcaseSection.value || 'projects'
+    currentSection.value = detectCurrentPageSection() || activePageShowcaseSection.value || 'projects'
   }
 
   // 2. Reset transient states

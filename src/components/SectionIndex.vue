@@ -12,6 +12,7 @@
 import { portfolioContent } from '@/content/portfolioContent'
 import { sectionHref } from '@/composables/useTranslation'
 import { navigationTarget } from '@/composables/useSectionNavigation'
+import { activeScrollSection } from '@/composables/useScrollHash'
 import { onMounted, onBeforeUnmount, ref, watch, nextTick, computed } from 'vue'
 
 const sections = computed(() => [portfolioContent.navigation.home,
@@ -28,7 +29,10 @@ function measureIndicator() {
   const index = sections.value.findIndex(section => section.id === active.value)
   indicator.value = { transform: `translateY(${index * (link.offsetHeight + gap) + 34}px)`, opacity: 1 }
 }
-watch(active, () => { void nextTick(measureIndicator) })
+watch(active, (newVal) => {
+  activeScrollSection.value = newVal
+  void nextTick(measureIndicator)
+})
 watch(navigationTarget, target => { if (target) active.value = target; else updateActive() })
 let elements: HTMLElement[] = []
 let frame = 0

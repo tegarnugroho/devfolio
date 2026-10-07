@@ -65,7 +65,8 @@
 import { portfolioContent } from '@/content/portfolioContent'
 import { onBeforeUnmount, onMounted, ref, computed } from 'vue'
 
-import { navigateToSection } from '@/composables/useSectionNavigation'
+import { navigateToSection, navigationTarget } from '@/composables/useSectionNavigation'
+import { activeScrollSection } from '@/composables/useScrollHash'
 
 type SectionEl = HTMLElement & { id: string }
 
@@ -118,6 +119,9 @@ function updateCurrentIndex() {
     }
   }
   currentIndex.value = bestIdx
+  if (!navigationTarget.value && sections.value[bestIdx]) {
+    activeScrollSection.value = sections.value[bestIdx].id
+  }
 }
 
 function onScroll() {
@@ -131,8 +135,12 @@ function onResize() {
 }
 
 function scrollToIndex(idx: number) {
+  currentIndex.value = idx
   const el = sections.value[idx]
-  if (el) navigateToSection(el, idx === 0)
+  if (el) {
+    activeScrollSection.value = el.id
+    navigateToSection(el, idx === 0)
+  }
 }
 
 function goPrev() {

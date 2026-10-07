@@ -53,7 +53,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { openShowcase } from '@/composables/useShowcase'
-import { activePageShowcaseSection, getSectionMeta } from '@/composables/useShowcaseNavigation'
+import { activePageShowcaseSection, getSectionMeta, detectCurrentPageSection, isValidShowcaseSection } from '@/composables/useShowcaseNavigation'
+import { activeScrollSection } from '@/composables/useScrollHash'
 import TechnologyOrb from './TechnologyOrb.vue'
 
 const activeSection = computed(() => activePageShowcaseSection.value)
@@ -79,10 +80,18 @@ function handleClick() {
     isClicking.value = false
   }, 260)
 
-  openShowcase(activeSection.value)
+  const target = detectCurrentPageSection()
+  if (isValidShowcaseSection(target)) {
+    activeScrollSection.value = target
+  }
+  openShowcase(target)
 }
 
 function onMouseEnter() {
+  const target = detectCurrentPageSection()
+  if (isValidShowcaseSection(target)) {
+    activeScrollSection.value = target
+  }
   isHovering.value = true
   isTeasing.value = false
 }

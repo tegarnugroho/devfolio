@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 
 import { updateSectionUrl } from './useTranslation'
 import { navigationTarget } from './useSectionNavigation'
@@ -9,9 +9,47 @@ export function useScrollHash(selector = 'section[id]'): { current: Ref<string |
   const current = ref<string | null>(null)
   let observer: IntersectionObserver | null = null
 
+  // Synchronize activeScrollSection immediately when programmatic navigation starts
+  watch(navigationTarget, (target) => {
+    if (target) {
+      activeScrollSection.value = target
+      current.value = target
+    }
+  })
+
+  function onScroll() {
+    if (navigationTarget.value) return
+    const scrollY = window.scrollY || window.pageYOffset || 0
+    const innerH = window.innerHeight || 800
+    const docH = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight,
+      document.body.offsetHeight,
+      document.documentElement.offsetHeight
+    )
+    if (scrollY <= 50) {
+      if (activeScrollSection.value !== 'hero') {
+        activeScrollSection.value = 'hero'
+        current.value = 'hero'
+        updateSectionUrl('hero')
+      }
+      return
+    }
+    if (scrollY + innerH >= docH - 50) {
+      if (activeScrollSection.value !== 'contact') {
+        activeScrollSection.value = 'contact'
+        current.value = 'contact'
+        updateSectionUrl('contact')
+      }
+      return
+    }
+  }
+
   onMounted(() => {
     const sections = Array.from(document.querySelectorAll<HTMLElement>(selector))
     if (!sections.length) return
+
+    window.addEventListener('scroll', onScroll, { passive: true })
 
     observer = new IntersectionObserver(
       (entries) => {
@@ -41,6 +79,7 @@ export function useScrollHash(selector = 'section[id]'): { current: Ref<string |
   })
 
   onBeforeUnmount(() => {
+    window.removeEventListener('scroll', onScroll)
     observer?.disconnect()
   })
 
