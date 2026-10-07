@@ -18,16 +18,13 @@
     <!-- Deep Ambient Vignette (Seamless background blend) -->
     <div class="pointer-events-none absolute inset-0 gallery-ambient-vignette" aria-hidden="true"></div>
 
-    <!-- Loading State -->
-    <div
+    <!-- 3D Holographic Loading State -->
+    <Showcase3DLoader
       v-if="loading && articles.length === 0"
-      class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 z-30 font-mono text-zinc-400 select-none"
-    >
-      <div class="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-      <span class="tracking-widest uppercase text-[10px] text-zinc-400">
-        {{ portfolioContent.writing.loadingLabel || 'LOADING KNOWLEDGE FIELD...' }}
-      </span>
-    </div>
+      title="KNOWLEDGE FIELD DISPATCH"
+      subtitle="SYNCHRONIZING EDITORIAL ARTICLES & TOPIC GRAPH"
+      badge-text="STREAMING DISPATCH API"
+    />
 
     <!-- Error State -->
     <div
@@ -92,6 +89,7 @@ import { createCardTexture } from '../writing/cardTextureGenerator'
 import { calculateNodeTransform, buildRelationshipPairs } from '../writing/articlePosition'
 import WritingFilters from '../writing/WritingFilters.vue'
 import WritingArticlePanel from '../writing/WritingArticlePanel.vue'
+import Showcase3DLoader from '../Showcase3DLoader.vue'
 
 // Live API Data Hook (Identical data source as the 2D Writing section)
 const { posts, loading, failed } = useWritingPosts()
