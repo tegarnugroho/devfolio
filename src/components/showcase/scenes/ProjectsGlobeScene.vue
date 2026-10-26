@@ -71,34 +71,69 @@
       </div>
     </div>
 
-    <!-- Active Project Details Card (Bottom Overlay) -->
+    <!-- Active Project Details Card (SpaceX Telemetry HUD Overlay) -->
     <div
       v-if="activeMarker"
       class="absolute bottom-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))] sm:bottom-8 left-4 right-4 sm:left-8 sm:right-auto z-10 max-w-sm sm:max-w-md pointer-events-auto"
     >
-      <div class="p-4 sm:p-5 rounded-2xl border border-white/15 bg-black/80 backdrop-blur-xl shadow-2xl space-y-3">
-        <div class="flex items-start justify-between gap-3">
+      <div
+        class="p-3.5 sm:p-4 rounded-[4px] border bg-[#07090e]/95 backdrop-blur-xl shadow-[0_12px_36px_rgba(0,0,0,0.9)] space-y-2.5 transition-all duration-300"
+        :style="{
+          borderColor: `${activeMarker.accentColor}55`,
+          borderLeftWidth: '3px',
+          borderLeftColor: activeMarker.accentColor,
+        }"
+      >
+        <!-- Telemetry Status Header -->
+        <div class="flex items-center justify-between border-b border-white/10 pb-2 font-mono text-[8.5px] uppercase tracking-wider text-zinc-400">
+          <div class="flex items-center gap-2">
+            <span
+              class="w-1.5 h-1.5 rounded-full"
+              :style="{ backgroundColor: activeMarker.accentColor, boxShadow: `0 0 6px ${activeMarker.accentColor}` }"
+            ></span>
+            <span class="text-zinc-200 font-semibold">{{ activeMarker.clusterName }}</span>
+            <span class="text-zinc-600">/</span>
+            <span class="text-emerald-400 font-bold">LOCKED</span>
+          </div>
+          <span class="text-zinc-500 font-mono text-[8px]">
+            {{ Math.abs(activeMarker.lat).toFixed(2) }}°{{ activeMarker.lat >= 0 ? 'N' : 'S' }}, {{ Math.abs(activeMarker.lng).toFixed(2) }}°{{ activeMarker.lng >= 0 ? 'E' : 'W' }}
+          </span>
+        </div>
+
+        <!-- Project Identity & Navigation -->
+        <div class="flex items-start justify-between gap-3 pt-0.5">
           <div class="flex items-center gap-2.5 min-w-0">
             <img
               v-if="activeMarker.image"
               :src="activeMarker.image"
               alt=""
-              class="w-8 h-8 rounded-lg object-cover border border-white/20 shrink-0"
+              class="w-8 h-8 rounded-[2px] object-cover border border-white/20 shrink-0 bg-black/60"
             />
+            <div
+              v-else
+              class="w-8 h-8 rounded-[2px] shrink-0 flex items-center justify-center border font-mono text-[10px] font-bold text-white bg-white/5"
+              :style="{ borderColor: activeMarker.accentColor }"
+            >
+              {{ activeMarker.title.slice(0, 2).toUpperCase() }}
+            </div>
             <div class="min-w-0">
-              <span class="font-mono text-[9px] uppercase tracking-widest text-blue-400">
-                {{ activeMarker.clusterName }}
+              <span
+                class="font-mono text-[8.5px] uppercase tracking-widest font-semibold block leading-tight truncate"
+                :style="{ color: activeMarker.accentColor }"
+              >
+                {{ activeMarker.category || activeMarker.subtitle }}
               </span>
-              <h3 class="text-sm font-bold text-white tracking-tight truncate">
+              <h3 class="text-sm sm:text-[15px] font-bold text-white tracking-tight truncate mt-0.5">
                 {{ activeMarker.title }}
               </h3>
             </div>
           </div>
 
+          <!-- Mission Prev/Next Steppers -->
           <div class="flex items-center gap-1 shrink-0">
             <button
               type="button"
-              class="w-7 h-7 rounded-full border border-white/15 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition cursor-pointer text-xs"
+              class="w-6 h-6 rounded-[2px] border border-white/15 bg-white/5 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/15 active:scale-95 transition cursor-pointer text-xs focus:outline-none"
               @click="prevProject"
               title="Previous project (←)"
             >
@@ -106,7 +141,7 @@
             </button>
             <button
               type="button"
-              class="w-7 h-7 rounded-full border border-white/15 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition cursor-pointer text-xs"
+              class="w-6 h-6 rounded-[2px] border border-white/15 bg-white/5 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/15 active:scale-95 transition cursor-pointer text-xs focus:outline-none"
               @click="nextProject"
               title="Next project (→)"
             >
@@ -120,20 +155,20 @@
         </p>
 
         <!-- Tech tags -->
-        <div class="flex flex-wrap gap-1.5 pt-1">
+        <div class="flex flex-wrap gap-1 pt-0.5">
           <span
             v-for="tag in activeMarker.tech.slice(0, 4)"
             :key="tag"
-            class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-mono text-zinc-300"
+            class="px-1.5 py-0.5 rounded-[2px] bg-white/5 border border-white/10 text-[8.5px] font-mono text-zinc-300"
           >
             {{ tag }}
           </span>
         </div>
 
-        <!-- Action Links -->
-        <div class="flex items-center justify-between pt-2 border-t border-white/10">
-          <span class="font-mono text-[9px] text-zinc-500 uppercase tracking-widest">
-            {{ activeMarkerIndex + 1 }} / {{ globeMarkers.length }}
+        <!-- Action Links & Telemetry Index -->
+        <div class="flex items-center justify-between pt-2 border-t border-white/10 font-mono">
+          <span class="text-[8.5px] text-zinc-500 uppercase tracking-widest">
+            TARGET {{ activeMarkerIndex + 1 }} / {{ globeMarkers.length }}
           </span>
           <div class="flex items-center gap-2">
             <a
@@ -141,7 +176,8 @@
               :href="activeMarker.link"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-500 hover:bg-blue-400 text-white font-mono text-[10px] uppercase tracking-wider font-semibold transition cursor-pointer"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[2px] font-mono text-[9.5px] uppercase tracking-wider font-semibold transition cursor-pointer text-black"
+              :style="{ backgroundColor: activeMarker.accentColor }"
             >
               <span>VISIT</span>
               <span>↗</span>
@@ -151,7 +187,7 @@
               :href="activeMarker.repo"
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white font-mono text-[10px] uppercase tracking-wider transition cursor-pointer"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[2px] bg-white/10 hover:bg-white/20 text-white font-mono text-[9.5px] uppercase tracking-wider transition cursor-pointer border border-white/15"
             >
               <span>CODE</span>
               <span>↗</span>

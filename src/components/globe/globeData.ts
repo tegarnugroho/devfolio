@@ -53,6 +53,19 @@ interface ProjectGeoMetadata {
 }
 
 const geoMetadata: ProjectGeoMetadata[] = [
+  // Singapore Hub — Developer Platforms
+  {
+    matchKey: 'Codeary',
+    clusterId: 'cluster-sg',
+    clusterName: 'Singapore Hub',
+    shortTitle: 'Codeary',
+    subtitle: 'Developer Platform',
+    category: 'Developer Platform',
+    lat: 1.3521,
+    lng: 103.8198, // Singapore
+    accentColor: '#10b981', // Teal / Emerald
+  },
+
   // Indonesia Hub (Multi-project cluster)
   {
     matchKey: 'Tribelio',
@@ -63,7 +76,40 @@ const geoMetadata: ProjectGeoMetadata[] = [
     category: 'Community & Commerce',
     lat: -6.2088,
     lng: 106.8456, // Jakarta (Central Hub)
-    accentColor: '#a855f7',
+    accentColor: '#0284c7', // Blue
+  },
+  {
+    matchKey: 'Niibu',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
+    shortTitle: 'Niibu Creator',
+    subtitle: 'Creator Platform',
+    category: 'Creator Platform',
+    lat: -6.2250,
+    lng: 106.8100, // Jakarta
+    accentColor: '#0284c7', // Blue
+  },
+  {
+    matchKey: 'Stationary POS',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
+    shortTitle: 'Stationary POS',
+    subtitle: 'Point-of-Sale System',
+    category: 'Retail POS Platform',
+    lat: -6.2300,
+    lng: 106.8500, // Jakarta
+    accentColor: '#8b5cf6', // Muted Violet
+  },
+  {
+    matchKey: 'BilangPos',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
+    shortTitle: 'BilangPos',
+    subtitle: 'Point-of-Sale App',
+    category: 'POS Application',
+    lat: -6.2100,
+    lng: 106.8400, // Jakarta
+    accentColor: '#8b5cf6', // Muted Violet
   },
   {
     matchKey: 'Waroong Retjeh',
@@ -74,7 +120,29 @@ const geoMetadata: ProjectGeoMetadata[] = [
     category: 'F&B POS Platform',
     lat: -7.2575,
     lng: 112.7521, // Surabaya
-    accentColor: '#ef4444',
+    accentColor: '#8b5cf6', // Muted Violet
+  },
+  {
+    matchKey: 'EAA Pad',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
+    shortTitle: 'EAA Pad',
+    subtitle: 'Self-Checkout System',
+    category: 'Retail POS Terminal',
+    lat: -6.1800,
+    lng: 106.8200, // Jakarta
+    accentColor: '#f59e0b', // Amber
+  },
+  {
+    matchKey: 'ANKER Store App',
+    clusterId: 'cluster-id',
+    clusterName: 'Indonesia Hub',
+    shortTitle: 'ANKER Store',
+    subtitle: 'Retail Commerce App',
+    category: 'Retail Commerce',
+    lat: -6.1950,
+    lng: 106.8350, // Jakarta
+    accentColor: '#f59e0b', // Amber
   },
   {
     matchKey: 'Danafix',
@@ -85,7 +153,7 @@ const geoMetadata: ProjectGeoMetadata[] = [
     category: 'Fintech Application',
     lat: -6.9175,
     lng: 107.6191, // Bandung
-    accentColor: '#6366f1',
+    accentColor: '#3b82f6', // Blue
   },
   {
     matchKey: 'Cicle',
@@ -96,7 +164,7 @@ const geoMetadata: ProjectGeoMetadata[] = [
     category: 'Team Collaboration',
     lat: -7.7956,
     lng: 110.3695, // Yogyakarta
-    accentColor: '#f59e0b',
+    accentColor: '#38bdf8', // Blue
   },
   {
     matchKey: 'IZILOH',
@@ -107,7 +175,7 @@ const geoMetadata: ProjectGeoMetadata[] = [
     category: 'On-Demand Service',
     lat: -6.1783,
     lng: 106.6319, // Tangerang
-    accentColor: '#3b82f6',
+    accentColor: '#06b6d4', // Cyan
   },
   {
     matchKey: 'NU Card',
@@ -118,7 +186,7 @@ const geoMetadata: ProjectGeoMetadata[] = [
     category: 'Fintech / E-Wallet',
     lat: -6.9667,
     lng: 110.4167, // Semarang
-    accentColor: '#14b8a6',
+    accentColor: '#10b981', // Emerald
   },
   {
     matchKey: 'Flambe',
@@ -129,20 +197,31 @@ const geoMetadata: ProjectGeoMetadata[] = [
     category: 'Food Delivery Platform',
     lat: -8.6705,
     lng: 115.2126, // Denpasar / Bali
-    accentColor: '#f97316',
+    accentColor: '#f97316', // Amber / Orange
   },
 
   // Europe Hub (Multi-project cluster)
+  {
+    matchKey: 'Engelhorn',
+    clusterId: 'cluster-eu',
+    clusterName: 'Europe Hub',
+    shortTitle: 'Engelhorn POS',
+    subtitle: 'Fashion Retail POS',
+    category: 'Retail POS Platform',
+    lat: 49.4875,
+    lng: 8.4660, // Mannheim, Germany
+    accentColor: '#f59e0b', // Amber
+  },
   {
     matchKey: 'Excel Translator',
     clusterId: 'cluster-eu',
     clusterName: 'Europe Hub',
     shortTitle: 'Excel Translator',
     subtitle: 'Localization Tool',
-    category: 'Flutter Package',
+    category: 'Developer Tooling',
     lat: 51.5074,
     lng: -0.1278, // London
-    accentColor: '#10b981',
+    accentColor: '#10b981', // Emerald
   },
   {
     matchKey: 'flutter_v_keyboard',
@@ -153,7 +232,7 @@ const geoMetadata: ProjectGeoMetadata[] = [
     category: 'Open Source Package',
     lat: 52.5200,
     lng: 13.4050, // Berlin
-    accentColor: '#8b5cf6',
+    accentColor: '#8b5cf6', // Muted Violet
   },
 
   // East Asia Hub
@@ -166,7 +245,7 @@ const geoMetadata: ProjectGeoMetadata[] = [
     category: 'Open Source Package',
     lat: 35.6762,
     lng: 139.6503, // Tokyo
-    accentColor: '#06b6d4',
+    accentColor: '#06b6d4', // Cyan
   },
 
   // Americas Hub
@@ -179,20 +258,7 @@ const geoMetadata: ProjectGeoMetadata[] = [
     category: 'Developer Tooling',
     lat: 37.7749,
     lng: -122.4194, // San Francisco
-    accentColor: '#ec4899',
-  },
-
-  // Singapore Hub
-  {
-    matchKey: 'Codeary',
-    clusterId: 'cluster-sg',
-    clusterName: 'Singapore Hub',
-    shortTitle: 'Codeary',
-    subtitle: 'Developer Platform',
-    category: 'Tech Publication',
-    lat: 1.3521,
-    lng: 103.8198, // Singapore
-    accentColor: '#10b981',
+    accentColor: '#94a3b8', // Neutral Slate / Gray
   },
 
   // Oceania Hub
@@ -202,10 +268,10 @@ const geoMetadata: ProjectGeoMetadata[] = [
     clusterName: 'Oceania Hub',
     shortTitle: 'VSCode Web',
     subtitle: 'Web Experience',
-    category: 'Personal Portfolio',
+    category: 'Developer Portfolio',
     lat: -33.8688,
     lng: 151.2093, // Sydney
-    accentColor: '#38bdf8',
+    accentColor: '#38bdf8', // Blue
   },
 ]
 

@@ -26,7 +26,7 @@
       <p class="text-xs text-zinc-500 max-w-sm">{{ fallbackText }}</p>
     </div>
 
-    <!-- Projected 2D HTML Labels Layer -->
+    <!-- Projected 2D HTML Labels Layer (SpaceX / Mission Control Telemetry HUD) -->
     <div v-if="webglSupported" class="globe-labels-layer absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
       <!-- 1. CLUSTER COUNTER LABELS (Visible in Global View for multi-project clusters) -->
       <template v-if="!isZoomed">
@@ -34,40 +34,45 @@
           v-for="cluster in multiProjectClusters"
           :key="cluster.id"
           :ref="el => setClusterLabelRef(cluster.id, el as HTMLElement)"
-          class="cluster-label absolute left-0 top-0 transition-opacity duration-200"
+          class="cluster-label absolute left-0 top-0 transition-opacity duration-200 pointer-events-none"
         >
           <button
             type="button"
-            class="cluster-anchor pointer-events-auto flex items-center gap-2.5 -translate-y-1/2 cursor-pointer transition-transform duration-200 hover:scale-105 group"
+            class="cluster-anchor pointer-events-auto flex items-center -translate-y-1/2 cursor-pointer transition-transform duration-200 hover:scale-[1.03] group focus:outline-none"
             :aria-label="`Zoom into ${cluster.name} (${cluster.projectCount} projects)`"
             @click.stop="onClusterClick(cluster.id)"
           >
-            <!-- Glowing Cluster Radar Dot -->
-            <span class="cluster-pulse-dot w-3.5 h-3.5 rounded-full shrink-0 flex items-center justify-center bg-blue-500 shadow-[0_0_16px_#3b82f6]">
-              <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
-            </span>
+            <!-- Anchor Target Reticle & Telemetry Hairline -->
+            <div class="marker-leader-line flex items-center shrink-0" aria-hidden="true">
+              <span class="anchor-reticle relative w-3 h-3 flex items-center justify-center shrink-0">
+                <span class="absolute inset-0 rounded-full border border-sky-400/50 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-transform"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_6px_#38bdf8]"></span>
+              </span>
+              <span class="connector-stem h-[1px] w-4 sm:w-5 bg-gradient-to-r from-transparent via-sky-400/30 to-sky-400/60 transition-all"></span>
+            </div>
 
-            <!-- Counter Pill Badge with Thumbnail Previews -->
-            <div class="cluster-card py-1.5 px-3 rounded-full border border-blue-400/50 bg-black/85 backdrop-blur-xl shadow-[0_10px_30px_rgba(59,130,246,0.35)] flex items-center gap-2 group-hover:border-blue-300 group-hover:bg-black/95">
-              <!-- Mini Overlapping Avatars of projects inside this cluster -->
-              <div v-if="getClusterThumbs(cluster.id).length > 0" class="flex -space-x-1.5 overflow-hidden shrink-0">
+            <!-- Aerospace Mission Control Cluster Tag -->
+            <div class="hud-tag py-1 px-2.5 rounded-[3px] bg-[#07090e]/92 border border-white/10 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.85)] flex items-center gap-2 group-hover:border-sky-400/50 group-hover:bg-[#0a0d14]/95 transition-all">
+              <div v-if="getClusterThumbs(cluster.id).length > 0" class="flex -space-x-1 overflow-hidden shrink-0">
                 <img
                   v-for="(thumb, i) in getClusterThumbs(cluster.id)"
                   :key="i"
                   :src="thumb"
                   alt=""
-                  class="w-4 h-4 rounded-full border border-black/80 object-cover"
+                  class="w-4 h-4 rounded-[2px] border border-black/80 object-cover"
                 />
               </div>
 
-              <span class="font-mono text-[10px] font-bold text-white tracking-wider flex items-center gap-1">
-                <span class="text-blue-400 font-extrabold">{{ cluster.projectCount }}</span>
-                <span>PROJECTS</span>
-              </span>
-              <span class="font-mono text-[9px] uppercase tracking-wider text-zinc-400 border-l border-white/20 pl-2">
-                {{ cluster.name }}
-              </span>
-              <span class="text-[9px] font-mono text-blue-400 group-hover:translate-x-0.5 transition-transform">⊕</span>
+              <div class="flex items-center gap-1.5 font-mono text-[9px] whitespace-nowrap">
+                <span class="font-bold text-sky-400 tracking-wider flex items-center gap-1">
+                  <span class="text-white">{{ cluster.projectCount }}</span>
+                  <span>UNITS</span>
+                </span>
+                <span class="text-zinc-500 border-l border-white/15 pl-1.5 uppercase tracking-wider text-[8px]">
+                  {{ cluster.name }}
+                </span>
+                <span class="text-[9px] text-sky-400 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">⊕</span>
+              </div>
             </div>
           </button>
         </div>
@@ -78,52 +83,89 @@
         v-for="marker in visibleMarkers"
         :key="marker.id"
         :ref="el => setLabelRef(marker.id, el as HTMLElement)"
-        class="globe-marker-label absolute left-0 top-0 transition-opacity duration-200"
+        class="globe-marker-label absolute left-0 top-0 transition-opacity duration-200 pointer-events-none"
         :class="{ 'label-active': activeId === marker.id }"
       >
         <button
           type="button"
-          class="label-anchor pointer-events-auto flex items-center gap-2 -translate-y-1/2 cursor-pointer transition-transform duration-200 hover:scale-105 group"
+          class="label-anchor pointer-events-auto flex items-center -translate-y-1/2 cursor-pointer transition-transform duration-200 hover:scale-[1.03] group focus:outline-none"
           :aria-label="`Select ${marker.title}`"
           @click.stop="onMarkerClick(marker.id)"
         >
-          <!-- Glowing Pulse Beacon Core Dot -->
-          <span class="relative flex items-center justify-center shrink-0">
-            <span
-              class="marker-dot-halo absolute w-3.5 h-3.5 rounded-full opacity-75"
-              :style="{ backgroundColor: marker.accentColor }"
-            ></span>
-            <span
-              class="w-2 h-2 rounded-full ring-2 ring-black"
-              :style="{ backgroundColor: marker.accentColor, boxShadow: `0 0 10px ${marker.accentColor}` }"
-            ></span>
-          </span>
+          <!-- 1. Technical Telemetry Lead/Connector Line -->
+          <div class="marker-leader-line flex items-center shrink-0" aria-hidden="true">
+            <!-- Anchor Target Ring on 2D screen coordinate -->
+            <span class="anchor-reticle relative w-3 h-3 flex items-center justify-center shrink-0">
+              <span
+                class="absolute inset-0 rounded-full border border-current opacity-40 transition-all duration-200 group-hover:opacity-90 group-hover:scale-110"
+                :class="{ '!opacity-100 !border-white !scale-125': activeId === marker.id }"
+                :style="{ color: marker.accentColor }"
+              ></span>
+              <span
+                class="w-1.5 h-1.5 rounded-full bg-white shadow-sm transition-all duration-200"
+                :style="{ boxShadow: `0 0 6px ${marker.accentColor}` }"
+              ></span>
+            </span>
 
-          <!-- High-End Holographic Project Card with Thumbnail Image -->
+            <!-- Horizontal connector hairline -->
+            <span
+              class="connector-stem h-[1px] w-4 sm:w-5 bg-gradient-to-r from-transparent via-white/25 to-white/45 transition-all duration-200 group-hover:via-white/50"
+              :class="{ '!via-white/70 !to-white': activeId === marker.id }"
+            ></span>
+          </div>
+
+          <!-- 2. SpaceX / Telemetry HUD Project Tag -->
           <div
-            class="marker-card py-1.5 px-2.5 rounded-xl border border-white/15 bg-black/85 backdrop-blur-xl shadow-[0_12px_30px_rgba(0,0,0,0.7)] text-left flex items-center gap-2.5 transition-all duration-200 group-hover:border-white/40 group-hover:bg-black/95"
-            :class="{ '!border-blue-400 !bg-black/95 ring-2 ring-blue-400/50 scale-105 shadow-[0_0_25px_rgba(59,130,246,0.4)]': activeId === marker.id }"
+            class="hud-tag relative flex items-center gap-2 py-1 px-2 sm:py-1.5 sm:px-2.5 rounded-[3px] bg-[#07090e]/92 border border-white/10 backdrop-blur-md shadow-[0_4px_18px_rgba(0,0,0,0.85)] transition-all duration-200 group-hover:border-white/30 group-hover:bg-[#0a0d14]/95"
+            :class="{
+              'hud-tag-active !bg-[#0b0e16]/98': activeId === marker.id
+            }"
+            :style="{
+              borderLeftColor: marker.accentColor,
+              borderLeftWidth: '2.5px',
+              ...(activeId === marker.id ? { borderColor: `${marker.accentColor}bb`, boxShadow: `0 0 16px ${marker.accentColor}26, 0 8px 24px rgba(0,0,0,0.9)` } : {})
+            }"
           >
-            <!-- Project Thumbnail / Icon -->
-            <div v-if="marker.image" class="w-7 h-7 rounded-lg overflow-hidden shrink-0 border border-white/20 bg-zinc-900/90 shadow-sm">
+            <!-- Corner HUD Accents -->
+            <span class="hud-corner-tr" aria-hidden="true"></span>
+            <span class="hud-corner-bl" aria-hidden="true"></span>
+
+            <!-- Small Project Logo / Icon -->
+            <div
+              v-if="marker.image"
+              class="w-5 h-5 sm:w-6 sm:h-6 rounded-[2px] overflow-hidden shrink-0 border border-white/15 bg-black/60 shadow-sm"
+            >
               <img :src="marker.image" :alt="marker.title" class="w-full h-full object-cover" />
             </div>
             <div
               v-else
-              class="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center border font-mono text-[9px] font-bold text-white shadow-sm"
-              :style="{ backgroundColor: `${marker.accentColor}33`, borderColor: marker.accentColor }"
+              class="w-5 h-5 sm:w-6 sm:h-6 rounded-[2px] shrink-0 flex items-center justify-center border font-mono text-[8px] sm:text-[9px] font-bold text-white shadow-sm"
+              :style="{ backgroundColor: `${marker.accentColor}26`, borderColor: `${marker.accentColor}66` }"
             >
               {{ marker.title.slice(0, 2).toUpperCase() }}
             </div>
 
-            <div class="min-w-0 pr-0.5">
-              <p class="text-[11.5px] font-bold tracking-tight text-white leading-tight flex items-center gap-1.5 whitespace-nowrap">
-                {{ marker.title }}
-                <span v-if="activeId === marker.id" class="text-[9px] text-blue-400 animate-pulse">↗</span>
-              </p>
-              <p class="text-[8.5px] font-mono tracking-wider uppercase text-zinc-400 leading-tight whitespace-nowrap mt-0.5">
-                {{ marker.subtitle }}
-              </p>
+            <!-- Compact Text Information Panel -->
+            <div class="min-w-0 pr-0.5 flex flex-col text-left">
+              <!-- Row 1: Title + Status Indicator -->
+              <div class="flex items-center gap-1.5 whitespace-nowrap">
+                <span class="text-[11px] sm:text-[11.5px] font-semibold tracking-tight text-zinc-100 group-hover:text-white leading-tight">
+                  {{ marker.title }}
+                </span>
+                <!-- Active Telemetry Lock Indicator -->
+                <span
+                  v-if="activeId === marker.id"
+                  class="inline-flex items-center gap-1 font-mono text-[7px] font-bold uppercase tracking-wider px-1 py-0.2 rounded-[2px] bg-white/10 text-emerald-400 border border-emerald-400/40"
+                >
+                  <span class="w-1 h-1 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span>TRK</span>
+                </span>
+              </div>
+
+              <!-- Row 2: Category Label -->
+              <span class="font-mono text-[7.5px] sm:text-[8px] tracking-wider uppercase text-zinc-400 font-medium leading-tight whitespace-nowrap mt-0.5">
+                {{ marker.category || marker.subtitle }}
+              </span>
             </div>
           </div>
         </button>
@@ -770,24 +812,24 @@ function buildClusterHubs() {
   for (const c of clusters) {
     if (c.projectCount <= 1) continue // Single project nodes handled directly
 
-    const pos = latLngToVector3(c.lat, c.lng, GLOBE_RADIUS * 1.012)
+    const pos = latLngToVector3(c.lat, c.lng, GLOBE_RADIUS * 1.008)
     const normal = pos.clone().normalize()
 
-    // 1. Cluster Central Glowing Sphere Point
-    const hubGeo = new THREE.SphereGeometry(0.045, 16, 16)
-    const hubMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6 })
+    // 1. Cluster Core Precision Dot (Luminous center point)
+    const hubGeo = new THREE.SphereGeometry(0.014, 12, 12)
+    const hubMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
     const hubMesh = new THREE.Mesh(hubGeo, hubMat)
     hubMesh.position.copy(pos)
     globeGroup.add(hubMesh)
 
-    // 2. High-Powered Cluster Vertical Light Pillar
-    const beaconHeight = 0.32
-    const beaconGeo = new THREE.CylinderGeometry(0.005, 0.024, beaconHeight, 10)
+    // 2. Telemetry Vertical Mast (Thin precision antenna)
+    const beaconHeight = 0.20
+    const beaconGeo = new THREE.CylinderGeometry(0.002, 0.002, beaconHeight, 6)
     beaconGeo.translate(0, beaconHeight / 2, 0)
     const beaconMat = new THREE.MeshBasicMaterial({
-      color: 0x3b82f6,
+      color: 0x38bdf8,
       transparent: true,
-      opacity: 0.72,
+      opacity: 0.6,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     })
@@ -796,12 +838,12 @@ function buildClusterHubs() {
     beaconMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal)
     globeGroup.add(beaconMesh)
 
-    // 3. Concentric Ground Radar Pulse Rings
-    const ringGeo = new THREE.RingGeometry(0.025, 0.07, 28)
+    // 3. Crisp Ground Radar Target Ring
+    const ringGeo = new THREE.RingGeometry(0.034, 0.037, 32)
     const ringMat = new THREE.MeshBasicMaterial({
-      color: 0x60a5fa,
+      color: 0x38bdf8,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.55,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
@@ -811,21 +853,18 @@ function buildClusterHubs() {
     ringMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
     globeGroup.add(ringMesh)
 
-    // 4. Floating 3D Orbital Station Core Gem
-    const stationGeo = new THREE.IcosahedronGeometry(0.034, 0)
-    const stationMat = new THREE.MeshStandardMaterial({
-      color: 0x3b82f6,
-      emissive: 0x2563eb,
-      emissiveIntensity: 0.8,
-      roughness: 0.2,
-      metalness: 0.85,
+    // 4. Orbital Hub Transponder Head at Mast Apex
+    const stationGeo = new THREE.SphereGeometry(0.012, 10, 10)
+    const stationMat = new THREE.MeshBasicMaterial({
+      color: 0x7dd3fc,
+      blending: THREE.AdditiveBlending,
     })
     const stationMesh = new THREE.Mesh(stationGeo, stationMat)
     stationMesh.position.copy(pos.clone().addScaledVector(normal, beaconHeight))
     globeGroup.add(stationMesh)
 
     // 5. Hit Sphere for Raycasting
-    const hitGeo = new THREE.SphereGeometry(0.25, 8, 8)
+    const hitGeo = new THREE.SphereGeometry(0.20, 8, 8)
     const hitMat = new THREE.MeshBasicMaterial({ visible: false })
     const hitMesh = new THREE.Mesh(hitGeo, hitMat)
     hitMesh.position.copy(pos)
@@ -851,24 +890,24 @@ function buildMarkers() {
 
   const list = globeMarkers.value
   for (const m of list) {
-    const pos = latLngToVector3(m.lat, m.lng, GLOBE_RADIUS * 1.012)
+    const pos = latLngToVector3(m.lat, m.lng, GLOBE_RADIUS * 1.008)
     const normal = pos.clone().normalize()
 
-    // 1. Core 3D Dot Point
-    const dotGeo = new THREE.SphereGeometry(0.032, 16, 16)
-    const dotMat = new THREE.MeshBasicMaterial({ color: m.accentColor })
+    // 1. Core 3D Dot Point: Small precision luminous point
+    const dotGeo = new THREE.SphereGeometry(0.011, 12, 12)
+    const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff })
     const dotMesh = new THREE.Mesh(dotGeo, dotMat)
     dotMesh.position.copy(pos)
     globeGroup.add(dotMesh)
 
-    // 2. Vertical Light Beacon (Laser Pillar shooting upwards)
-    const beaconHeight = 0.22
-    const beaconGeo = new THREE.CylinderGeometry(0.003, 0.016, beaconHeight, 8)
+    // 2. Precision Vertical Stem (Spacecraft Telemetry Mast)
+    const beaconHeight = 0.15
+    const beaconGeo = new THREE.CylinderGeometry(0.0016, 0.0016, beaconHeight, 6)
     beaconGeo.translate(0, beaconHeight / 2, 0)
     const beaconMat = new THREE.MeshBasicMaterial({
       color: m.accentColor,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.55,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     })
@@ -877,12 +916,12 @@ function buildMarkers() {
     beaconMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal)
     globeGroup.add(beaconMesh)
 
-    // 3. Pulsing Radar Ripple Ring on Ground
-    const ringGeo = new THREE.RingGeometry(0.018, 0.045, 24)
+    // 3. Subtle Circular Ground Radar Reticle Ring
+    const ringGeo = new THREE.RingGeometry(0.026, 0.029, 32)
     const ringMat = new THREE.MeshBasicMaterial({
       color: m.accentColor,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.5,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
@@ -892,24 +931,21 @@ function buildMarkers() {
     ringMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
     globeGroup.add(ringMesh)
 
-    // 4. 3D Floating Diamond / Gem at Beacon Apex
-    const gemGeo = new THREE.OctahedronGeometry(0.024, 0)
-    const gemMat = new THREE.MeshStandardMaterial({
+    // 4. Compact Apex Transponder Head (Replaces bulky spinning octahedron)
+    const gemGeo = new THREE.SphereGeometry(0.009, 8, 8)
+    const gemMat = new THREE.MeshBasicMaterial({
       color: m.accentColor,
-      emissive: m.accentColor,
-      emissiveIntensity: 0.7,
-      roughness: 0.2,
-      metalness: 0.8,
+      blending: THREE.AdditiveBlending,
     })
     const gemMesh = new THREE.Mesh(gemGeo, gemMat)
     gemMesh.position.copy(pos.clone().addScaledVector(normal, beaconHeight))
     globeGroup.add(gemMesh)
 
     // 5. Hit Sphere for Raycasting
-    const hitGeo = new THREE.SphereGeometry(0.18, 8, 8)
+    const hitGeo = new THREE.SphereGeometry(0.16, 8, 8)
     const hitMat = new THREE.MeshBasicMaterial({ visible: false })
     const hitMesh = new THREE.Mesh(hitGeo, hitMat)
-    hitMesh.position.copy(pos)
+    hitMesh.position.copy(pos.clone().addScaledVector(normal, beaconHeight * 0.5))
     hitMesh.userData = { markerId: m.id }
     globeGroup.add(hitMesh)
 
@@ -1414,40 +1450,43 @@ function animate(currentTime: number) {
     }
   }
 
-  // 6. Animate 3D Holographic Marker Gems & Sonar Radar Rings
+  // 6. Animate Precision Telemetry Markers & Targeted Ground Reticles
   if (!reducedMotion) {
     for (let i = 0; i < markerMeshes.length; i++) {
       const m = markerMeshes[i]
+      const isSelected = props.activeId === m.id
+
       if (m.gemMesh.visible) {
-        m.gemMesh.rotation.y += delta * 1.6
-        m.gemMesh.rotation.x += delta * 0.9
-        const isSelected = props.activeId === m.id
-        const targetScale = isSelected ? 1.5 : 1.0
+        const targetScale = isSelected ? 1.4 : 1.0
         m.gemMesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1)
         const bMat = m.beaconMesh.material as THREE.MeshBasicMaterial
-        bMat.opacity = isSelected ? 0.95 : 0.65
+        bMat.opacity = isSelected ? 0.9 : 0.45
       }
+
       if (m.ringMesh.visible) {
-        const pulse = ((currentTime * 0.0016 + i * 0.22) % 1)
-        const s = 1.0 + pulse * 1.5
-        m.ringMesh.scale.set(s, s, s)
-        const rMat = m.ringMesh.material as THREE.MeshBasicMaterial
-        rMat.opacity = Math.max(0, 0.75 * (1.0 - pulse))
+        if (isSelected) {
+          // Slow, restrained aerospace radar sweep only for the targeted project
+          const pulse = ((currentTime * 0.0009) % 1)
+          const s = 1.0 + pulse * 0.7
+          m.ringMesh.scale.set(s, s, s)
+          const rMat = m.ringMesh.material as THREE.MeshBasicMaterial
+          rMat.opacity = Math.max(0, 0.75 * (1.0 - pulse))
+        } else {
+          m.ringMesh.scale.set(1, 1, 1)
+          const rMat = m.ringMesh.material as THREE.MeshBasicMaterial
+          rMat.opacity = 0.35
+        }
       }
     }
 
     for (let i = 0; i < clusterHubMeshes.length; i++) {
       const ch = clusterHubMeshes[i]
-      if (ch.stationMesh.visible) {
-        ch.stationMesh.rotation.y += delta * 1.2
-        ch.stationMesh.rotation.z += delta * 0.6
-      }
       if (ch.ringMesh.visible) {
-        const pulse = ((currentTime * 0.0014 + i * 0.3) % 1)
-        const s = 1.0 + pulse * 1.8
+        const pulse = ((currentTime * 0.0008 + i * 0.3) % 1)
+        const s = 1.0 + pulse * 0.5
         ch.ringMesh.scale.set(s, s, s)
         const rMat = ch.ringMesh.material as THREE.MeshBasicMaterial
-        rMat.opacity = Math.max(0, 0.85 * (1.0 - pulse))
+        rMat.opacity = Math.max(0, 0.6 * (1.0 - pulse))
       }
     }
   }
@@ -1506,7 +1545,7 @@ function updateSatellitePositions(currentTime: number) {
       m.ringMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), newNormal)
     }
     if (m.gemMesh) {
-      const beaconHeight = 0.22
+      const beaconHeight = 0.15
       m.gemMesh.position.copy(newPos.clone().addScaledVector(newNormal, beaconHeight))
     }
 
@@ -1587,6 +1626,12 @@ function updateHtmlLabels() {
       const screenX = (projected.x * 0.5 + 0.5) * width
       const screenY = (-projected.y * 0.5 + 0.5) * height
 
+      if (screenX > width * 0.62) {
+        labelEl.classList.add('label-flipped')
+      } else {
+        labelEl.classList.remove('label-flipped')
+      }
+
       labelEl.style.transform = `translate3d(${screenX}px, ${screenY}px, 0)`
 
       const horizonFade = Math.min(1, Math.max(0, (dot - 0.15) / 0.25))
@@ -1599,6 +1644,17 @@ function updateHtmlLabels() {
   }
 
   // 2. Individual Project Labels
+  interface VisibleLabelCandidate {
+    id: string
+    el: HTMLElement
+    screenX: number
+    screenY: number
+    dot: number
+    isActive: boolean
+  }
+
+  const candidates: VisibleLabelCandidate[] = []
+
   for (const m of markerMeshes) {
     const labelEl = labelRefs.get(m.id)
     if (!labelEl) continue
@@ -1636,22 +1692,64 @@ function updateHtmlLabels() {
       const screenX = (projected.x * 0.5 + 0.5) * width
       const screenY = (-projected.y * 0.5 + 0.5) * height
 
-      labelEl.style.transform = `translate3d(${screenX}px, ${screenY}px, 0)`
-
-      if (screenX > width * 0.65) {
-        labelEl.classList.add('label-flipped')
-      } else {
-        labelEl.classList.remove('label-flipped')
-      }
-
-      const horizonFade = Math.min(1, Math.max(0, (dot - 0.12) / 0.22))
-      const targetOpacity = isActive ? 1 : (horizonFade * 0.88)
-      labelEl.style.opacity = `${targetOpacity}`
-      labelEl.style.pointerEvents = horizonFade > 0.4 ? 'auto' : 'none'
+      candidates.push({
+        id: m.id,
+        el: labelEl,
+        screenX,
+        screenY,
+        dot,
+        isActive,
+      })
     } else {
       labelEl.style.opacity = '0'
       labelEl.style.pointerEvents = 'none'
     }
+  }
+
+  // Sort candidates so active project has layout priority
+  candidates.sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0))
+
+  // Smart Collision Avoidance & Edge/Panel Clamping
+  const placed: { x: number; y: number; isFlipped: boolean }[] = []
+
+  for (const c of candidates) {
+    let finalX = c.screenX
+    let finalY = c.screenY
+
+    // Determine horizontal orientation: flip when on right 38% of screen OR when colliding with bottom-left panel
+    const nearBottomLeftPanel = finalX < 360 && finalY > height - 240
+    let isFlipped = finalX > width * 0.62 || nearBottomLeftPanel
+
+    // Vertical collision detection with previously placed labels
+    for (const p of placed) {
+      if (p.isFlipped === isFlipped && Math.abs(p.y - finalY) < 32 && Math.abs(p.x - finalX) < 180) {
+        // Shift lower-priority item vertically away
+        finalY = p.y > finalY ? finalY - 22 : finalY + 22
+      }
+    }
+
+    placed.push({ x: finalX, y: finalY, isFlipped })
+
+    if (isFlipped) {
+      c.el.classList.add('label-flipped')
+    } else {
+      c.el.classList.remove('label-flipped')
+    }
+
+    c.el.style.transform = `translate3d(${finalX}px, ${finalY}px, 0)`
+
+    // Viewport edge fade
+    const nearEdge = finalX < 20 || finalX > width - 20 || finalY < 35 || finalY > height - 25
+    if (nearEdge) {
+      c.el.style.opacity = '0'
+      c.el.style.pointerEvents = 'none'
+      continue
+    }
+
+    const horizonFade = Math.min(1, Math.max(0, (c.dot - 0.12) / 0.22))
+    const targetOpacity = c.isActive ? 1 : horizonFade * 0.92
+    c.el.style.opacity = `${targetOpacity}`
+    c.el.style.pointerEvents = horizonFade > 0.4 ? 'auto' : 'none'
   }
 }
 
@@ -1840,36 +1938,82 @@ onBeforeUnmount(() => {
   contain: layout size;
 }
 
-.cluster-pulse-dot {
-  animation: cluster-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+/* Aerospace Telemetry Leader Line & Reticle */
+.marker-leader-line {
+  pointer-events: none;
 }
 
-@keyframes cluster-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.95; }
-  50% { transform: scale(1.35); opacity: 0.7; }
+.anchor-reticle {
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.marker-dot-halo {
-  animation: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.connector-stem {
+  transform-origin: left center;
 }
 
-@keyframes pulse-ring {
-  0%, 100% { transform: scale(1); opacity: 0.95; }
-  50% { transform: scale(1.35); opacity: 0.65; }
+/* SpaceX / Telemetry HUD Tag */
+.hud-tag {
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
-.label-active .marker-card {
-  transform: scale(1.06);
+.hud-corner-tr {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 4px;
+  height: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  border-right: 1px solid rgba(255, 255, 255, 0.25);
+  pointer-events: none;
 }
 
+.hud-corner-bl {
+  position: absolute;
+  bottom: 1px;
+  left: 1px;
+  width: 4px;
+  height: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+
+.label-active .hud-corner-tr,
+.label-active .hud-corner-bl {
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.label-active .hud-tag {
+  transform: scale(1.025);
+}
+
+/* Flipped State (for right edge / boundary handling) */
 .label-flipped .label-anchor,
 .label-flipped .cluster-anchor {
   flex-direction: row-reverse;
   transform: translate(-100%, -50%);
 }
 
+.label-flipped .marker-leader-line {
+  flex-direction: row-reverse;
+}
+
+.label-flipped .connector-stem {
+  transform-origin: right center;
+  background: linear-gradient(to left, transparent, rgba(255, 255, 255, 0.2) 40%, rgba(255, 255, 255, 0.45));
+}
+
+.label-flipped .hud-tag {
+  border-left-width: 1px !important;
+  border-right-width: 2.5px !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .marker-dot-halo,
-  .cluster-pulse-dot { animation: none !important; }
+  .label-anchor,
+  .cluster-anchor,
+  .anchor-reticle,
+  .hud-tag {
+    transition: none !important;
+  }
 }
 </style>
