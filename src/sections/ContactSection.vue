@@ -2,7 +2,7 @@
   <section v-section-reveal id="contact" class="scroll-mt-12 sm:scroll-mt-16 md:scroll-mt-16 pt-24 md:pt-28 pb-20 border-t border-black/10 dark:border-white/10">
     <div class="contact-layout">
       <div>
-        <span v-reveal="{ delay: 0 }" class="text-[11px] tracking-[0.18em] uppercase opacity-60">{{ content.eyebrow }}</span>
+        <span v-reveal="{ delay: 0 }" class="text-[11px] tracking-[0.18em] uppercase">{{ content.eyebrow }}</span>
         <h2 v-reveal="{ delay: 60, kind: 'heading' }" class="contact-heading">{{ content.title }}</h2>
         <p v-reveal="{ delay: 120 }" class="mt-3 opacity-75">{{ content.description }}</p>
       </div>
@@ -36,7 +36,7 @@ const contacts = content.items
 #contact { padding-top: 80px; padding-bottom: 56px; }
 .contact-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.9fr); align-items: start; gap: 48px; }
 .contact-layout > div { min-width: 0; }
-.contact-layout > div > span { font-family: ui-monospace,monospace; font-size: 10px; color: var(--label); opacity: 1; }
+.contact-layout > div > span { font-family: ui-monospace,monospace; font-size: 10px; font-weight: 600; color: var(--label); opacity: 1; }
 .contact-heading { font-size: clamp(32px,3.2vw,46px); font-weight: 600; line-height: 1.15; letter-spacing: -.04em; margin-top: 14px; }
 .contact-layout p { max-width: 280px; color: var(--secondary); opacity: 1; line-height: 1.65; font-size: 14px; margin-top: 20px; }
 .contact-list { border-top: 0; }

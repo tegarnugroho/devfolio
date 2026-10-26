@@ -1,12 +1,27 @@
 <template>
-  <div ref="container" class="mini-globe-widget relative inline-flex items-center justify-center overflow-hidden pointer-events-none select-none">
+  <div
+    ref="container"
+    class="mini-globe-widget relative inline-flex items-center justify-center overflow-hidden pointer-events-none select-none"
+    :style="{ width: `${size}px`, height: `${size}px` }"
+  >
     <canvas ref="canvas" class="w-full h-full block"></canvas>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { isDark } from '@/composables/useTheme'
+
+const props = withDefaults(
+  defineProps<{
+    size?: number
+    isHovered?: boolean
+  }>(),
+  {
+    size: 26,
+    isHovered: false,
+  }
+)
 
 const container = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
@@ -29,7 +44,7 @@ function render() {
   if (!ctx) return
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2)
-  const size = 30
+  const size = props.size
   if (canvas.value.width !== size * dpr) {
     canvas.value.width = size * dpr
     canvas.value.height = size * dpr
@@ -47,7 +62,7 @@ function render() {
 
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
     if (!reduced) {
-      angle += 0.024
+      angle += props.isHovered ? 0.048 : 0.024
     }
 
     ctx!.clearRect(0, 0, size * dpr, size * dpr)
@@ -157,7 +172,5 @@ onBeforeUnmount(() => {
 <style scoped>
 .mini-globe-widget {
   contain: layout size;
-  width: 26px;
-  height: 26px;
 }
 </style>

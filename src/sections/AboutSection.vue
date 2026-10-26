@@ -134,8 +134,7 @@ onBeforeUnmount(() => { disposed = true; cancelAnimationFrame(frame) })
 </script>
 
 <style scoped>
-.about-eyebrow { font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: .16em; color: var(--secondary); }
-.about-eyebrow { text-transform: uppercase; color: var(--label); margin-top: 10px; font-size: 9px; }
+.about-eyebrow { font-family: ui-monospace, monospace; font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--label); margin-top: 10px; }
 .about-layout { gap: 38px; align-items: center; margin-top: 36px; }
 .portrait-wrapper { width: 202px; max-width: 100%; position: relative; z-index: 1; }
 .portrait-wrapper::before, .portrait-wrapper::after { content: ""; position: absolute; inset: -1px; border-radius: 6px; padding: 2px; background: conic-gradient(from var(--beam-angle, 0deg), transparent 75%, #00e5ff 90%, #0077ff 100%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; z-index: 2; }

@@ -16,8 +16,8 @@ span[data-reveal] { display: inline-block; }
 }
 
 @layer base {
-  :root { --background: #f2f2f2; --secondary-background: #e7e8e9; --surface: #dedfe0; --primary: #17191b; --secondary: #55595e; --muted: #666a6e; --label: #686d73; --border: rgba(0,0,0,.08); --strong-border: rgba(0,0,0,.16); --grid: rgba(0,0,0,.055); --illumination: rgba(0,0,0,.08); --button: #17191b; --button-text: #f2f2f2; --button-hover: #303438; color-scheme: light; }
-  :root.dark { --background: #0b0c0d; --secondary-background: #111315; --surface: #16181a; --primary: #f2f2f2; --secondary: #a7a9ac; --muted: #666a6e; --label: #777b80; --border: rgba(255,255,255,.08); --strong-border: rgba(255,255,255,.16); --grid: rgba(255,255,255,.055); --illumination: rgba(255,255,255,.22); --button: #f1f1f1; --button-text: #111111; --button-hover: #ffffff; color-scheme: dark; }
+  :root { --background: #f2f2f2; --secondary-background: #e7e8e9; --surface: #dedfe0; --primary: #17191b; --secondary: #55595e; --muted: #666a6e; --label: #16a34a; --accent: #16a34a; --border: rgba(0,0,0,.08); --strong-border: rgba(0,0,0,.16); --grid: rgba(0,0,0,.055); --illumination: rgba(0,0,0,.08); --button: #17191b; --button-text: #f2f2f2; --button-hover: #303438; color-scheme: light; }
+  :root.dark { --background: #0b0c0d; --secondary-background: #111315; --surface: #16181a; --primary: #f2f2f2; --secondary: #a7a9ac; --muted: #666a6e; --label: #22c55e; --accent: #22c55e; --border: rgba(255,255,255,.08); --strong-border: rgba(255,255,255,.16); --grid: rgba(255,255,255,.055); --illumination: rgba(255,255,255,.22); --button: #f1f1f1; --button-text: #111111; --button-hover: #ffffff; color-scheme: dark; }
   html { scroll-behavior: auto; }
   body { background: var(--background); color: var(--primary); }
   section[id] { scroll-margin-top: 80px; }
@@ -58,7 +58,7 @@ footer.max-w-5xl { padding-inline: var(--section-inset); }
 .hero-atmosphere::before { content: ''; position: absolute; inset: 0 12.5% 0 8%; background-image: linear-gradient(to right,var(--grid) 1px,transparent 1px),linear-gradient(to bottom,var(--grid) 1px,transparent 1px); background-size: 48px 48px; -webkit-mask-image: linear-gradient(to right,transparent,black 12%,black 78%,transparent),linear-gradient(to bottom,black,black 58%,transparent 100%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to right,transparent,black 12%,black 78%,transparent),linear-gradient(to bottom,black,black 58%,transparent 100%); mask-composite: intersect; }
 .hero-atmosphere::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 58% 30%,transparent 30%,var(--sky-background) 95%),linear-gradient(to top,var(--sky-background),transparent 24%); }
 .hero-copy { max-width: 530px; }
-.hero-eyebrow { color: var(--label); font-family: ui-monospace,SFMono-Regular,Consolas,monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .35em; margin-bottom: 20px; }
+.hero-eyebrow { color: var(--label); font-family: ui-monospace,SFMono-Regular,Consolas,monospace; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .35em; margin-bottom: 20px; }
 .hero-copy h1 { font-size: clamp(76px,7.4vw,112px); font-weight: 800; letter-spacing: -.055em; line-height: 1.06; }
 .hero-copy h1 span { color: var(--muted); }
 .hero-intro { color: var(--secondary); font-size: clamp(16px,1.3vw,20px); line-height: 1.5; max-width: 430px; margin-top: 30px; }

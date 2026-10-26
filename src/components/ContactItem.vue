@@ -57,9 +57,9 @@ defineProps<{
 .contact-information { display: flex; align-items: center; gap: 20px; min-width: 0; }
 .contact-information > span { flex-shrink: 0; color: var(--secondary); }
 .contact-information > div { min-width: 0; }
-.contact-label { font-family: ui-monospace,monospace; font-size: 9px; text-transform: uppercase; letter-spacing: .16em; color: var(--label); }
+.contact-label { font-family: ui-monospace,monospace; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .16em; color: var(--label); }
 .contact-value { margin-top: 5px; font-size: 15px; color: var(--secondary); overflow-wrap: anywhere; transition: color 250ms; }
-.contact-arrow { color: var(--label); width: 18px; height: 18px; transition: transform 250ms,color 250ms; }
+.contact-arrow { color: var(--secondary); width: 18px; height: 18px; transition: transform 250ms,color 250ms; }
 .contact-link:active { background: var(--surface); }
 @media (hover: hover) and (pointer: fine) { .contact-row:hover { border-color: var(--strong-border); } .contact-link:hover .contact-value { color: var(--primary); } .contact-link:hover .contact-arrow { color: var(--primary); transform: translate(3px,-3px); } }
 @media (max-width: 639px) { .contact-link { padding-block: 20px; gap: 14px; } .contact-information { gap: 14px; } .contact-value { font-size: 14px; } }

@@ -35,13 +35,13 @@ watch(loading, async () => { await nextTick(); window.dispatchEvent(new Event('b
 <style scoped>
 .writing-section { padding-bottom: 64px; }
 .writing-header { display: flex; justify-content: space-between; align-items: center; gap: 32px; margin-bottom: 32px; }
-.writing-eyebrow { font: 10px ui-monospace,monospace; text-transform: uppercase; letter-spacing: .18em; color: var(--label); }
+.writing-eyebrow { font: 600 10px ui-monospace,monospace; text-transform: uppercase; letter-spacing: .18em; color: var(--label); }
 .writing-header h2 { margin-top: 12px; font-size: clamp(32px,3vw,44px); max-width: 420px; line-height: 1.14; font-weight: 600; letter-spacing: -.035em; }
 .writing-intro { margin-top: 18px; max-width: 530px; font-size: 14px; line-height: 1.65; color: var(--secondary); }
 .writing-source { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font: 10px ui-monospace,monospace; text-transform: uppercase; letter-spacing: .12em; color: var(--secondary); white-space: nowrap; }
 .writing-list { min-height: 360px; border-top: 1px solid var(--border); }
 .writing-row { display: grid; grid-template-columns: 38px minmax(0,1fr) 100px 24px; align-items: start; gap: 24px; padding-block: 32px; min-height: 180px; border-bottom: 1px solid var(--border); transition: border-color 220ms,color 220ms; }
-.writing-index,.writing-date { font: 10px ui-monospace,monospace; color: var(--label); letter-spacing: .06em; line-height: 1.6; padding-top: 2px; }
+.writing-index,.writing-date { font: 10px ui-monospace,monospace; color: var(--muted); letter-spacing: .06em; line-height: 1.6; padding-top: 2px; }
 .writing-copy { min-width: 0; }
 .writing-tags { font: 9px ui-monospace,monospace; line-height: 1.6; text-transform: uppercase; letter-spacing: .12em; color: var(--label); overflow-wrap: anywhere; margin-bottom: 10px; }
 .writing-copy h3 { font-size: clamp(19px,1.8vw,25px); line-height: 1.35; letter-spacing: -.02em; font-weight: 500; color: var(--primary); transition: transform 220ms; overflow-wrap: anywhere; }
