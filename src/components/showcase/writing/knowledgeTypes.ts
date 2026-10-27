@@ -1,3 +1,5 @@
+import type * as THREE from 'three'
+
 export interface KnowledgeArticle {
   id: string
   title: string
@@ -8,18 +10,26 @@ export interface KnowledgeArticle {
   excerpt: string
   tags: string[]
   url: string
+  lat?: number
+  lng?: number
+  accentColor?: string
+  readingTime?: string
 }
 
 export type CategoryFilter = string
 
-export interface SpatialNodeState {
+export interface KnowledgeMarkerNode {
   article: KnowledgeArticle
   index: number
-  targetPosition: [number, number, number]
-  targetRotation: [number, number, number]
-  targetScale: number
-  targetOpacity: number
-  isSelected: boolean
-  isHovered: boolean
-  isVisible: boolean
+  lat: number
+  lng: number
+  accentColor: string
+  readingTime: string
+  dotMesh: THREE.Mesh
+  hitMesh: THREE.Mesh
+  beaconMesh: THREE.Mesh
+  ringMesh: THREE.Mesh
+  gemMesh: THREE.Mesh
+  normalVec: THREE.Vector3
+  pos: THREE.Vector3
 }

@@ -1,53 +1,44 @@
 <template>
   <div
     ref="container"
-    class="writing-knowledge-field-scene relative w-full h-full select-none overflow-hidden bg-[#03060b]"
-    @click="onBackgroundClick"
+    class="writing-editorial-archive-scene relative w-full h-full select-none overflow-hidden bg-[#02050a]"
   >
-    <!-- WebGL Canvas for 3D Knowledge Field -->
+    <!-- Deep Space Cosmic Ambient Glow -->
+    <div
+      class="pointer-events-none absolute inset-0 transition-opacity duration-700"
+      :class="globeMode === 'tech' ? 'showcase-glow-dark' : 'showcase-glow-light'"
+      aria-hidden="true"
+    ></div>
+
+    <!-- Technical Coordinate Grid (Tech Blueprint Overlay) -->
+    <div
+      v-if="globeMode === 'tech'"
+      class="pointer-events-none absolute inset-0 opacity-[0.035] showcase-grid-dark"
+      aria-hidden="true"
+    ></div>
+
+    <!-- Cinematic 3D Earth Background Canvas -->
     <canvas
       ref="canvas"
-      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none"
-      @pointerdown="onPointerDown"
-      @pointermove="onPointerMove"
-      @pointerup="onPointerUp"
-      @pointercancel="onPointerUp"
-      @wheel="onWheel"
+      class="absolute inset-0 w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none z-0"
+      @pointerdown="onCanvasPointerDown"
+      @pointermove="onCanvasPointerMove"
+      @pointerup="onCanvasPointerUp"
+      @pointercancel="onCanvasPointerUp"
     ></canvas>
 
-    <!-- Deep Ambient Vignette (Seamless background blend) -->
-    <div class="pointer-events-none absolute inset-0 gallery-ambient-vignette" aria-hidden="true"></div>
+    <!-- Deep Ambient Vignette (Soft focus behind editorial deck) -->
+    <div class="pointer-events-none absolute inset-0 gallery-ambient-vignette z-0" aria-hidden="true"></div>
 
-    <!-- 3D Holographic Loading State -->
+    <!-- Loading State -->
     <Showcase3DLoader
       v-if="loading && articles.length === 0"
-      title="KNOWLEDGE FIELD DISPATCH"
-      subtitle="SYNCHRONIZING EDITORIAL ARTICLES & TOPIC GRAPH"
+      title="EDITORIAL ARCHIVE DISPATCH"
+      subtitle="SYNCHRONIZING TECHNICAL PUBLICATIONS & SYSTEM ESSAYS"
       badge-text="STREAMING DISPATCH API"
     />
 
-    <!-- Error State -->
-    <div
-      v-else-if="failed && articles.length === 0"
-      class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 z-30 font-mono text-zinc-400 select-none"
-    >
-      <span class="text-zinc-500 text-lg">✕</span>
-      <span class="tracking-wider uppercase text-[11px] text-zinc-400 max-w-xs text-center px-4">
-        {{ portfolioContent.writing.errorLabel }}
-      </span>
-    </div>
-
-    <!-- Empty State -->
-    <div
-      v-else-if="articles.length === 0"
-      class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 z-30 font-mono text-zinc-400 select-none"
-    >
-      <span class="tracking-wider uppercase text-[11px] text-zinc-500">
-        {{ portfolioContent.writing.emptyLabel }}
-      </span>
-    </div>
-
-    <!-- Section Header & Category Filters (Left Side) -->
+    <!-- Header & Category Filters (Left HUD) -->
     <WritingFilters
       v-if="articles.length > 0"
       :categories="availableCategories"
@@ -56,25 +47,195 @@
       @select-category="setCategory"
     />
 
-    <!-- Hover Tooltip -->
-    <div
-      v-if="hoveredArticle && hoveredArticle.id !== selectedArticle?.id"
-      class="pointer-events-none absolute z-30 px-2.5 py-1 rounded bg-zinc-950/95 text-zinc-200 border border-white/15 shadow-2xl font-mono text-[9.5px] -translate-x-1/2 -translate-y-full tracking-wider transition-opacity duration-150 backdrop-blur-md"
-      :style="{ left: `${hoverScreenPos.x}px`, top: `${hoverScreenPos.y - 12}px` }"
-    >
-      <span class="text-zinc-400 font-medium">[{{ hoveredArticle.category }}]</span>
-      <span class="ml-1 text-zinc-100">{{ hoveredArticle.shortTitle }}</span>
+    <!-- Sub-controls: Globe Visual Mode Switcher (Top-Right) -->
+    <div class="absolute top-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] sm:top-20 right-4 sm:right-12 z-20 flex items-center gap-2 pointer-events-auto">
+      <div class="inline-flex items-center rounded-full border border-white/15 bg-black/70 p-0.5 backdrop-blur-md shadow-sm">
+        <button
+          type="button"
+          class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all duration-200 cursor-pointer"
+          :class="
+            globeMode === 'real'
+              ? 'bg-blue-500/25 text-white font-bold border border-blue-400/40 shadow-[0_0_12px_rgba(59,130,246,0.4)]'
+              : 'text-zinc-400 hover:text-white border border-transparent'
+          "
+          title="Switch to Real Earth photorealistic view"
+          @click="setGlobeMode('real')"
+        >
+          <span class="w-1.5 h-1.5 rounded-full" :class="globeMode === 'real' ? 'bg-blue-400' : 'bg-zinc-500'"></span>
+          <span>REAL EARTH</span>
+        </button>
+        <button
+          type="button"
+          class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all duration-200 cursor-pointer"
+          :class="
+            globeMode === 'tech'
+              ? 'bg-cyan-500/25 text-white font-bold border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+              : 'text-zinc-400 hover:text-white border border-transparent'
+          "
+          title="Switch to Technical Dark Blueprint view"
+          @click="setGlobeMode('tech')"
+        >
+          <span>TECH GLOBE</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Selected Article Editorial Preview Panel (Right / Bottom-Right) -->
-    <WritingArticlePanel
-      v-if="articles.length > 0"
-      :article="selectedArticle"
-      :current-index="selectedArticleIndex"
-      :total-count="filteredArticles.length"
-      @prev="prevArticle"
-      @next="nextArticle"
-    />
+    <!-- ------------------------------------------------------------- -->
+    <!-- 3D EDITORIAL ARTICLE DECK (SPATIAL PERSPECTIVE CAROUSEL) -->
+    <!-- ------------------------------------------------------------- -->
+    <div
+      class="editorial-stage-viewport absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
+      @pointerdown="onDeckPointerDown"
+      @pointermove="onDeckPointerMove"
+      @pointerup="onDeckPointerUp"
+      @pointercancel="onDeckPointerUp"
+    >
+      <div class="editorial-cards-container relative w-full h-full flex items-center justify-center">
+        <article
+          v-for="(article, index) in filteredArticles"
+          :key="article.id"
+          class="editorial-card-wrapper absolute transition-all duration-500 ease-out will-change-transform"
+          :style="getCardSpatialStyle(index, selectedArticleIndex, filteredArticles.length, isMobile)"
+          @click="onCardClick(article.id)"
+        >
+          <div
+            class="editorial-document-card relative w-[310px] sm:w-[350px] min-h-[380px] sm:min-h-[420px] p-5 sm:p-6 rounded-2xl border bg-black/85 backdrop-blur-2xl shadow-2xl flex flex-col justify-between transition-all duration-300 group cursor-pointer"
+            :style="{
+              borderColor: selectedArticle?.id === article.id
+                ? (article.accentColor || '#38bdf8')
+                : 'rgba(255, 255, 255, 0.12)',
+              boxShadow: selectedArticle?.id === article.id
+                ? `0 20px 50px rgba(0, 0, 0, 0.8), 0 0 28px ${(article.accentColor || '#38bdf8')}28`
+                : '0 12px 36px rgba(0, 0, 0, 0.65)'
+            }"
+          >
+            <!-- Corner Precision Crosshair Markers -->
+            <span class="pointer-events-none absolute -top-[1px] -left-[1px] w-2.5 h-2.5 border-t-2 border-l-2 rounded-tl" :style="{ borderColor: article.accentColor || '#38bdf8' }"></span>
+            <span class="pointer-events-none absolute -top-[1px] -right-[1px] w-2.5 h-2.5 border-t-2 border-r-2 rounded-tr" :style="{ borderColor: article.accentColor || '#38bdf8' }"></span>
+            <span class="pointer-events-none absolute -bottom-[1px] -left-[1px] w-2.5 h-2.5 border-b-2 border-l-2 rounded-bl" :style="{ borderColor: article.accentColor || '#38bdf8' }"></span>
+            <span class="pointer-events-none absolute -bottom-[1px] -right-[1px] w-2.5 h-2.5 border-b-2 border-r-2 rounded-br" :style="{ borderColor: article.accentColor || '#38bdf8' }"></span>
+
+            <!-- Top Header & Metadata Telemetry -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between font-mono text-[9px] uppercase tracking-wider text-zinc-400">
+                <!-- Category Pill -->
+                <div class="flex items-center gap-1.5 font-semibold">
+                  <span
+                    class="w-1.5 h-1.5 rounded-full"
+                    :style="{
+                      backgroundColor: article.accentColor || '#38bdf8',
+                      boxShadow: `0 0 8px ${article.accentColor || '#38bdf8'}`
+                    }"
+                  ></span>
+                  <span :style="{ color: article.accentColor || '#38bdf8' }">
+                    {{ article.category }}
+                  </span>
+                </div>
+
+                <!-- Date & Reading Time -->
+                <div class="flex items-center gap-2">
+                  <span v-if="article.readingTime" class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-zinc-400 text-[8px]">
+                    {{ article.readingTime }}
+                  </span>
+                  <span>{{ article.date || article.year }}</span>
+                </div>
+              </div>
+
+              <!-- Dispatch Catalog Index -->
+              <div class="font-mono text-[8px] uppercase tracking-[0.2em] text-zinc-500 font-medium">
+                DISPATCH // ARCHIVE 0{{ index + 1 }}
+              </div>
+
+              <!-- Article Title -->
+              <h2 class="text-lg sm:text-xl font-semibold tracking-tight text-white leading-snug group-hover:text-zinc-100 transition-colors">
+                {{ article.title }}
+              </h2>
+
+              <!-- Divider -->
+              <div
+                class="w-full h-[1px] opacity-25"
+                :style="{
+                  background: `linear-gradient(90deg, ${article.accentColor || '#38bdf8'} 0%, transparent 100%)`
+                }"
+              ></div>
+
+              <!-- Excerpt -->
+              <p class="text-xs sm:text-[12.5px] text-zinc-300 leading-relaxed font-sans line-clamp-4 font-normal">
+                {{ article.excerpt }}
+              </p>
+            </div>
+
+            <!-- Footer: Tags & Direct External Read Action -->
+            <div class="space-y-3 pt-4 border-t border-white/10">
+              <!-- Topic Tags -->
+              <div v-if="article.tags && article.tags.length" class="flex flex-wrap gap-1">
+                <span
+                  v-for="tag in article.tags.slice(0, 3)"
+                  :key="tag"
+                  class="px-1.5 py-0.5 rounded text-[8.5px] font-mono uppercase bg-white/5 border border-white/10 text-zinc-400"
+                >
+                  #{{ tag }}
+                </span>
+              </div>
+
+              <!-- Card Action Bar -->
+              <div class="flex items-center justify-between pt-1">
+                <span class="font-mono text-[9px] uppercase tracking-wider text-zinc-500">
+                  {{ selectedArticle?.id === article.id ? 'FEATURED' : 'TAP TO SELECT' }}
+                </span>
+
+                <!-- Explicit External Link Button -->
+                <a
+                  v-if="selectedArticle?.id === article.id && article.url"
+                  :href="article.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-mono text-[10px] uppercase tracking-wider font-semibold transition-all duration-200 cursor-pointer shadow-sm group/btn hover:scale-[1.03] active:scale-95"
+                  :style="{
+                    backgroundColor: article.accentColor ? `${article.accentColor}20` : 'rgba(56, 189, 248, 0.15)',
+                    borderColor: article.accentColor ? `${article.accentColor}55` : 'rgba(56, 189, 248, 0.4)',
+                    color: article.accentColor || '#38bdf8'
+                  }"
+                  title="Read full publication on Codeary (opens in new tab)"
+                  @click.stop
+                >
+                  <span>READ FULL ARTICLE</span>
+                  <span class="transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5">↗</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- Spatial Deck Navigation Stepper (Bottom-Center) -->
+    <div
+      v-if="filteredArticles.length > 1"
+      class="pointer-events-auto absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-white/10 bg-black/80 backdrop-blur-xl shadow-2xl select-none"
+    >
+      <button
+        type="button"
+        class="w-7 h-7 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/10 active:scale-90 flex items-center justify-center text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer"
+        aria-label="Previous article"
+        title="Previous article (Left Arrow)"
+        @click="prevArticle"
+      >
+        ‹
+      </button>
+      <span class="font-mono text-[10px] text-zinc-400 tracking-widest px-1">
+        <span class="text-white font-semibold">{{ selectedArticleIndex + 1 }}</span> / {{ filteredArticles.length }}
+      </span>
+      <button
+        type="button"
+        class="w-7 h-7 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/10 active:scale-90 flex items-center justify-center text-xs font-mono text-zinc-300 hover:text-white transition cursor-pointer"
+        aria-label="Next article"
+        title="Next article (Right Arrow)"
+        @click="nextArticle"
+      >
+        ›
+      </button>
+    </div>
   </div>
 </template>
 
@@ -85,26 +246,32 @@ import { registerContentNavigator } from '@/composables/useShowcase'
 import { portfolioContent } from '@/content/portfolioContent'
 import { useWritingPosts, type BlogPost } from '@/composables/useWritingPosts'
 import type { KnowledgeArticle, CategoryFilter } from '../writing/knowledgeTypes'
-import { createCardTexture } from '../writing/cardTextureGenerator'
-import { calculateNodeTransform, buildRelationshipPairs } from '../writing/articlePosition'
+import { fallbackArticles } from '../writing/fallbackArticles'
+import { getCategoryAccentColor, calculateReadingTime, getCardSpatialStyle } from '../writing/articlePosition'
 import WritingFilters from '../writing/WritingFilters.vue'
-import WritingArticlePanel from '../writing/WritingArticlePanel.vue'
 import Showcase3DLoader from '../Showcase3DLoader.vue'
+import {
+  createGridLines,
+  createCoastlineGeometry,
+  createLandPointsGeometry,
+} from '@/components/globe/globeMath'
 
-// Live API Data Hook (Identical data source as the 2D Writing section)
-const { posts, loading, failed } = useWritingPosts()
+// -------------------------------------------------------------
+// DATA INGESTION & EXTERNAL CODERY ROUTING
+// -------------------------------------------------------------
+const { posts, loading } = useWritingPosts()
 
-// Map BlogPost from API to KnowledgeArticle
 function mapPostToArticle(post: BlogPost): KnowledgeArticle {
   const category = post.tags && post.tags.length > 0 ? post.tags[0] : 'Engineering'
   const blogUrl = portfolioContent.writing.blogUrl || 'https://codeary.xyz'
+  // Codeary's genuine article URL structure
   const url = new URL(`/${encodeURIComponent(post.slug)}`, blogUrl).href
   const year = post.date ? post.date.slice(0, 4) : ''
 
   return {
     id: post.id || post.slug,
     title: post.title,
-    shortTitle: post.title.length > 28 ? `${post.title.slice(0, 25)}...` : post.title,
+    shortTitle: post.title.length > 32 ? `${post.title.slice(0, 29)}...` : post.title,
     category,
     date: post.dateLabel || post.date || year,
     year,
@@ -114,12 +281,15 @@ function mapPostToArticle(post: BlogPost): KnowledgeArticle {
   }
 }
 
-// Articles strictly driven by API response
+// Articles: driven by live API if available, populated with curated fallback articles otherwise
 const articles = computed<KnowledgeArticle[]>(() => {
-  return posts.value.map(mapPostToArticle)
+  if (posts.value && posts.value.length > 0) {
+    return posts.value.map(mapPostToArticle)
+  }
+  return fallbackArticles
 })
 
-// Dynamic Categories derived directly from API tags
+// Dynamic Categories derived directly from article tags/categories
 const availableCategories = computed<CategoryFilter[]>(() => {
   const tagSet = new Set<string>()
   articles.value.forEach(a => {
@@ -135,22 +305,35 @@ const availableCategories = computed<CategoryFilter[]>(() => {
 
 const selectedCategory = ref<CategoryFilter>('ALL')
 
+function isArticleInCategory(article: KnowledgeArticle, category: CategoryFilter): boolean {
+  if (category === 'ALL') return true
+  return article.category === category || article.tags.includes(category)
+}
+
 const filteredArticles = computed<KnowledgeArticle[]>(() => {
-  if (selectedCategory.value === 'ALL') return articles.value
-  return articles.value.filter(
-    a => a.category === selectedCategory.value || a.tags.includes(selectedCategory.value)
-  )
+  const list = selectedCategory.value === 'ALL'
+    ? articles.value
+    : articles.value.filter(a => isArticleInCategory(a, selectedCategory.value))
+
+  return list.map(a => {
+    const accentColor = getCategoryAccentColor(a.category, a.tags)
+    const readingTime = calculateReadingTime(a.excerpt)
+    return {
+      ...a,
+      accentColor,
+      readingTime,
+    }
+  })
 })
 
 const selectedArticleId = ref<string>('')
 
 // Keep selectedArticle reactive and synchronized
 const selectedArticle = computed<KnowledgeArticle | null>(() => {
-  if (!articles.value.length) return null
+  if (!filteredArticles.value.length) return null
   return (
-    articles.value.find(a => a.id === selectedArticleId.value) ||
+    filteredArticles.value.find(a => a.id === selectedArticleId.value) ||
     filteredArticles.value[0] ||
-    articles.value[0] ||
     null
   )
 })
@@ -169,233 +352,150 @@ function selectArticle(id: string) {
 function prevArticle() {
   const list = filteredArticles.value
   if (list.length <= 1) return
-  const currentIdx = list.findIndex(a => a.id === selectedArticleId.value)
-  const safeIdx = currentIdx >= 0 ? currentIdx : 0
-  const newIdx = (safeIdx - 1 + list.length) % list.length
-  selectedArticleId.value = list[newIdx].id
+  const currentIdx = selectedArticleIndex.value
+  const newIdx = (currentIdx - 1 + list.length) % list.length
+  selectArticle(list[newIdx].id)
 }
 
 function nextArticle() {
   const list = filteredArticles.value
   if (list.length <= 1) return
-  const currentIdx = list.findIndex(a => a.id === selectedArticleId.value)
-  const safeIdx = currentIdx >= 0 ? currentIdx : 0
-  const newIdx = (safeIdx + 1) % list.length
-  selectedArticleId.value = list[newIdx].id
+  const currentIdx = selectedArticleIndex.value
+  const newIdx = (currentIdx + 1) % list.length
+  selectArticle(list[newIdx].id)
 }
 
 function setCategory(cat: CategoryFilter) {
   selectedCategory.value = cat
   const list = filteredArticles.value
-  if (list.length && !list.some(a => a.id === selectedArticleId.value)) {
-    selectedArticleId.value = list[0].id
+  if (list.length && !list.some(a => a.id === selectedArticle.value?.id)) {
+    selectArticle(list[0].id)
+  }
+}
+
+function onCardClick(articleId: string) {
+  selectArticle(articleId)
+}
+
+// -------------------------------------------------------------
+// TOUCH & DECK DRAG GESTURES
+// -------------------------------------------------------------
+let deckPointerStartX = 0
+let deckPointerStartY = 0
+let isDeckDragging = false
+
+function onDeckPointerDown(e: PointerEvent) {
+  deckPointerStartX = e.clientX
+  deckPointerStartY = e.clientY
+  isDeckDragging = true
+}
+
+function onDeckPointerMove(e: PointerEvent) {
+  if (!isDeckDragging) return
+}
+
+function onDeckPointerUp(e: PointerEvent) {
+  if (!isDeckDragging) return
+  isDeckDragging = false
+  const diffX = e.clientX - deckPointerStartX
+  const diffY = e.clientY - deckPointerStartY
+  // Horizontal swipe threshold
+  if (Math.abs(diffX) > 45 && Math.abs(diffX) > Math.abs(diffY)) {
+    if (diffX < 0) {
+      nextArticle()
+    } else {
+      prevArticle()
+    }
   }
 }
 
 // -------------------------------------------------------------
-// THREE.JS SPATIAL KNOWLEDGE FIELD
+// THREE.JS CINEMATIC EARTH BACKGROUND ENGINE
 // -------------------------------------------------------------
 const container = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
+const isMobile = ref(false)
+
+const globeMode = ref<'real' | 'tech'>('real')
+function setGlobeMode(mode: 'real' | 'tech') {
+  globeMode.value = mode
+  applyThemeMaterials(mode === 'tech')
+}
+
+const GLOBE_RADIUS = 1.45
 
 let scene: THREE.Scene | null = null
 let camera: THREE.PerspectiveCamera | null = null
 let renderer: THREE.WebGLRenderer | null = null
 let animFrameId = 0
-let isVisible = true
-let observer: IntersectionObserver | null = null
+let resizeObserver: ResizeObserver | null = null
 
-// Groups & Objects
-let fieldGroup: THREE.Group | null = null
-let linesMesh: THREE.LineSegments | null = null
-let linesGeometry: THREE.BufferGeometry | null = null
+let globeGroup: THREE.Group | null = null
+let starfieldGroup: THREE.Group | null = null
 
-interface Card3DNode {
-  article: KnowledgeArticle
-  index: number
-  group: THREE.Group
-  mesh: THREE.Mesh
-  materials: THREE.Material[]
-  activeTexture: THREE.CanvasTexture
-  inactiveTexture: THREE.CanvasTexture
-  targetPos: THREE.Vector3
-  targetRot: THREE.Euler
-  targetScale: number
-  targetOpacity: number
-  currentOpacity: number
-}
+let baseSphere: THREE.Mesh | null = null
+let baseSphereMat: THREE.MeshBasicMaterial | null = null
+let gridLineMesh: THREE.LineSegments | null = null
+let gridLineMat: THREE.LineBasicMaterial | null = null
+let landPointsMesh: THREE.Points | null = null
+let landPointsMat: THREE.PointsMaterial | null = null
+let coastMesh: THREE.LineSegments | null = null
+let coastMat: THREE.LineBasicMaterial | null = null
 
-const cardNodes: Card3DNode[] = []
-let sharedBoxGeometry: THREE.BoxGeometry | null = null
-let sharedShadowGeometry: THREE.PlaneGeometry | null = null
-let sharedShadowMaterial: THREE.MeshBasicMaterial | null = null
+let realEarthMesh: THREE.Mesh | null = null
+let realEarthMat: THREE.MeshStandardMaterial | null = null
+let cloudsMesh: THREE.Mesh | null = null
+let cloudsMat: THREE.MeshStandardMaterial | null = null
+let atmosphereMesh: THREE.Mesh | null = null
+let atmosphereMat: THREE.ShaderMaterial | null = null
 
-// Interaction State
-const isMobile = ref(false)
-const prefersReducedMotion = ref(false)
+let ambientLight: THREE.AmbientLight | null = null
+let sunLight: THREE.DirectionalLight | null = null
 
-const raycaster = new THREE.Raycaster()
-const mouse = new THREE.Vector2(-999, -999)
-const hoveredArticle = ref<KnowledgeArticle | null>(null)
-const hoverScreenPos = ref({ x: 0, y: 0 })
+let isCanvasDragging = false
+let canvasPointerDownPos = { x: 0, y: 0 }
+let lastCanvasPointerPos = { x: 0, y: 0 }
+let canvasDragVelocity = { x: 0, y: 0 }
+let lastCanvasInteractionTime = 0
+let reducedMotion = false
 
-let isDragging = false
-let prevPointerX = 0
-let prevPointerY = 0
-let targetFieldRotY = 0
-let targetFieldRotX = 0
-let currentFieldRotY = 0
-let currentFieldRotX = 0
+function applyThemeMaterials(isTech: boolean) {
+  if (baseSphere) baseSphere.visible = isTech
+  if (gridLineMesh) gridLineMesh.visible = isTech
+  if (landPointsMesh) landPointsMesh.visible = isTech
+  if (coastMesh) coastMesh.visible = isTech
 
-let targetCamX = 0
-let targetCamY = 0
-let currentCamX = 0
-let currentCamY = 0
+  if (realEarthMesh) realEarthMesh.visible = !isTech
+  if (cloudsMesh) cloudsMesh.visible = !isTech
+  if (atmosphereMesh) atmosphereMesh.visible = !isTech
 
-// Create soft radial shadow texture for card elevation
-function createShadowTexture(): THREE.CanvasTexture {
-  const c = document.createElement('canvas')
-  c.width = 128
-  c.height = 128
-  const ctx = c.getContext('2d')
-  if (ctx) {
-    const g = ctx.createRadialGradient(64, 64, 10, 64, 64, 60)
-    g.addColorStop(0, 'rgba(0, 0, 0, 0.75)')
-    g.addColorStop(0.5, 'rgba(0, 0, 0, 0.35)')
-    g.addColorStop(1, 'rgba(0, 0, 0, 0.0)')
-    ctx.fillStyle = g
-    ctx.fillRect(0, 0, 128, 128)
+  if (sunLight) {
+    sunLight.intensity = isTech ? 2.0 : 2.4
   }
-  const t = new THREE.CanvasTexture(c)
-  t.generateMipmaps = false
-  return t
-}
-
-function clear3DNodes() {
-  cardNodes.forEach(node => {
-    node.activeTexture.dispose()
-    node.inactiveTexture.dispose()
-    node.materials.forEach(m => m.dispose())
-    if (fieldGroup) {
-      fieldGroup.remove(node.group)
-    }
-  })
-  cardNodes.length = 0
-
-  if (linesMesh && fieldGroup) {
-    fieldGroup.remove(linesMesh)
-    if (linesGeometry) linesGeometry.dispose()
-    if (Array.isArray(linesMesh.material)) linesMesh.material.forEach(m => m.dispose())
-    else linesMesh.material.dispose()
-    linesMesh = null
-    linesGeometry = null
-  }
-}
-
-function build3DNodes() {
-  if (!fieldGroup || !articles.value.length) return
-
-  clear3DNodes()
-
-  if (!selectedArticleId.value && articles.value.length > 0) {
-    selectedArticleId.value = articles.value[0].id
-  }
-
-  articles.value.forEach((article, index) => {
-    const nodeGroup = new THREE.Group()
-
-    const activeTexture = createCardTexture(article, index, true)
-    const inactiveTexture = createCardTexture(article, index, false)
-
-    const isSelected = article.id === selectedArticleId.value
-
-    const sideMaterial = new THREE.MeshStandardMaterial({
-      color: 0x0c0f14,
-      roughness: 0.8,
-      metalness: 0.2,
-      transparent: true,
-      opacity: 0.4,
-    })
-    const backMaterial = new THREE.MeshStandardMaterial({
-      color: 0x07090c,
-      roughness: 0.9,
-      metalness: 0.1,
-      transparent: true,
-      opacity: 0.4,
-    })
-    const frontMaterial = new THREE.MeshStandardMaterial({
-      map: isSelected ? activeTexture : inactiveTexture,
-      roughness: 0.3,
-      metalness: 0.1,
-      transparent: true,
-      opacity: isSelected ? 1.0 : 0.38,
-    })
-
-    const materials = [
-      sideMaterial,
-      sideMaterial,
-      sideMaterial,
-      sideMaterial,
-      frontMaterial,
-      backMaterial,
-    ]
-
-    const mesh = new THREE.Mesh(sharedBoxGeometry!, materials)
-    mesh.userData = { articleId: article.id }
-    nodeGroup.add(mesh)
-
-    const shadowMesh = new THREE.Mesh(sharedShadowGeometry!, sharedShadowMaterial!)
-    shadowMesh.position.z = -0.025
-    nodeGroup.add(shadowMesh)
-
-    const transform = calculateNodeTransform(
-      article,
-      articles.value,
-      selectedArticleId.value,
-      selectedCategory.value,
-      isMobile.value
-    )
-
-    nodeGroup.position.set(...transform.position)
-    nodeGroup.rotation.set(...transform.rotation)
-    nodeGroup.scale.setScalar(transform.scale)
-
-    fieldGroup!.add(nodeGroup)
-
-    cardNodes.push({
-      article,
-      index,
-      group: nodeGroup,
-      mesh,
-      materials,
-      activeTexture,
-      inactiveTexture,
-      targetPos: new THREE.Vector3(...transform.position),
-      targetRot: new THREE.Euler(...transform.rotation),
-      targetScale: transform.scale,
-      targetOpacity: transform.opacity,
-      currentOpacity: transform.opacity,
-    })
-  })
-
-  setupRelationshipLines()
-  updateNodeTargets()
 }
 
 function initThree() {
-  if (!container.value || !canvas.value) return
+  if (!canvas.value || !container.value) return
 
   const width = container.value.clientWidth || window.innerWidth
   const height = container.value.clientHeight || window.innerHeight
+  isMobile.value = width < 640
 
-  isMobile.value = width < 768
-  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
+  // 1. Scene & Camera
   scene = new THREE.Scene()
+  camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100)
+  const initialDist = width < 640 ? 4.6 : (width < 1024 ? 4.2 : 3.85)
+  camera.position.set(0, 0, initialDist)
 
-  camera = new THREE.PerspectiveCamera(46, width / height, 0.1, 100)
-  camera.position.set(0, 0.15, isMobile.value ? 8.6 : 7.8)
+  // Subtle Ambient & Sun Lights for Cinematic Depth Behind Cards
+  ambientLight = new THREE.AmbientLight(0xffffff, 0.45)
+  scene.add(ambientLight)
 
+  sunLight = new THREE.DirectionalLight(0xffffff, 2.3)
+  sunLight.position.set(6, 4, 5)
+  scene.add(sunLight)
+
+  // 2. WebGL Renderer
   renderer = new THREE.WebGLRenderer({
     canvas: canvas.value,
     antialias: true,
@@ -403,369 +503,358 @@ function initThree() {
     powerPreference: 'high-performance',
   })
   renderer.setSize(width, height)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
-  renderer.outputColorSpace = THREE.SRGBColorSpace
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.65)
-  scene.add(ambientLight)
+  // 3. Main Globe Group
+  globeGroup = new THREE.Group()
+  globeGroup.rotation.z = 0
+  scene.add(globeGroup)
 
-  const keyLight = new THREE.DirectionalLight(0xffffff, 0.75)
-  keyLight.position.set(2, 4, 5)
-  scene.add(keyLight)
-
-  const rimLight = new THREE.DirectionalLight(0x94a3b8, 0.35)
-  rimLight.position.set(-3, -2, -2)
-  scene.add(rimLight)
-
-  fieldGroup = new THREE.Group()
-  scene.add(fieldGroup)
-
-  sharedBoxGeometry = new THREE.BoxGeometry(1.85, 2.4, 0.035)
-  sharedShadowGeometry = new THREE.PlaneGeometry(2.1, 2.65)
-
-  const shadowTexture = createShadowTexture()
-  sharedShadowMaterial = new THREE.MeshBasicMaterial({
-    map: shadowTexture,
+  // 4. Base Sphere (Technical Dark Globe)
+  const sphereGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64)
+  baseSphereMat = new THREE.MeshBasicMaterial({
+    color: 0x06080e,
     transparent: true,
-    opacity: 0.45,
-    depthWrite: false,
+    opacity: 0.98,
   })
+  baseSphere = new THREE.Mesh(sphereGeo, baseSphereMat)
+  baseSphere.visible = globeMode.value === 'tech'
+  globeGroup.add(baseSphere)
 
-  // Build nodes if articles are already available
-  if (articles.value.length > 0) {
-    build3DNodes()
-  }
-
-  // Animation Loop
-  let lastTime = performance.now()
-  function loop(now: number) {
-    animFrameId = requestAnimationFrame(loop)
-    if (!isVisible) return
-
-    const delta = Math.min((now - lastTime) / 1000, 0.1)
-    lastTime = now
-    const time = now * 0.001
-
-    currentFieldRotY = THREE.MathUtils.lerp(currentFieldRotY, targetFieldRotY, delta * 4.5)
-    currentFieldRotX = THREE.MathUtils.lerp(currentFieldRotX, targetFieldRotX, delta * 4.5)
-    if (fieldGroup) {
-      fieldGroup.rotation.y = currentFieldRotY
-      fieldGroup.rotation.x = currentFieldRotX
-    }
-
-    currentCamX = THREE.MathUtils.lerp(currentCamX, targetCamX, delta * 3.5)
-    currentCamY = THREE.MathUtils.lerp(currentCamY, targetCamY, delta * 3.5)
-    if (camera) {
-      camera.position.x = currentCamX
-      camera.position.y = 0.15 + currentCamY
-      camera.lookAt(0, 0, 0)
-    }
-
-    cardNodes.forEach((node, i) => {
-      let floatY = 0
-      let floatRotZ = 0
-      if (!prefersReducedMotion.value) {
-        floatY = Math.sin(time * 0.85 + i * 1.35) * 0.05
-        floatRotZ = Math.cos(time * 0.65 + i * 1.1) * 0.012
-      }
-
-      const tempPos = node.targetPos.clone()
-      tempPos.y += floatY
-
-      const tempRot = node.targetRot.clone()
-      tempRot.z += floatRotZ
-
-      let scaleMult = 1.0
-      if (hoveredArticle.value?.id === node.article.id && node.article.id !== selectedArticleId.value) {
-        tempPos.z += 0.18
-        scaleMult = 1.05
-      }
-
-      node.group.position.lerp(tempPos, delta * 4.8)
-
-      const targetQuat = new THREE.Quaternion().setFromEuler(tempRot)
-      node.group.quaternion.slerp(targetQuat, delta * 4.8)
-
-      const finalScale = node.targetScale * scaleMult
-      node.group.scale.lerp(new THREE.Vector3(finalScale, finalScale, finalScale), delta * 4.8)
-
-      node.currentOpacity = THREE.MathUtils.lerp(node.currentOpacity, node.targetOpacity, delta * 4.8)
-      node.materials.forEach(mat => {
-        mat.opacity = node.currentOpacity
-      })
-    })
-
-    updateLinesPositions()
-
-    if (renderer && scene && camera) {
-      renderer.render(scene, camera)
-    }
-  }
-
-  animFrameId = requestAnimationFrame(loop)
-}
-
-function setupRelationshipLines() {
-  if (!fieldGroup || !articles.value.length) return
-
-  linesGeometry = new THREE.BufferGeometry()
-  const pairs = buildRelationshipPairs(articles.value, selectedCategory.value)
-  const positions = new Float32Array(pairs.length * 6)
-  linesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-
-  const linesMaterial = new THREE.LineBasicMaterial({
-    color: 0x64748b,
+  // 5. Procedural Lat/Long Grid Lines
+  const gridGeo = createGridLines(GLOBE_RADIUS * 1.002)
+  gridLineMat = new THREE.LineBasicMaterial({
+    color: 0x334155,
     transparent: true,
     opacity: 0.16,
+  })
+  gridLineMesh = new THREE.LineSegments(gridGeo, gridLineMat)
+  gridLineMesh.visible = globeMode.value === 'tech'
+  globeGroup.add(gridLineMesh)
+
+  // 6. Procedural Land Points Cloud
+  const landPointsGeo = createLandPointsGeometry(GLOBE_RADIUS * 1.006)
+  landPointsMat = new THREE.PointsMaterial({
+    color: 0x94a3b8,
+    size: 0.024,
+    transparent: true,
+    opacity: 0.75,
+  })
+  landPointsMesh = new THREE.Points(landPointsGeo, landPointsMat)
+  landPointsMesh.visible = globeMode.value === 'tech'
+  globeGroup.add(landPointsMesh)
+
+  // 7. Procedural Coastlines
+  const coastGeo = createCoastlineGeometry(GLOBE_RADIUS * 1.008)
+  coastMat = new THREE.LineBasicMaterial({
+    color: 0x475569,
+    transparent: true,
+    opacity: 0.32,
+  })
+  coastMesh = new THREE.LineSegments(coastGeo, coastMat)
+  coastMesh.visible = globeMode.value === 'tech'
+  globeGroup.add(coastMesh)
+
+  // 8. Photorealistic Real Earth Textures & Atmospheric Fresnel
+  const textureLoader = new THREE.TextureLoader()
+  const dayTexture = textureLoader.load('/textures/earth/earth_day.jpg')
+  dayTexture.colorSpace = THREE.SRGBColorSpace
+  const specularTexture = textureLoader.load('/textures/earth/earth_specular.jpg')
+  const cloudsTexture = textureLoader.load('/textures/earth/earth_clouds.png')
+
+  const realEarthGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64)
+  realEarthMat = new THREE.MeshStandardMaterial({
+    map: dayTexture,
+    roughnessMap: specularTexture,
+    roughness: 0.68,
+    metalness: 0.06,
+  })
+  realEarthMesh = new THREE.Mesh(realEarthGeo, realEarthMat)
+  realEarthMesh.visible = globeMode.value === 'real'
+  globeGroup.add(realEarthMesh)
+
+  // Dynamic Cloud Layer
+  const cloudsGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.01, 64, 64)
+  cloudsMat = new THREE.MeshStandardMaterial({
+    map: cloudsTexture,
+    transparent: true,
+    opacity: 0.75,
+    blending: THREE.NormalBlending,
     depthWrite: false,
+    roughness: 0.9,
   })
+  cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat)
+  cloudsMesh.visible = globeMode.value === 'real'
+  globeGroup.add(cloudsMesh)
 
-  linesMesh = new THREE.LineSegments(linesGeometry, linesMaterial)
-  fieldGroup.add(linesMesh)
-}
-
-function updateLinesPositions() {
-  if (!linesGeometry || !linesMesh) return
-
-  const pairs = buildRelationshipPairs(articles.value, selectedCategory.value)
-  const posAttr = linesGeometry.getAttribute('position') as THREE.BufferAttribute
-  if (!posAttr || posAttr.count !== pairs.length * 2) {
-    linesGeometry.dispose()
-    const positions = new Float32Array(pairs.length * 6)
-    linesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  }
-
-  const currentPosAttr = linesGeometry.getAttribute('position') as THREE.BufferAttribute
-  const array = currentPosAttr.array as Float32Array
-
-  let idx = 0
-  for (const [i1, i2] of pairs) {
-    const node1 = cardNodes[i1]
-    const node2 = cardNodes[i2]
-    if (node1 && node2) {
-      array[idx++] = node1.group.position.x
-      array[idx++] = node1.group.position.y
-      array[idx++] = node1.group.position.z
-
-      array[idx++] = node2.group.position.x
-      array[idx++] = node2.group.position.y
-      array[idx++] = node2.group.position.z
-    }
-  }
-
-  currentPosAttr.needsUpdate = true
-}
-
-function updateNodeTargets() {
-  cardNodes.forEach(node => {
-    const isSelected = node.article.id === selectedArticleId.value
-    const transform = calculateNodeTransform(
-      node.article,
-      articles.value,
-      selectedArticleId.value,
-      selectedCategory.value,
-      isMobile.value.valueOf()
-    )
-
-    node.targetPos.set(...transform.position)
-    node.targetRot.set(...transform.rotation)
-    node.targetScale = transform.scale
-    node.targetOpacity = transform.opacity
-
-    const frontMat = node.materials[4] as THREE.MeshStandardMaterial
-    frontMat.map = isSelected ? node.activeTexture : node.inactiveTexture
-    frontMat.needsUpdate = true
-  })
-}
-
-// Rebuild or update targets when articles arrive from API or selection changes
-watch(
-  articles,
-  newArticles => {
-    if (newArticles.length > 0) {
-      if (!selectedArticleId.value || !newArticles.some(a => a.id === selectedArticleId.value)) {
-        selectedArticleId.value = newArticles[0].id
+  // Outer Atmospheric Fresnel Glow
+  const atmosphereGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.034, 64, 64)
+  atmosphereMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    uniforms: {
+      uAtmosphereColor: { value: new THREE.Color(0x38bdf8) },
+      uSunDirection: { value: new THREE.Vector3(6, 4, 5).normalize() },
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vWorldNormal;
+      varying vec3 vViewPosition;
+      void main() {
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        vViewPosition = -mvPosition.xyz;
+        vNormal = normalize(normalMatrix * normal);
+        vWorldNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
+        gl_Position = projectionMatrix * mvPosition;
       }
-      build3DNodes()
+    `,
+    fragmentShader: `
+      varying vec3 vNormal;
+      varying vec3 vWorldNormal;
+      varying vec3 vViewPosition;
+      uniform vec3 uAtmosphereColor;
+      uniform vec3 uSunDirection;
+      void main() {
+        vec3 viewDir = normalize(vViewPosition);
+        float edgeAlpha = clamp(dot(vNormal, viewDir) / 0.28, 0.0, 1.0);
+        float intensity = pow(edgeAlpha, 1.8);
+        vec3 outwardNormal = -vWorldNormal;
+        float sunDot = dot(outwardNormal, uSunDirection);
+        float dayFactor = clamp(sunDot * 0.7 + 0.35, 0.18, 1.0);
+        vec3 daySky = uAtmosphereColor;
+        vec3 sunset = vec3(0.98, 0.46, 0.22);
+        float twilightBand = smoothstep(0.28, -0.15, sunDot) * smoothstep(-0.45, 0.1, sunDot);
+        vec3 col = mix(daySky, sunset, twilightBand * 0.65);
+        gl_FragColor = vec4(col, intensity * dayFactor * 1.15);
+      }
+    `,
+  })
+  atmosphereMesh = new THREE.Mesh(atmosphereGeo, atmosphereMat)
+  atmosphereMesh.visible = globeMode.value === 'real'
+  globeGroup.add(atmosphereMesh)
+
+  // 9. Starfield Celestial Background
+  starfieldGroup = new THREE.Group()
+  scene.add(starfieldGroup)
+  buildStarfield()
+
+  applyThemeMaterials(globeMode.value === 'tech')
+
+  reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  lastTime = performance.now()
+  renderLoop()
+}
+
+function buildStarfield() {
+  if (!starfieldGroup) return
+  const count = 1600
+  const positions = new Float32Array(count * 3)
+  const colors = new Float32Array(count * 3)
+
+  for (let i = 0; i < count; i++) {
+    const r = 12 + Math.random() * 18
+    const theta = Math.random() * Math.PI * 2
+    const phi = Math.acos(2 * Math.random() - 1) - Math.PI / 2
+
+    positions[i * 3] = r * Math.cos(phi) * Math.cos(theta)
+    positions[i * 3 + 1] = r * Math.sin(phi)
+    positions[i * 3 + 2] = r * Math.cos(phi) * Math.sin(theta)
+
+    const cChoice = Math.random()
+    if (cChoice < 0.65) {
+      colors[i * 3] = 0.85; colors[i * 3 + 1] = 0.92; colors[i * 3 + 2] = 1.0
+    } else if (cChoice < 0.85) {
+      colors[i * 3] = 0.45; colors[i * 3 + 1] = 0.75; colors[i * 3 + 2] = 1.0
     } else {
-      clear3DNodes()
+      colors[i * 3] = 0.98; colors[i * 3 + 1] = 0.72; colors[i * 3 + 2] = 0.45
     }
-  },
-  { deep: true }
-)
-
-watch([selectedArticleId, selectedCategory], () => {
-  updateNodeTargets()
-})
-
-// Pointer & Interaction Handlers
-let pointerStartX = 0
-let pointerStartY = 0
-
-function onPointerDown(e: PointerEvent) {
-  isDragging = true
-  prevPointerX = e.clientX
-  prevPointerY = e.clientY
-  pointerStartX = e.clientX
-  pointerStartY = e.clientY
-}
-
-function onPointerMove(e: PointerEvent) {
-  if (!container.value || !camera) return
-
-  const rect = container.value.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
-
-  mouse.x = (x / rect.width) * 2 - 1
-  mouse.y = -(y / rect.height) * 2 + 1
-
-  targetCamX = mouse.x * 0.22
-  targetCamY = mouse.y * 0.16
-
-  if (isDragging) {
-    const dx = e.clientX - prevPointerX
-    const dy = e.clientY - prevPointerY
-    prevPointerX = e.clientX
-    prevPointerY = e.clientY
-
-    targetFieldRotY = THREE.MathUtils.clamp(targetFieldRotY + dx * 0.0035, -0.42, 0.42)
-    targetFieldRotX = THREE.MathUtils.clamp(targetFieldRotX + dy * 0.0025, -0.22, 0.22)
-  } else {
-    raycaster.setFromCamera(mouse, camera)
-    const meshes = cardNodes.map(n => n.mesh)
-    const intersects = raycaster.intersectObjects(meshes)
-
-    if (intersects.length > 0) {
-      const hitMesh = intersects[0].object
-      const articleId = hitMesh.userData.articleId
-      const found = articles.value.find(a => a.id === articleId)
-      if (
-        found &&
-        (selectedCategory.value === 'ALL' ||
-          found.category === selectedCategory.value ||
-          found.tags.includes(selectedCategory.value))
-      ) {
-        hoveredArticle.value = found
-        hoverScreenPos.value = { x: e.clientX, y: e.clientY }
-        if (canvas.value) canvas.value.style.cursor = 'pointer'
-        return
-      }
-    }
-
-    hoveredArticle.value = null
-    if (canvas.value) canvas.value.style.cursor = isDragging ? 'grabbing' : 'grab'
   }
+
+  const starGeo = new THREE.BufferGeometry()
+  starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+
+  const starMat = new THREE.PointsMaterial({
+    size: 0.042,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.7,
+    blending: THREE.AdditiveBlending,
+  })
+
+  const stars = new THREE.Points(starGeo, starMat)
+  starfieldGroup.add(stars)
 }
 
-function onPointerUp(e: PointerEvent) {
-  if (isDragging) {
-    const dist = Math.hypot(e.clientX - pointerStartX, e.clientY - pointerStartY)
-    if (dist < 6 && camera) {
-      raycaster.setFromCamera(mouse, camera)
-      const meshes = cardNodes.map(n => n.mesh)
-      const intersects = raycaster.intersectObjects(meshes)
-      if (intersects.length > 0) {
-        const articleId = intersects[0].object.userData.articleId
-        if (articleId) {
-          selectArticle(articleId)
+// -------------------------------------------------------------
+// RENDER LOOP & PARALLAX BACKGROUND ROTATION
+// -------------------------------------------------------------
+let lastTime = 0
+
+function renderLoop() {
+  animFrameId = requestAnimationFrame(renderLoop)
+
+  const currentTime = performance.now()
+  const delta = Math.min((currentTime - lastTime) * 0.001, 0.1)
+  lastTime = currentTime
+
+  if (globeGroup) {
+    if (isCanvasDragging) {
+      lastCanvasInteractionTime = currentTime
+    } else {
+      if (Math.abs(canvasDragVelocity.x) > 0.0001 || Math.abs(canvasDragVelocity.y) > 0.0001) {
+        globeGroup.rotation.y += canvasDragVelocity.x
+        globeGroup.rotation.x = Math.max(-1.15, Math.min(1.15, globeGroup.rotation.x + canvasDragVelocity.y))
+        canvasDragVelocity.x *= 0.92
+        canvasDragVelocity.y *= 0.92
+      } else {
+        // Parallax background alignment with active article index
+        const targetParallaxY = selectedArticleIndex.value * -0.22
+        const diffY = (targetParallaxY - globeGroup.rotation.y) % (Math.PI * 2)
+        const shortestDiffY = ((diffY + Math.PI * 3) % (Math.PI * 2)) - Math.PI
+        globeGroup.rotation.y += shortestDiffY * 0.04
+
+        // Gentle idle drift
+        if (!reducedMotion && (currentTime - lastCanvasInteractionTime > 2500)) {
+          globeGroup.rotation.y += delta * 0.012
         }
       }
     }
-  }
-  isDragging = false
-  if (canvas.value) canvas.value.style.cursor = 'grab'
-}
 
-function onWheel(e: WheelEvent) {
-  if (!camera) return
-  camera.position.z = THREE.MathUtils.clamp(
-    camera.position.z + e.deltaY * 0.003,
-    isMobile.value ? 7.2 : 6.5,
-    isMobile.value ? 9.8 : 9.2
-  )
-}
-
-function onBackgroundClick() {
-  // Keep active article in focus
-}
-
-function onResize() {
-  if (!container.value || !camera || !renderer) return
-  const width = container.value.clientWidth || window.innerWidth
-  const height = container.value.clientHeight || window.innerHeight
-
-  isMobile.value = width < 768
-
-  camera.aspect = width / height
-  camera.position.z = isMobile.value ? 8.6 : 7.8
-  camera.updateProjectionMatrix()
-
-  renderer.setSize(width, height)
-  updateNodeTargets()
-}
-
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Enter') {
-    if (selectedArticle.value?.url) {
-      window.open(selectedArticle.value.url, '_blank', 'noopener,noreferrer')
+    if (cloudsMesh && cloudsMesh.visible && !reducedMotion) {
+      cloudsMesh.rotation.y += delta * 0.01
     }
   }
+
+  if (renderer && scene && camera) {
+    renderer.render(scene, camera)
+  }
 }
 
+// Canvas drag for background planet
+function onCanvasPointerDown(e: PointerEvent) {
+  if (e.button !== 0) return
+  isCanvasDragging = true
+  canvasPointerDownPos = { x: e.clientX, y: e.clientY }
+  lastCanvasPointerPos = { x: e.clientX, y: e.clientY }
+  canvasDragVelocity = { x: 0, y: 0 }
+  lastCanvasInteractionTime = performance.now()
+}
+
+function onCanvasPointerMove(e: PointerEvent) {
+  if (isCanvasDragging && globeGroup) {
+    const dx = e.clientX - lastCanvasPointerPos.x
+    const dy = e.clientY - lastCanvasPointerPos.y
+
+    globeGroup.rotation.y += dx * 0.0055
+    globeGroup.rotation.x = Math.max(-1.15, Math.min(1.15, globeGroup.rotation.x + dy * 0.0055))
+
+    canvasDragVelocity = { x: dx * 0.0025, y: dy * 0.0025 }
+    lastCanvasPointerPos = { x: e.clientX, y: e.clientY }
+    lastCanvasInteractionTime = performance.now()
+  }
+}
+
+function onCanvasPointerUp() {
+  isCanvasDragging = false
+}
+
+function handleResize() {
+  if (!container.value || !camera || !renderer) return
+  const w = container.value.clientWidth
+  const h = container.value.clientHeight
+  isMobile.value = w < 640
+
+  camera.aspect = w / h
+  camera.updateProjectionMatrix()
+  const targetDist = w < 640 ? 4.6 : (w < 1024 ? 4.2 : 3.85)
+  camera.position.z = targetDist
+  renderer.setSize(w, h)
+}
+
+// Lifecycle
 let unregisterNavigator: (() => void) | null = null
 
 onMounted(() => {
   initThree()
 
-  window.addEventListener('resize', onResize)
-  window.addEventListener('keydown', onKeyDown)
-
-  unregisterNavigator = registerContentNavigator((direction: 'prev' | 'next') => {
-    if (direction === 'prev') prevArticle()
-    else nextArticle()
-  })
-
   if (container.value) {
-    observer = new IntersectionObserver(([entry]) => {
-      isVisible = entry.isIntersecting
-    })
-    observer.observe(container.value)
+    resizeObserver = new ResizeObserver(handleResize)
+    resizeObserver.observe(container.value)
   }
+
+  // Register Keyboard Navigator (Left / Right Arrows in 3D Showcase)
+  unregisterNavigator = registerContentNavigator((direction) => {
+    if (direction === 'next') {
+      nextArticle()
+    } else {
+      prevArticle()
+    }
+  })
 })
 
 onBeforeUnmount(() => {
-  if (observer) observer.disconnect()
-  if (animFrameId) cancelAnimationFrame(animFrameId)
+  cancelAnimationFrame(animFrameId)
+  resizeObserver?.disconnect()
+  unregisterNavigator?.()
 
-  window.removeEventListener('resize', onResize)
-  window.removeEventListener('keydown', onKeyDown)
-
-  if (unregisterNavigator) unregisterNavigator()
-
-  clear3DNodes()
-
-  if (sharedBoxGeometry) sharedBoxGeometry.dispose()
-  if (sharedShadowGeometry) sharedShadowGeometry.dispose()
-  if (sharedShadowMaterial) {
-    if (sharedShadowMaterial.map) sharedShadowMaterial.map.dispose()
-    sharedShadowMaterial.dispose()
+  if (scene) {
+    scene.traverse(obj => {
+      if (obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points) {
+        obj.geometry?.dispose()
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach(m => m.dispose())
+        } else if (obj.material) {
+          obj.material.dispose()
+        }
+      }
+    })
   }
 
-  if (renderer) {
-    renderer.dispose()
-    renderer.forceContextLoss()
-    renderer = null
-  }
+  renderer?.dispose()
 })
 </script>
 
 <style scoped>
-.writing-knowledge-field-scene {
-  background: radial-gradient(circle at 65% 40%, #080b10 0%, #03060b 80%);
+.writing-editorial-archive-scene {
+  background: radial-gradient(circle at 50% 50%, #060b14 0%, #02050a 80%, #010204 100%);
 }
 
 .gallery-ambient-vignette {
-  background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(3, 6, 11, 0.75) 100%);
+  background: radial-gradient(circle at 50% 50%, rgba(2, 5, 10, 0.25) 30%, rgba(2, 5, 10, 0.65) 75%, rgba(2, 5, 10, 0.95) 100%);
+}
+
+/* Cosmic Ambient Glow */
+.showcase-glow-dark {
+  background: radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.05) 0%, transparent 65%);
+}
+
+.showcase-glow-light {
+  background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+}
+
+.showcase-grid-dark {
+  background-size: 36px 36px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+}
+
+/* 3D Perspective Editorial Deck Viewport */
+.editorial-stage-viewport {
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+}
+
+.editorial-card-wrapper {
+  transform-style: preserve-3d;
+}
+
+@media (max-width: 640px) {
+  .editorial-stage-viewport {
+    perspective: 800px;
+  }
 }
 </style>

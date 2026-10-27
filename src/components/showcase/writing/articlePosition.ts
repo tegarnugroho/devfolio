@@ -1,154 +1,133 @@
-import type { KnowledgeArticle, CategoryFilter } from './knowledgeTypes'
-
-export interface NodeTransform {
-  position: [number, number, number]
-  rotation: [number, number, number]
-  scale: number
-  opacity: number
-  visible: boolean
-}
-
-// Predefined deterministic spatial anchor slots for inactive articles in 3D field
-const DESKTOP_ANCHORS: Array<{
-  pos: [number, number, number]
-  rot: [number, number, number]
-}> = [
-  // 0: Upper-Left (leaves room for header)
-  { pos: [-2.8, 1.85, -1.1], rot: [0.06, 0.22, 0.02] },
-  // 1: Upper-Right
-  { pos: [3.5, 1.95, -0.9], rot: [-0.04, -0.24, -0.02] },
-  // 2: Right-Flank
-  { pos: [4.1, -0.25, -1.6], rot: [0.03, -0.32, 0.01] },
-  // 3: Lower-Right (above editorial preview)
-  { pos: [3.1, -2.05, -1.2], rot: [-0.05, -0.18, -0.02] },
-  // 4: Lower-Left
-  { pos: [-3.3, -1.85, -1.4], rot: [0.06, 0.26, 0.03] },
-  // 5: Far-Left
-  { pos: [-4.4, 0.15, -2.2], rot: [-0.04, 0.35, -0.01] },
-  // 6: Deep-Top
-  { pos: [-0.2, 2.45, -2.4], rot: [0.08, 0.06, 0.0] },
-  // 7: Deep-Bottom
-  { pos: [-0.7, -2.45, -2.5], rot: [-0.08, -0.06, 0.0] },
-]
-
-const MOBILE_ANCHORS: Array<{
-  pos: [number, number, number]
-  rot: [number, number, number]
-}> = [
-  { pos: [-1.4, 1.8, -1.2], rot: [0.04, 0.15, 0.01] },
-  { pos: [1.4, 1.8, -1.2], rot: [-0.04, -0.15, -0.01] },
-  { pos: [-1.6, -1.6, -1.4], rot: [0.04, 0.18, 0.01] },
-  { pos: [1.6, -1.6, -1.4], rot: [-0.04, -0.18, -0.01] },
-  { pos: [0.0, 2.4, -2.0], rot: [0.06, 0.0, 0.0] },
-  { pos: [0.0, -2.4, -2.0], rot: [-0.06, 0.0, 0.0] },
-]
+/**
+ * Visual styling and spatial layout helpers for the 3D Editorial Article Archive.
+ */
 
 /**
- * Computes deterministic target 3D transform for an article based on selection & filter.
+ * Returns a restrained, high-contrast aerospace neon accent color
+ * based on article category and tags.
  */
-export function calculateNodeTransform(
-  article: KnowledgeArticle,
-  allArticles: KnowledgeArticle[],
-  selectedId: string,
-  categoryFilter: CategoryFilter,
+export function getCategoryAccentColor(category: string, tags: string[] = []): string {
+  const combined = [category, ...tags].join(' ').toLowerCase()
+
+  if (combined.includes('flutter') || combined.includes('mobile')) {
+    return '#38bdf8' // Sky Cyan (SpaceX Dragon telemetry style)
+  }
+  if (combined.includes('data') || combined.includes('excel') || combined.includes('csv') || combined.includes('parser')) {
+    return '#10b981' // Emerald
+  }
+  if (combined.includes('arch') || combined.includes('clean') || combined.includes('domain') || combined.includes('pattern')) {
+    return '#8b5cf6' // Muted Violet
+  }
+  if (combined.includes('state') || combined.includes('riverpod') || combined.includes('reactive')) {
+    return '#06b6d4' // Deep Teal
+  }
+  if (combined.includes('tool') || combined.includes('devops') || combined.includes('cli') || combined.includes('config') || combined.includes('security')) {
+    return '#f59e0b' // Amber
+  }
+  if (combined.includes('multiplatform') || combined.includes('desktop') || combined.includes('web')) {
+    return '#3b82f6' // Radiant Blue
+  }
+  if (combined.includes('performance') || combined.includes('benchmark') || combined.includes('isolate')) {
+    return '#f43f5e' // Crimson / Rose
+  }
+
+  return '#38bdf8' // Default Sky
+}
+
+/**
+ * Calculates estimated reading time string from text or excerpt.
+ */
+export function calculateReadingTime(text: string): string {
+  if (!text || text.trim().length === 0) return '3 MIN READ'
+  const words = text.trim().split(/\s+/).length
+  const estimatedTotalWords = Math.max(700, words * 8)
+  const minutes = Math.max(2, Math.round(estimatedTotalWords / 200))
+  return `${minutes} MIN READ`
+}
+
+import type { CSSProperties } from 'vue'
+
+export type CardSpatialStyle = CSSProperties
+
+/**
+ * Computes CSS 3D perspective transforms for an article card in the spatial deck.
+ */
+export function getCardSpatialStyle(
+  index: number,
+  selectedIndex: number,
+  total: number,
   isMobile: boolean
-): NodeTransform {
-  // Check if article matches category or tags
-  const matchesFilter =
-    categoryFilter === 'ALL' ||
-    article.category === categoryFilter ||
-    Boolean(article.tags && article.tags.includes(categoryFilter))
+): CardSpatialStyle {
+  const diff = index - selectedIndex
 
-  if (!matchesFilter) {
+  // Selected Featured Card in foreground
+  if (diff === 0) {
     return {
-      position: [0, 0, -6.0],
-      rotation: [0, 0, 0],
-      scale: 0.001,
-      opacity: 0.0,
-      visible: false,
+      transform: isMobile
+        ? 'translate3d(0, 0, 40px) rotateY(0deg) scale(1)'
+        : 'translate3d(0, 0, 80px) rotateY(0deg) scale(1)',
+      opacity: 1,
+      zIndex: 30,
+      pointerEvents: 'auto',
+      visibility: 'visible',
     }
   }
 
-  // If this is the active selected article:
-  if (article.id === selectedId) {
-    if (isMobile) {
-      return {
-        position: [0.0, -0.2, 0.6],
-        rotation: [0.0, 0.0, 0.0],
-        scale: 0.92,
-        opacity: 1.0,
-        visible: true,
-      }
-    }
-    // Desktop: focal position slightly to the right to balance left header
+  // 1 step to the right
+  if (diff === 1) {
     return {
-      position: [0.85, 0.05, 1.35],
-      rotation: [0.0, 0.0, 0.0],
-      scale: 1.0,
-      opacity: 1.0,
-      visible: true,
+      transform: isMobile
+        ? 'translate3d(75%, 0, -50px) rotateY(-14deg) scale(0.86)'
+        : 'translate3d(340px, 0, -60px) rotateY(-18deg) scale(0.88)',
+      opacity: isMobile ? 0.35 : 0.65,
+      zIndex: 20,
+      pointerEvents: 'auto',
+      visibility: 'visible',
     }
   }
 
-  // For inactive articles:
-  // Determine index among inactive visible articles for stable deterministic placement
-  const visibleInactive = allArticles.filter(
-    a =>
-      a.id !== selectedId &&
-      (categoryFilter === 'ALL' ||
-        a.category === categoryFilter ||
-        Boolean(a.tags && a.tags.includes(categoryFilter)))
-  )
-  const inactiveIndex = visibleInactive.findIndex(a => a.id === article.id)
+  // 1 step to the left
+  if (diff === -1) {
+    return {
+      transform: isMobile
+        ? 'translate3d(-75%, 0, -50px) rotateY(14deg) scale(0.86)'
+        : 'translate3d(-340px, 0, -60px) rotateY(18deg) scale(0.88)',
+      opacity: isMobile ? 0.35 : 0.65,
+      zIndex: 20,
+      pointerEvents: 'auto',
+      visibility: 'visible',
+    }
+  }
 
-  const anchors = isMobile ? MOBILE_ANCHORS : DESKTOP_ANCHORS
-  const anchor = anchors[inactiveIndex % anchors.length]
+  // 2 steps to the right
+  if (diff === 2 && !isMobile) {
+    return {
+      transform: 'translate3d(620px, 0, -180px) rotateY(-26deg) scale(0.76)',
+      opacity: 0.3,
+      zIndex: 10,
+      pointerEvents: 'auto',
+      visibility: 'visible',
+    }
+  }
 
+  // 2 steps to the left
+  if (diff === -2 && !isMobile) {
+    return {
+      transform: 'translate3d(-620px, 0, -180px) rotateY(26deg) scale(0.76)',
+      opacity: 0.3,
+      zIndex: 10,
+      pointerEvents: 'auto',
+      visibility: 'visible',
+    }
+  }
+
+  // Beyond view
+  const sign = Math.sign(diff)
   return {
-    position: [...anchor.pos],
-    rotation: [...anchor.rot],
-    scale: isMobile ? 0.72 : 0.78,
-    opacity: 0.38,
-    visible: true,
+    transform: `translate3d(${sign * (isMobile ? 120 : 900)}px, 0, -300px) scale(0.6)`,
+    opacity: 0,
+    zIndex: 1,
+    pointerEvents: 'none',
+    visibility: 'hidden',
   }
 }
-
-/**
- * Builds pair indices of articles that have conceptual connections (same category).
- */
-export function buildRelationshipPairs(
-  articles: KnowledgeArticle[],
-  categoryFilter: CategoryFilter
-): Array<[number, number]> {
-  const pairs: Array<[number, number]> = []
-  const visibleIndices: number[] = []
-
-  articles.forEach((a, i) => {
-    if (
-      categoryFilter === 'ALL' ||
-      a.category === categoryFilter ||
-      Boolean(a.tags && a.tags.includes(categoryFilter))
-    ) {
-      visibleIndices.push(i)
-    }
-  })
-
-  // Connect consecutive articles in the same category
-  const categoryGroups = new Map<string, number[]>()
-  for (const idx of visibleIndices) {
-    const cat = articles[idx].category
-    if (!categoryGroups.has(cat)) {
-      categoryGroups.set(cat, [])
-    }
-    categoryGroups.get(cat)!.push(idx)
-  }
-
-  for (const group of categoryGroups.values()) {
-    for (let i = 0; i < group.length - 1; i++) {
-      pairs.push([group[i], group[i + 1]])
-    }
-  }
-
-  return pairs
-}
-
