@@ -410,9 +410,16 @@ function calculateTargetRotation(markerId: string) {
   const m = globeMarkers.value.find(item => item.id === markerId)
   if (!m) return
 
-  const pos = latLngToVector3(m.lat, m.lng, GLOBE_RADIUS)
+  const cluster = globeClusters.value.find(c => c.id === m.clusterId)
+  const isMulti = cluster && cluster.projectCount > 1
+
+  // If zoomed into a multi-project cluster, center on the cluster hub centroid so all satellites are visible
+  const targetLat = (isMulti && props.isZoomed) ? cluster.lat : m.lat
+  const targetLng = (isMulti && props.isZoomed) ? cluster.lng : m.lng
+
+  const pos = latLngToVector3(targetLat, targetLng, GLOBE_RADIUS)
   targetRotationY = -Math.atan2(pos.x, pos.z)
-  targetRotationX = Math.max(-0.45, Math.min(0.45, (m.lat * Math.PI / 180) * 0.35))
+  targetRotationX = Math.max(-1.15, Math.min(1.15, (targetLat * Math.PI / 180)))
   isTargetingMarker = true
 }
 
@@ -422,7 +429,7 @@ function calculateClusterRotation(clusterId: string) {
 
   const pos = latLngToVector3(c.lat, c.lng, GLOBE_RADIUS)
   targetRotationY = -Math.atan2(pos.x, pos.z)
-  targetRotationX = Math.max(-0.45, Math.min(0.45, (c.lat * Math.PI / 180) * 0.35))
+  targetRotationX = Math.max(-1.15, Math.min(1.15, (c.lat * Math.PI / 180)))
   isTargetingMarker = true
 }
 
@@ -583,7 +590,7 @@ function initThree() {
 
   // 3. Main Globe Group
   globeGroup = new THREE.Group()
-  globeGroup.rotation.z = 0.12
+  globeGroup.rotation.z = 0
   scene.add(globeGroup)
 
   // 4. Base Sphere (Technical Dark Globe)
@@ -889,8 +896,14 @@ function buildMarkers() {
   markerMeshes = []
 
   const list = globeMarkers.value
+  const clusters = globeClusters.value
+
   for (const m of list) {
-    const pos = latLngToVector3(m.lat, m.lng, GLOBE_RADIUS * 1.008)
+    const cluster = clusters.find(c => c.id === m.clusterId)
+    const isMultiProject = cluster && cluster.projectCount > 1
+    const baseLat = isMultiProject ? cluster.lat : m.lat
+    const baseLng = isMultiProject ? cluster.lng : m.lng
+    const pos = latLngToVector3(baseLat, baseLng, GLOBE_RADIUS * 1.008)
     const normal = pos.clone().normalize()
 
     // 1. Core 3D Dot Point: Small precision luminous point
@@ -1403,7 +1416,7 @@ function animate(currentTime: number) {
     } else {
       if (Math.abs(dragVelocity.x) > 0.0001 || Math.abs(dragVelocity.y) > 0.0001) {
         globeGroup.rotation.y += dragVelocity.x
-        globeGroup.rotation.x = Math.max(-0.55, Math.min(0.55, globeGroup.rotation.x + dragVelocity.y))
+        globeGroup.rotation.x = Math.max(-1.15, Math.min(1.15, globeGroup.rotation.x + dragVelocity.y))
         dragVelocity.x *= 0.92
         dragVelocity.y *= 0.92
       } else if (!reducedMotion && !props.isZoomed && (currentTime - lastUserInteractionTime > 2500)) {
@@ -1535,6 +1548,7 @@ function updateSatellitePositions(currentTime: number) {
 
     m.dotMesh.position.copy(newPos)
     m.hitMesh.position.copy(newPos)
+    m.normalVec.copy(newNormal)
 
     if (m.beaconMesh) {
       m.beaconMesh.position.copy(newPos)
@@ -1739,7 +1753,7 @@ function updateHtmlLabels() {
     c.el.style.transform = `translate3d(${finalX}px, ${finalY}px, 0)`
 
     // Viewport edge fade
-    const nearEdge = finalX < 20 || finalX > width - 20 || finalY < 35 || finalY > height - 25
+    const nearEdge = finalX < 10 || finalX > width - 10 || finalY < 15 || finalY > height - 15
     if (nearEdge) {
       c.el.style.opacity = '0'
       c.el.style.pointerEvents = 'none'
@@ -1780,7 +1794,7 @@ function onPointerMove(e: PointerEvent) {
 
     const rotScale = props.isZoomed ? 0.0035 : 0.0055
     globeGroup.rotation.y += dx * rotScale
-    globeGroup.rotation.x = Math.max(-0.55, Math.min(0.55, globeGroup.rotation.x + dy * rotScale))
+    globeGroup.rotation.x = Math.max(-1.15, Math.min(1.15, globeGroup.rotation.x + dy * rotScale))
 
     dragVelocity = { x: dx * 0.0025, y: dy * 0.0025 }
     lastPointerPos = { x: e.clientX, y: e.clientY }

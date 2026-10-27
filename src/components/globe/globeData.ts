@@ -282,17 +282,29 @@ const geoMetadata: ProjectGeoMetadata[] = [
 export const globeMarkers = computed<GlobeMarker[]>(() => {
   const published = portfolioContent.projects.items.filter(p => p.status === 'published')
 
+  // Group projects by cluster so navigation flows through clusters contiguously
+  const clusterOrder = ['cluster-id', 'cluster-sg', 'cluster-ea', 'cluster-oc', 'cluster-us', 'cluster-eu']
+  const sorted = [...published].sort((a, b) => {
+    const metaA = geoMetadata.find(m => a.title.includes(m.matchKey))
+    const metaB = geoMetadata.find(m => b.title.includes(m.matchKey))
+    const cA = metaA?.clusterId || 'cluster-default'
+    const cB = metaB?.clusterId || 'cluster-default'
+    const orderA = clusterOrder.indexOf(cA) !== -1 ? clusterOrder.indexOf(cA) : 99
+    const orderB = clusterOrder.indexOf(cB) !== -1 ? clusterOrder.indexOf(cB) : 99
+    return orderA - orderB
+  })
+
   // Count items per cluster to compute angular satellite offsets
   const clusterCounts: Record<string, number> = {}
   const clusterIndices: Record<string, number> = {}
 
-  for (const proj of published) {
+  for (const proj of sorted) {
     const meta = geoMetadata.find(m => proj.title.includes(m.matchKey))
     const cId = meta?.clusterId || 'cluster-default'
     clusterCounts[cId] = (clusterCounts[cId] || 0) + 1
   }
 
-  return published.map((proj, index) => {
+  return sorted.map((proj, index) => {
     const meta = geoMetadata.find(m => proj.title.includes(m.matchKey)) || {
       matchKey: proj.title,
       clusterId: 'cluster-id',
@@ -310,8 +322,8 @@ export const globeMarkers = computed<GlobeMarker[]>(() => {
     const idxInCluster = clusterIndices[cId] || 0
     clusterIndices[cId] = idxInCluster + 1
 
-    // Compute satellite angle and radius
-    const satelliteRadius = countInCluster > 1 ? 0.32 : 0
+    // Compute satellite angle and radius (keep compact so all satellites stay within zoomed camera FOV)
+    const satelliteRadius = countInCluster > 1 ? 0.22 : 0
     const satelliteAngle = countInCluster > 1 ? (idxInCluster * 2 * Math.PI) / countInCluster : 0
 
     const slug = proj.title
@@ -350,14 +362,21 @@ export const globeClusters = computed<GlobeCluster[]>(() => {
   const markers = globeMarkers.value
   const map = new Map<string, GlobeCluster>()
 
+  // Cluster coordinate overrides for clean centroid targeting
+  const clusterCenters: Record<string, { lat: number; lng: number }> = {
+    'cluster-id': { lat: -6.2088, lng: 106.8456 }, // Jakarta, Indonesia
+    'cluster-eu': { lat: 50.8, lng: 7.0 }, // Central Western Europe (Rhine-Main region)
+  }
+
   for (const m of markers) {
     if (!map.has(m.clusterId)) {
+      const center = clusterCenters[m.clusterId] || { lat: m.lat, lng: m.lng }
       map.set(m.clusterId, {
         id: m.clusterId,
         name: m.clusterName,
         region: m.category,
-        lat: m.lat,
-        lng: m.lng,
+        lat: center.lat,
+        lng: center.lng,
         accentColor: m.accentColor,
         projectCount: 1,
       })

@@ -174,19 +174,47 @@ export function toggleSatelliteZoom(clusterId?: string) {
 
 export function nextProject() {
   const count = globeMarkers.value.length
-  if (count > 0) {
-    activeMarkerIndex.value = (activeMarkerIndex.value + 1) % count
-    const cur = globeMarkers.value[activeMarkerIndex.value]
-    if (cur) activeClusterId.value = cur.clusterId
+  if (count === 0) return
+
+  activeMarkerIndex.value = (activeMarkerIndex.value + 1) % count
+  const cur = globeMarkers.value[activeMarkerIndex.value]
+  if (!cur) return
+
+  activeClusterId.value = cur.clusterId
+
+  // Check if current cluster has multiple projects
+  const cluster = globeClusters.value.find(c => c.id === cur.clusterId)
+  const isMultiProject = !!(cluster && cluster.projectCount > 1)
+
+  if (isMultiProject) {
+    // Zoom in to this cluster group so user can inspect projects within it
+    isSatelliteZoomed.value = true
+  } else {
+    // Single project location: zoom out to global view
+    isSatelliteZoomed.value = false
   }
 }
 
 export function prevProject() {
   const count = globeMarkers.value.length
-  if (count > 0) {
-    activeMarkerIndex.value = (activeMarkerIndex.value - 1 + count) % count
-    const cur = globeMarkers.value[activeMarkerIndex.value]
-    if (cur) activeClusterId.value = cur.clusterId
+  if (count === 0) return
+
+  activeMarkerIndex.value = (activeMarkerIndex.value - 1 + count) % count
+  const cur = globeMarkers.value[activeMarkerIndex.value]
+  if (!cur) return
+
+  activeClusterId.value = cur.clusterId
+
+  // Check if current cluster has multiple projects
+  const cluster = globeClusters.value.find(c => c.id === cur.clusterId)
+  const isMultiProject = !!(cluster && cluster.projectCount > 1)
+
+  if (isMultiProject) {
+    // Zoom in to this cluster group so user can inspect projects within it
+    isSatelliteZoomed.value = true
+  } else {
+    // Single project location: zoom out to global view
+    isSatelliteZoomed.value = false
   }
 }
 
@@ -194,7 +222,16 @@ export function setActiveProjectId(id: string) {
   const idx = globeMarkers.value.findIndex(m => m.id === id)
   if (idx !== -1) {
     activeMarkerIndex.value = idx
-    activeClusterId.value = globeMarkers.value[idx].clusterId
+    const cur = globeMarkers.value[idx]
+    activeClusterId.value = cur.clusterId
+
+    const cluster = globeClusters.value.find(c => c.id === cur.clusterId)
+    const isMultiProject = !!(cluster && cluster.projectCount > 1)
+    if (isMultiProject) {
+      isSatelliteZoomed.value = true
+    } else {
+      isSatelliteZoomed.value = false
+    }
   }
 }
 
