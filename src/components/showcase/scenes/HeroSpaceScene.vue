@@ -1,24 +1,14 @@
 <template>
   <div
     ref="container"
-    class="hero-digital-core-scene relative w-full h-full select-none overflow-hidden bg-[#03060b] flex flex-col justify-between md:block px-4 sm:px-5 pt-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] pb-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))] md:p-0"
+    class="hero-constellation-scene relative w-full h-full select-none overflow-hidden bg-[#020307] flex flex-col justify-between md:block px-4 sm:px-5 pt-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] pb-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))] md:p-0"
   >
-    <!-- Deep Ambient Vignette (Seamless background blend) -->
+    <!-- Deep Cosmic Ambient Glow & Vignette -->
+    <div class="pointer-events-none absolute inset-0 cosmic-deep-glow" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute inset-0 opacity-[0.035] space-celestial-grid" aria-hidden="true"></div>
     <div class="pointer-events-none absolute inset-0 gallery-ambient-vignette" aria-hidden="true"></div>
 
-    <!-- Cosmic Ambient Glow & Blueprint Grid Overlay -->
-    <div
-      class="pointer-events-none absolute inset-0 transition-opacity duration-500"
-      :class="globeMode === 'tech' ? 'showcase-glow-dark' : 'showcase-glow-light'"
-      aria-hidden="true"
-    ></div>
-    <div
-      v-if="globeMode === 'tech'"
-      class="pointer-events-none absolute inset-0 opacity-[0.03] showcase-grid-dark"
-      aria-hidden="true"
-    ></div>
-
-    <!-- 1. 3D Canvas Stage (Controlled 42-48dvh on Mobile, Fullscreen on Desktop) -->
+    <!-- 1. 3D Canvas Stage (Responsive Viewport) -->
     <div
       class="canvas-viewport relative md:absolute w-full h-[44dvh] sm:h-[48dvh] max-h-[460px] min-h-[260px] my-auto md:my-0 md:inset-0 md:h-full md:max-h-none z-10 md:z-0 rounded-2xl md:rounded-none overflow-hidden select-none flex items-center justify-center border border-white/5 md:border-0"
     >
@@ -29,6 +19,7 @@
         @pointermove="onPointerMove"
         @pointerup="onPointerUp"
         @pointercancel="onPointerUp"
+        @wheel="onWheel"
       ></canvas>
 
       <!-- WebGL Fallback -->
@@ -39,7 +30,7 @@
         <div class="w-16 h-16 rounded-full border border-sky-400/40 flex items-center justify-center text-sky-400 mb-2">
           ◉
         </div>
-        <p class="font-mono text-xs font-semibold">EARTH MISSION CONTROL</p>
+        <p class="font-mono text-xs font-semibold">CONSTELLATION UNIVERSE</p>
         <p class="text-[11px] text-zinc-400 mt-1">Cross-platform Flutter & Systems Architecture</p>
       </div>
 
@@ -50,53 +41,20 @@
           class="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-black/85 border border-white/10 text-zinc-300 font-mono text-[9px] tracking-widest uppercase backdrop-blur-md whitespace-nowrap shadow-lg flex items-center gap-1.5"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
-          <span>↔ DRAG GLOBE TO EXPLORE</span>
+          <span>↔ DRAG SPACE TO EXPLORE CONSTELLATION</span>
         </div>
       </Transition>
 
-      <!-- Reset View Control (Minimal ↻ button in top right of canvas) -->
+      <!-- Reset View Control (Top right of canvas) -->
       <button
         type="button"
         class="pointer-events-auto absolute top-3 right-3 z-20 w-7 h-7 rounded-full bg-black/60 hover:bg-white/15 border border-white/15 text-zinc-300 hover:text-white flex items-center justify-center font-mono text-xs backdrop-blur-md transition active:scale-95 cursor-pointer shadow-md"
         @click="resetView"
-        title="Reset Globe Orientation"
+        title="Reset Constellation Orientation"
         aria-label="Reset 3D camera and rotation"
       >
         ↻
       </button>
-    </div>
-
-    <!-- Sub-controls: Globe Visual Mode Switcher (Top-Right) -->
-    <div class="absolute top-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] sm:top-20 right-4 sm:right-12 z-20 flex items-center gap-2 pointer-events-auto">
-      <div class="inline-flex items-center rounded-full border border-white/15 bg-black/70 p-0.5 backdrop-blur-md shadow-sm">
-        <button
-          type="button"
-          class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all duration-200 cursor-pointer"
-          :class="
-            globeMode === 'real'
-              ? 'bg-blue-500/25 text-white font-bold border border-blue-400/40 shadow-[0_0_12px_rgba(59,130,246,0.4)]'
-              : 'text-zinc-400 hover:text-white border border-transparent'
-          "
-          title="Switch to Real Earth photorealistic view"
-          @click="setGlobeMode('real')"
-        >
-          <span class="w-1.5 h-1.5 rounded-full" :class="globeMode === 'real' ? 'bg-blue-400' : 'bg-zinc-500'"></span>
-          <span>REAL EARTH</span>
-        </button>
-        <button
-          type="button"
-          class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider transition-all duration-200 cursor-pointer"
-          :class="
-            globeMode === 'tech'
-              ? 'bg-cyan-500/25 text-white font-bold border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
-              : 'text-zinc-400 hover:text-white border border-transparent'
-          "
-          title="Switch to Technical Dark Blueprint view"
-          @click="setGlobeMode('tech')"
-        >
-          <span>TECH GLOBE</span>
-        </button>
-      </div>
     </div>
 
     <!-- 2. Mobile Editorial Layout Overlays (md:hidden) -->
@@ -136,7 +94,7 @@
               class="px-2.5 py-1 rounded-md text-[9px] font-mono tracking-wider transition-all cursor-pointer border"
               :class="
                 inspectionMode === 'assembled'
-                  ? 'bg-blue-500/20 text-white border-blue-400/50 shadow-[0_0_12px_rgba(56,189,248,0.3)] font-semibold'
+                  ? 'bg-sky-500/20 text-white border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.3)] font-semibold'
                   : 'bg-black/50 text-zinc-400 hover:text-white border-white/10'
               "
               @click="setInspectionMode('assembled')"
@@ -148,7 +106,7 @@
               class="px-2.5 py-1 rounded-md text-[9px] font-mono tracking-wider transition-all cursor-pointer border"
               :class="
                 inspectionMode === 'expanded'
-                  ? 'bg-blue-500/20 text-white border-blue-400/50 shadow-[0_0_12px_rgba(56,189,248,0.3)] font-semibold'
+                  ? 'bg-sky-500/20 text-white border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.3)] font-semibold'
                   : 'bg-black/50 text-zinc-400 hover:text-white border-white/10'
               "
               @click="setInspectionMode('expanded')"
@@ -159,7 +117,7 @@
 
           <div class="flex items-center gap-1.5 font-mono text-[9px] text-zinc-400">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"></span>
-            <span>EARTH ONLINE</span>
+            <span>STELLAR ONLINE</span>
           </div>
         </div>
 
@@ -232,17 +190,17 @@
           </button>
         </div>
 
-        <!-- Interactive Architecture Layer Switcher (SpaceX HUD styling) -->
+        <!-- Interactive Constellation Layer Switcher -->
         <div class="pt-2 pointer-events-auto flex items-center gap-2">
           <span class="font-mono text-[9px] uppercase tracking-widest text-zinc-400 font-medium">
-            ORBIT VIEW:
+            STELLAR ORBIT:
           </span>
           <button
             type="button"
             class="px-2.5 py-1 rounded-md text-[9.5px] font-mono tracking-wider transition-all cursor-pointer border"
             :class="
               inspectionMode === 'assembled'
-                ? 'bg-blue-500/20 text-white border-blue-400/50 shadow-[0_0_12px_rgba(56,189,248,0.3)] font-semibold'
+                ? 'bg-sky-500/20 text-white border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.3)] font-semibold'
                 : 'bg-black/50 text-zinc-400 hover:text-white border-white/10 hover:border-white/25'
             "
             @click="setInspectionMode('assembled')"
@@ -254,7 +212,7 @@
             class="px-2.5 py-1 rounded-md text-[9.5px] font-mono tracking-wider transition-all cursor-pointer border"
             :class="
               inspectionMode === 'expanded'
-                ? 'bg-blue-500/20 text-white border-blue-400/50 shadow-[0_0_12px_rgba(56,189,248,0.3)] font-semibold'
+                ? 'bg-sky-500/20 text-white border-sky-400/50 shadow-[0_0_12px_rgba(56,189,248,0.3)] font-semibold'
                 : 'bg-black/50 text-zinc-400 hover:text-white border-white/10 hover:border-white/25'
             "
             @click="setInspectionMode('expanded')"
@@ -270,91 +228,133 @@
           <div class="flex items-center justify-between text-zinc-300 pb-1 border-b border-white/5 font-semibold">
             <span class="flex items-center gap-1.5 text-zinc-200">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse"></span>
-              EARTH MISSION CONTROL // ONLINE
+              CONSTELLATION SYSTEM // ONLINE
             </span>
-            <span class="text-sky-400 font-mono text-[8.5px]">TELEMETRY ACTIVE</span>
+            <span class="text-sky-400 font-mono text-[8.5px]">STELLAR TELEMETRY</span>
           </div>
           <div class="flex items-center justify-between text-[8.5px] text-zinc-400 pt-0.5">
-            <span>CROSS-PLATFORM ARCHITECTURE</span>
-            <span class="text-zinc-500">DRAG GLOBE TO INSPECT ↔</span>
+            <span>CROSS-PLATFORM ENGINEERING UNIVERSE</span>
+            <span class="text-zinc-500">DRAG SPACE TO EXPLORE ↔</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Active Hovered Project Tooltip / Action Card (Desktop) -->
+    <!-- 4. Active Hovered Star Tooltip / Action Card (Desktop & Mobile) -->
     <Transition name="fade">
       <div
-        v-if="hoveredProject && !isMobile"
-        class="pointer-events-auto absolute z-30 bottom-8 right-8 max-w-xs p-3.5 rounded-lg border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl space-y-2 select-none"
+        v-if="hoveredStar && !isMobile"
+        class="pointer-events-auto absolute z-30 bottom-8 right-8 max-w-xs p-4 rounded-xl border bg-black/90 backdrop-blur-md shadow-2xl space-y-2.5 select-none"
+        :style="{
+          borderColor: hoveredStar.color,
+          boxShadow: `0 12px 32px rgba(0, 0, 0, 0.8), 0 0 20px ${hoveredStar.color}25`
+        }"
       >
         <div class="flex items-center justify-between text-[8.5px] font-mono text-zinc-400">
-          <span class="text-sky-400 font-semibold flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-            SYS // ORBITAL TELEMETRY
+          <span class="font-semibold flex items-center gap-1.5" :style="{ color: hoveredStar.color }">
+            <span class="w-1.5 h-1.5 rounded-full" :style="{ backgroundColor: hoveredStar.color }"></span>
+            {{ hoveredStar.category === 'nexus' ? 'NEXUS ANCHOR' : hoveredStar.category === 'project' ? 'FEATURED PROJECT' : 'ENGINEERING PILLAR' }}
           </span>
-          <span class="text-zinc-500 uppercase">ONLINE</span>
+          <span class="text-zinc-500 font-mono">SYS // ACTIVE</span>
         </div>
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-white tracking-tight">
-            {{ hoveredProject.title }}
+
+        <div class="space-y-0.5">
+          <h3 class="text-base font-bold text-white tracking-tight">
+            {{ hoveredStar.name }}
           </h3>
-          <span class="text-[9px] font-mono text-sky-400">SYS // OK</span>
+          <p class="text-[10px] font-mono" :style="{ color: hoveredStar.color }">
+            {{ hoveredStar.role }}
+          </p>
         </div>
-        <p class="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
-          {{ hoveredProject.subtitle }}
+
+        <p class="text-[11.5px] text-zinc-300 leading-relaxed font-sans line-clamp-3">
+          {{ hoveredStar.desc }}
         </p>
-        <div class="pt-1 flex items-center justify-between font-mono text-[9px] border-t border-white/10">
-          <span class="text-zinc-500">{{ hoveredProject.tech }}</span>
+
+        <div class="pt-2 flex items-center justify-between font-mono text-[9px] border-t border-white/10">
+          <span class="text-zinc-500">STELLAR TARGET</span>
           <button
+            v-if="hoveredStar.link"
+            type="button"
+            class="transition-colors flex items-center gap-1 font-semibold uppercase cursor-pointer hover:text-white"
+            :style="{ color: hoveredStar.color }"
+            @click="openStarLink(hoveredStar)"
+          >
+            <span>EXPLORE PROJECT ↗</span>
+          </button>
+          <button
+            v-else-if="hoveredStar.category === 'project'"
             type="button"
             class="text-sky-400 hover:text-white transition-colors flex items-center gap-1 font-semibold uppercase cursor-pointer"
-            @click="openProjectLink(hoveredProject)"
+            @click="navigateToProjects"
           >
-            <span>OPEN EXPERIENCE ↗</span>
+            <span>VIEW IN PROJECTS →</span>
+          </button>
+          <button
+            v-else
+            type="button"
+            class="text-sky-400 hover:text-white transition-colors flex items-center gap-1 font-semibold uppercase cursor-pointer"
+            @click="navigateToSkills"
+          >
+            <span>EXPLORE SKILLS →</span>
           </button>
         </div>
       </div>
     </Transition>
 
-    <!-- Compact Mobile Project Detail Panel (Dismissible bottom card) -->
+    <!-- Compact Mobile Star Detail Panel -->
     <Transition name="fade">
       <div
-        v-if="selectedProject && isMobile"
-        class="pointer-events-auto absolute bottom-4 left-4 right-4 z-40 p-3.5 rounded-lg border border-white/10 bg-black/95 backdrop-blur-md shadow-2xl space-y-2 select-none"
+        v-if="selectedStar && isMobile"
+        class="pointer-events-auto absolute bottom-4 left-4 right-4 z-40 p-3.5 rounded-xl border bg-black/95 backdrop-blur-md shadow-2xl space-y-2 select-none"
+        :style="{
+          borderColor: selectedStar.color,
+          boxShadow: `0 10px 28px rgba(0, 0, 0, 0.9), 0 0 16px ${selectedStar.color}30`
+        }"
       >
         <div class="flex items-center justify-between text-[9px] font-mono text-zinc-400">
-          <span class="text-sky-400 font-semibold flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
-            SYS // TARGET NODE
+          <span class="font-semibold flex items-center gap-1.5" :style="{ color: selectedStar.color }">
+            <span class="w-1.5 h-1.5 rounded-full" :style="{ backgroundColor: selectedStar.color }"></span>
+            {{ selectedStar.category === 'nexus' ? 'NEXUS ANCHOR' : selectedStar.category === 'project' ? 'FEATURED PROJECT' : 'ENGINEERING PILLAR' }}
           </span>
           <button
             type="button"
             class="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-zinc-300 flex items-center justify-center text-xs cursor-pointer"
-            @click="selectedProject = null"
-            aria-label="Dismiss project preview"
+            @click="selectedStar = null"
+            aria-label="Dismiss star preview"
           >
             ✕
           </button>
         </div>
         <div class="space-y-0.5">
           <h3 class="text-sm font-semibold text-white tracking-tight">
-            {{ selectedProject.title }}
+            {{ selectedStar.name }}
           </h3>
-          <p class="text-[10px] font-mono text-sky-300">
-            {{ selectedProject.tech }}
+          <p class="text-[10px] font-mono" :style="{ color: selectedStar.color }">
+            {{ selectedStar.role }}
           </p>
-          <p class="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
-            {{ selectedProject.subtitle }}
+          <p class="text-[11px] text-zinc-300 line-clamp-2 leading-relaxed">
+            {{ selectedStar.desc }}
           </p>
         </div>
-        <div class="pt-1 flex items-center justify-between border-t border-white/10">
+        <div class="pt-1.5 flex items-center justify-between border-t border-white/10">
+          <span class="text-[9px] font-mono text-zinc-500">NODE DISPATCH</span>
           <button
+            v-if="selectedStar.link"
             type="button"
-            class="text-[10px] font-mono text-sky-400 hover:text-white flex items-center gap-1.5 font-semibold uppercase cursor-pointer"
-            @click="openProjectLink(selectedProject)"
+            class="text-[10px] font-mono flex items-center gap-1 font-semibold uppercase cursor-pointer"
+            :style="{ color: selectedStar.color }"
+            @click="openStarLink(selectedStar)"
           >
-            <span>VIEW PROJECT ↗</span>
+            <span>OPEN PROJECT ↗</span>
+          </button>
+          <button
+            v-else
+            type="button"
+            class="text-[10px] font-mono text-sky-400 hover:text-white flex items-center gap-1 font-semibold uppercase cursor-pointer"
+            @click="navigateToProjects"
+          >
+            <span>VIEW PROJECTS →</span>
           </button>
         </div>
       </div>
@@ -368,34 +368,25 @@ import * as THREE from 'three'
 import { portfolioContent } from '@/content/portfolioContent'
 import { setSection } from '@/composables/useShowcase'
 import { useResponsive3D } from '@/composables/useResponsive3D'
-import type { HeroProjectItem, EngineeringDomain, InspectionMode } from '../hero/heroTypes'
-import { createProjectCardTexture, createDomainBadgeTexture } from '../hero/projectCardTexture'
 import {
-  createGridLines,
-  createCoastlineGeometry,
-  createLandPointsGeometry,
-} from '@/components/globe/globeMath'
+  createStarSpriteTexture,
+  createGasGiantTexture,
+} from '../skills/constellationData'
 
-const { isMobile, isSmallMobile, pixelRatio, prefersReducedMotion, checkWebGLSupport } = useResponsive3D()
+const { isMobile, pixelRatio, prefersReducedMotion, checkWebGLSupport } = useResponsive3D()
 
 const container = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
 const isWebGLSupported = ref(checkWebGLSupport())
 const hasInteracted = ref(false)
-const selectedProject = ref<HeroProjectItem | null>(null)
 
-// Visual mode: real (Photorealistic Earth) vs tech (Technical Dark Blueprint)
-const globeMode = ref<'real' | 'tech'>('real')
-function setGlobeMode(mode: 'real' | 'tech') {
-  globeMode.value = mode
-  applyThemeMaterials(mode === 'tech')
-}
-
-// Inspection mode: assembled (compact orbit) vs expanded (exploded outer schematic)
+// Inspection mode: assembled (compact core) vs expanded (spread out stellar field)
+type InspectionMode = 'assembled' | 'expanded'
 const inspectionMode = ref<InspectionMode>('assembled')
 
 function setInspectionMode(mode: InspectionMode) {
   inspectionMode.value = mode
+  targetConstellationScale = mode === 'expanded' ? 1.30 : 0.88
 }
 
 function navigateToProjects() {
@@ -406,91 +397,160 @@ function navigateToContact() {
   setSection('contact')
 }
 
+function navigateToSkills() {
+  setSection('skills')
+}
+
 function resetView() {
   targetRotX = 0
   targetRotY = 0
+  targetCameraZ = 5.6
 }
 
-// Actual project previews from existing project data, calibrated to frame the Earth globe
-const projectPreviews: HeroProjectItem[] = [
+// -------------------------------------------------------------
+// HERO CONSTELLATION DATA DEFINITION
+// -------------------------------------------------------------
+export interface HeroStarNode {
+  id: string
+  name: string
+  category: 'nexus' | 'pillar' | 'project'
+  role: string
+  desc: string
+  basePos: [number, number, number]
+  magnitude: number
+  color: string
+  link?: string
+}
+
+const HERO_STARS: HeroStarNode[] = [
+  // Central Luminous Anchor Star
+  {
+    id: 'flutter-core',
+    name: 'Flutter Core',
+    category: 'nexus',
+    role: 'Primary Architecture Anchor',
+    desc: 'High-performance cross-platform reactive UI engine powering 60+ FPS native mobile, web, and desktop experiences with sound null-safety.',
+    basePos: [0.0, 0.0, 0.0],
+    magnitude: 1.6,
+    color: '#38bdf8',
+  },
+
+  // 4 Core Engineering Capability Pillars
+  {
+    id: 'clean-arch',
+    name: 'Clean Architecture',
+    category: 'pillar',
+    role: 'State Isolation & Domain Layers',
+    desc: 'Decoupled domain use cases, reactive BLoC & Riverpod state machines, and dependency injection trees for test-driven modularity.',
+    basePos: [-2.2, 1.35, 0.35],
+    magnitude: 1.25,
+    color: '#38bdf8',
+  },
+  {
+    id: 'ui-craft',
+    name: 'UI / UX Craft',
+    category: 'pillar',
+    role: 'Motion & Fluid Design Systems',
+    desc: 'Bespoke micro-interactions, custom Canvas shaders, responsive spatial typography, and sub-frame layout orchestration.',
+    basePos: [2.15, 1.25, -0.3],
+    magnitude: 1.22,
+    color: '#06b6d4',
+  },
+  {
+    id: 'cross-platform',
+    name: 'Cross-Platform',
+    category: 'pillar',
+    role: 'Unified Multi-Target Systems',
+    desc: 'Native compilation pipelines sharing 90%+ code logic across iOS, Android, macOS desktop, and responsive Web clients.',
+    basePos: [-1.85, -1.5, 0.45],
+    magnitude: 1.2,
+    color: '#6366f1',
+  },
+  {
+    id: 'perf-apis',
+    name: 'APIs & Performance',
+    category: 'pillar',
+    role: 'Isolates & Network Pipelines',
+    desc: 'Low-latency isolate compute threads, zero-copy buffer streaming, offline-first local cache synchronization, and FFI interop.',
+    basePos: [1.95, -1.45, -0.35],
+    magnitude: 1.2,
+    color: '#818cf8',
+  },
+
+  // 3 Featured Project Stars
   {
     id: 'valthub',
-    title: 'ValtHub',
-    subtitle: 'Secrets & Environment Variable Management Platform',
-    tech: 'Next.js · TypeScript · Cloudflare',
+    name: 'ValtHub',
+    category: 'project',
+    role: 'Secrets & Environment Platform',
+    desc: 'Developer-first platform for cryptographic secret orchestration, ephemeral tokens, and synchronized cloud environment variables.',
+    basePos: [3.5, 0.25, 0.6],
+    magnitude: 1.15,
+    color: '#38bdf8',
     link: 'https://valthub.pages.dev/',
-    offset: [2.15, 0.25, 0.40],
-    rotation: [-0.02, -0.12, 0],
   },
   {
     id: 'iziloh',
-    title: 'IZILOH',
-    subtitle: 'Innovative On-Demand Laundry Ecosystem & Real-time Tracking',
-    tech: 'Flutter · Clean Architecture',
+    name: 'IZILOH',
+    category: 'project',
+    role: 'On-Demand Laundry SuperApp',
+    desc: 'Nationwide marketplace connecting customers with local laundromats, featuring real-time courier telemetry and secure payments.',
+    basePos: [-3.4, -0.2, -0.65],
+    magnitude: 1.15,
+    color: '#22d3ee',
     link: 'https://iziloh.com/',
-    offset: [-1.45, -1.25, 0.35],
-    rotation: [0.02, 0.10, 0],
   },
   {
-    id: 'waroong-retjeh',
-    title: 'Waroong Retjeh',
-    subtitle: 'High-throughput Dining & Table Reservation Mobile App',
-    tech: 'Flutter · Realtime Sync',
+    id: 'waroong',
+    name: 'Waroong Retjeh',
+    category: 'project',
+    role: 'POS & Dining Ecosystem',
+    desc: 'High-throughput offline-first restaurant point-of-sale and table reservation mobile application with real-time cloud reconciliation.',
+    basePos: [0.2, 2.7, -0.55],
+    magnitude: 1.15,
+    color: '#a855f7',
     link: 'http://waroongretjeh.dev.ittron.co.id/',
-    offset: [1.75, 1.35, -0.30],
-    rotation: [0.02, -0.08, 0],
   },
 ]
 
-// Engineering domain layers gracefully framing the Earth globe
-const engineeringDomains: EngineeringDomain[] = [
-  {
-    id: 'ui',
-    label: 'UI / UX CRAFT',
-    code: 'UI',
-    description: 'Intuitive layouts, micro-interactions, responsive design',
-    offset: [-1.50, 1.05, -0.35],
-    normal: [0.03, 0.10, 0],
-  },
-  {
-    id: 'arch',
-    label: 'CLEAN ARCHITECTURE',
-    code: 'ARCH',
-    description: 'Decoupled domain use-cases, reactive state isolation',
-    offset: [0.15, 1.65, -0.50],
-    normal: [0.04, -0.03, 0],
-  },
-  {
-    id: 'mobile',
-    label: 'CROSS-PLATFORM',
-    code: 'MOBILE',
-    description: 'Multi-target compilation for iOS, Android, macOS & Web',
-    offset: [-1.45, -0.15, -0.25],
-    normal: [0.02, 0.10, 0],
-  },
-  {
-    id: 'perf',
-    label: 'APIs & PERFORMANCE',
-    code: 'PERF',
-    description: 'Low-latency isolate streams, zero-copy memory buffers',
-    offset: [2.05, -1.10, -0.40],
-    normal: [-0.03, -0.10, 0],
-  },
+// Constellation edges linking stars together
+const HERO_EDGES: [string, string][] = [
+  // Anchor to 4 Pillars
+  ['flutter-core', 'clean-arch'],
+  ['flutter-core', 'ui-craft'],
+  ['flutter-core', 'cross-platform'],
+  ['flutter-core', 'perf-apis'],
+
+  // Ring linking pillars together
+  ['clean-arch', 'ui-craft'],
+  ['ui-craft', 'perf-apis'],
+  ['perf-apis', 'cross-platform'],
+  ['cross-platform', 'clean-arch'],
+
+  // Projects linked to relevant technical nodes
+  ['valthub', 'ui-craft'],
+  ['valthub', 'perf-apis'],
+  ['iziloh', 'clean-arch'],
+  ['iziloh', 'cross-platform'],
+  ['waroong', 'clean-arch'],
+  ['waroong', 'ui-craft'],
 ]
 
-const hoveredProject = ref<HeroProjectItem | null>(null)
-const hoveredDomainId = ref<string | null>(null)
+const hoveredStar = ref<HeroStarNode | null>(null)
+const selectedStar = ref<HeroStarNode | null>(null)
 
-function openProjectLink(proj: HeroProjectItem) {
-  if (proj.link && proj.link !== '#') {
-    window.open(proj.link, '_blank', 'noopener,noreferrer')
-  } else {
+function openStarLink(star: HeroStarNode) {
+  if (star.link) {
+    window.open(star.link, '_blank', 'noopener,noreferrer')
+  } else if (star.category === 'project') {
     navigateToProjects()
+  } else {
+    navigateToSkills()
   }
 }
 
 // -------------------------------------------------------------
-// THREE.JS REALISTIC 3D EARTH GLOBE INSTALLATION
+// THREE.JS 3D CONSTELLATION & DEEP SPACE UNIVERSE
 // -------------------------------------------------------------
 let scene: THREE.Scene | null = null
 let camera: THREE.PerspectiveCamera | null = null
@@ -499,580 +559,159 @@ let animFrameId = 0
 let isVisible = true
 let observer: IntersectionObserver | null = null
 
-// Hierarchical Three.js Groups
-let installationMasterGroup: THREE.Group | null = null
-let earthMasterGroup: THREE.Group | null = null
+let spaceMasterGroup: THREE.Group | null = null
+let constellationGroup: THREE.Group | null = null
+let celestialPlanetMesh: THREE.Mesh | null = null
+let planetaryRingMesh: THREE.Mesh | null = null
 
-// Earth Meshes (Matching Projects & Writing Globe Systems)
-let baseSphere: THREE.Mesh | null = null
-let baseSphereMat: THREE.MeshBasicMaterial | null = null
-let gridLineMesh: THREE.LineSegments | null = null
-let gridLineMat: THREE.LineBasicMaterial | null = null
-let landPointsMesh: THREE.Points | null = null
-let landPointsMat: THREE.PointsMaterial | null = null
-let coastMesh: THREE.LineSegments | null = null
-let coastMat: THREE.LineBasicMaterial | null = null
-
-let realEarthMesh: THREE.Mesh | null = null
-let realEarthMat: THREE.MeshStandardMaterial | null = null
-let cloudsMesh: THREE.Mesh | null = null
-let cloudsMat: THREE.MeshStandardMaterial | null = null
-let atmosphereMesh: THREE.Mesh | null = null
-let atmosphereMat: THREE.ShaderMaterial | null = null
-
-let datumRings: THREE.Mesh[] = []
-
-// Dynamic Conduit Connector Lines (Telemetric Tethers to Earth)
-let connectorLinesMesh: THREE.LineSegments | null = null
-let connectorPositions: Float32Array | null = null
-
-// Project preview 3D nodes
-interface Project3DNode {
-  project: HeroProjectItem
+// Runtime representations
+interface StarMeshRuntime {
+  star: HeroStarNode
   group: THREE.Group
-  mesh: THREE.Mesh
-  defaultTexture: THREE.CanvasTexture
-  hoverTexture: THREE.CanvasTexture
-  activeTexture: THREE.CanvasTexture
-  baseOffset: THREE.Vector3
-  baseRotation: THREE.Euler
-  anchorMesh: THREE.Mesh
+  spriteMesh: THREE.Sprite
+  glowRing: THREE.Mesh
+  hitMesh: THREE.Mesh
+  baseScale: number
 }
-const projectNodes: Project3DNode[] = []
+const starRuntimes: StarMeshRuntime[] = []
+const pickableObjects: THREE.Mesh[] = []
 
-// Domain 3D nodes
-interface Domain3DNode {
-  domain: EngineeringDomain
-  group: THREE.Group
-  mesh: THREE.Mesh
-  defaultTexture: THREE.CanvasTexture
-  hoverTexture: THREE.CanvasTexture
-  baseOffset: THREE.Vector3
+interface LineMeshRuntime {
+  u: HeroStarNode
+  v: HeroStarNode
+  lineMesh: THREE.Line
+  baseColor: number
 }
-const domainNodes: Domain3DNode[] = []
+const lineRuntimes: LineMeshRuntime[] = []
 
+// Interactive Orbit & Rotation State
 let isDragging = false
-let prevPointerX = 0
-let prevPointerY = 0
-let touchStartX = 0
-let touchStartY = 0
-let gestureIntent: 'undecided' | 'rotate' | 'scroll' = 'undecided'
-
-let targetRotY = 0
+let previousPointerPos = { x: 0, y: 0 }
+let rotX = 0
+let rotY = 0
 let targetRotX = 0
-let currentRotY = 0
-let currentRotX = 0
+let targetRotY = 0
 
-let targetCamX = 0
-let targetCamY = 0
-let currentCamX = 0
-let currentCamY = 0
+let currentConstellationScale = 0.88
+let targetConstellationScale = 0.88
 
+let currentCameraZ = 5.6
+let targetCameraZ = 5.6
+
+// Raycasting
 const raycaster = new THREE.Raycaster()
-const mouse = new THREE.Vector2(-999, -999)
+const pointerNormalized = new THREE.Vector2(-999, -999)
 
-function applyThemeMaterials(isTech: boolean) {
-  if (baseSphere) baseSphere.visible = isTech
-  if (gridLineMesh) gridLineMesh.visible = isTech
-  if (landPointsMesh) landPointsMesh.visible = isTech
-  if (coastMesh) coastMesh.visible = isTech
+function initThreeScene() {
+  if (!canvas.value || !container.value) return
 
-  if (realEarthMesh) realEarthMesh.visible = !isTech
-  if (cloudsMesh) cloudsMesh.visible = !isTech
-  if (atmosphereMesh) atmosphereMesh.visible = !isTech
-}
+  const rect = container.value.getBoundingClientRect()
+  const width = Math.max(rect.width, 320)
+  const height = Math.max(rect.height, 240)
 
-function initThree() {
-  if (!canvas.value) return
-  if (!isWebGLSupported.value) return
-
-  const parent = canvas.value.parentElement || container.value
-  const width = parent?.clientWidth || window.innerWidth
-  const height = parent?.clientHeight || window.innerHeight
-
-  const mob = isMobile.value
-
+  // 1. Scene
   scene = new THREE.Scene()
+  scene.fog = new THREE.FogExp2(0x020307, 0.038)
 
-  // Perspective camera
-  camera = new THREE.PerspectiveCamera(mob ? 48 : 46, width / height, 0.1, 100)
-  camera.position.set(0, 0.05, mob ? (isSmallMobile.value ? 7.6 : 7.0) : 6.3)
+  // 2. Camera
+  camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 80)
+  camera.position.set(0, 0, currentCameraZ)
+  camera.lookAt(0, 0, 0)
 
-  // WebGL Renderer
+  // 3. Renderer
   renderer = new THREE.WebGLRenderer({
     canvas: canvas.value,
-    antialias: !isSmallMobile.value,
+    antialias: !isMobile.value,
     alpha: true,
     powerPreference: 'high-performance',
   })
   renderer.setSize(width, height)
-  renderer.setPixelRatio(pixelRatio.value)
-  renderer.outputColorSpace = THREE.SRGBColorSpace
+  renderer.setPixelRatio(Math.min(pixelRatio.value, 2))
+  renderer.setClearColor(0x020307, 0)
 
-  // Volumetric Cinematic Lighting (Matching Projects & Writing Showcases)
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.55)
+  // 4. Master Groups
+  spaceMasterGroup = new THREE.Group()
+  scene.add(spaceMasterGroup)
+
+  constellationGroup = new THREE.Group()
+  spaceMasterGroup.add(constellationGroup)
+
+  // 5. Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
   scene.add(ambientLight)
 
-  const sunLight = new THREE.DirectionalLight(0xffffff, 2.5)
-  sunLight.position.set(6, 4, 5)
-  scene.add(sunLight)
+  const keySunLight = new THREE.DirectionalLight(0xe0f2fe, 1.8)
+  keySunLight.position.set(6, 4, 8)
+  scene.add(keySunLight)
 
-  const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.8)
-  rimLight.position.set(-4, -3, -3)
-  scene.add(rimLight)
+  const cyanRimLight = new THREE.DirectionalLight(0x38bdf8, 1.2)
+  cyanRimLight.position.set(-6, -3, -4)
+  scene.add(cyanRimLight)
 
-  // Master Installation Group (Centered on Right 55% on desktop)
-  installationMasterGroup = new THREE.Group()
-  const groupCenterX = mob ? 0.0 : 1.45
-  const groupCenterY = mob ? 0.0 : -0.1
-  installationMasterGroup.position.set(groupCenterX, groupCenterY, 0)
-  installationMasterGroup.scale.setScalar(mob ? (isSmallMobile.value ? 0.85 : 0.95) : 1.0)
-  scene.add(installationMasterGroup)
+  // 6. Build Deep Space Cosmos
+  buildDeepSpaceCosmos()
 
-  // 1. Central 3D Earth Globe
-  buildEarthGlobe()
+  // 7. Build Single Distant Celestial Planet (matching Skills showcase)
+  buildEnvironmentalPlanet()
 
-  // 2. Project Preview Miniature Slabs
-  buildProjectPreviews()
+  // 8. Build Constellation Stars & Edges
+  buildConstellationStars()
+  buildConstellationLines()
 
-  // 3. Engineering Domain Layers
-  buildDomainLayers()
-
-  // 4. Telemetric Conduit Connector Lines
-  buildConnectorConduits()
-
-  // 5. Starfield Background
-  buildStarfield()
-
-  applyThemeMaterials(globeMode.value === 'tech')
-
-  // Start Animation Loop
-  let lastTime = performance.now()
-
-  function loop(now: number) {
-    animFrameId = requestAnimationFrame(loop)
-    if (!isVisible) return
-
-    const delta = Math.min((now - lastTime) / 1000, 0.1)
-    lastTime = now
-
-    // Smooth Drag Rotation with return damping
-    currentRotY = THREE.MathUtils.lerp(currentRotY, targetRotY, delta * 4.5)
-    currentRotX = THREE.MathUtils.lerp(currentRotX, targetRotX, delta * 4.5)
-    if (!isDragging) {
-      targetRotY = THREE.MathUtils.lerp(targetRotY, 0, delta * 0.5)
-      targetRotX = THREE.MathUtils.lerp(targetRotX, 0, delta * 0.5)
-    }
-    if (installationMasterGroup) {
-      installationMasterGroup.rotation.y = currentRotY
-      installationMasterGroup.rotation.x = currentRotX
-    }
-
-    // Camera Parallax
-    currentCamX = THREE.MathUtils.lerp(currentCamX, targetCamX, delta * 3.5)
-    currentCamY = THREE.MathUtils.lerp(currentCamY, targetCamY, delta * 3.5)
-    if (camera) {
-      camera.position.x = currentCamX
-      camera.position.y = 0.05 + currentCamY
-      camera.lookAt(groupCenterX * 0.35, groupCenterY, 0)
-    }
-
-    // Majestic Earth Idle Motion (Slow planetary rotation)
-    if (earthMasterGroup && !prefersReducedMotion.value) {
-      if (!isDragging) {
-        earthMasterGroup.rotation.y += delta * 0.02
-      }
-      if (cloudsMesh && cloudsMesh.visible) {
-        cloudsMesh.rotation.y += delta * 0.012
-      }
-    }
-
-    // Update Project Previews
-    updateProjectNodes(delta, now * 0.001)
-
-    // Update Domain Layers
-    updateDomainNodes(delta, now * 0.001)
-
-    // Update Inspection Mode expansion
-    updateInspectionLayout(delta)
-
-    // Update Telemetric Conduit Connector Lines
-    updateConnectorConduits()
-
-    if (renderer && scene && camera) {
-      renderer.render(scene, camera)
-    }
-  }
-
-  animFrameId = requestAnimationFrame(loop)
+  // 9. Start Rendering Loop
+  startRenderLoop()
 }
 
-function buildEarthGlobe() {
-  earthMasterGroup = new THREE.Group()
-  earthMasterGroup.rotation.z = 0
-  // Initial angle showing continents with deep perspective
-  earthMasterGroup.rotation.y = -1.45
-  installationMasterGroup!.add(earthMasterGroup)
+function buildEnvironmentalPlanet() {
+  if (!spaceMasterGroup) return
 
-  const radius = isMobile.value ? 1.05 : 1.35
-
-  // 1. Base Sphere (Technical Dark Globe)
-  const sphereGeo = new THREE.SphereGeometry(radius, 64, 64)
-  baseSphereMat = new THREE.MeshBasicMaterial({
-    color: 0x06080e,
-    transparent: true,
-    opacity: 0.98,
-  })
-  baseSphere = new THREE.Mesh(sphereGeo, baseSphereMat)
-  baseSphere.visible = globeMode.value === 'tech'
-  earthMasterGroup.add(baseSphere)
-
-  // 2. Procedural Lat/Long Grid Lines
-  const gridGeo = createGridLines(radius * 1.002)
-  gridLineMat = new THREE.LineBasicMaterial({
-    color: 0x334155,
-    transparent: true,
-    opacity: 0.18,
-  })
-  gridLineMesh = new THREE.LineSegments(gridGeo, gridLineMat)
-  gridLineMesh.visible = globeMode.value === 'tech'
-  earthMasterGroup.add(gridLineMesh)
-
-  // 3. Procedural Land Points Cloud
-  const landPointsGeo = createLandPointsGeometry(radius * 1.006)
-  landPointsMat = new THREE.PointsMaterial({
-    color: 0x94a3b8,
-    size: 0.024,
-    transparent: true,
-    opacity: 0.8,
-  })
-  landPointsMesh = new THREE.Points(landPointsGeo, landPointsMat)
-  landPointsMesh.visible = globeMode.value === 'tech'
-  earthMasterGroup.add(landPointsMesh)
-
-  // 4. Procedural Coastlines
-  const coastGeo = createCoastlineGeometry(radius * 1.008)
-  coastMat = new THREE.LineBasicMaterial({
-    color: 0x475569,
-    transparent: true,
-    opacity: 0.35,
-  })
-  coastMesh = new THREE.LineSegments(coastGeo, coastMat)
-  coastMesh.visible = globeMode.value === 'tech'
-  earthMasterGroup.add(coastMesh)
-
-  // 5. Photorealistic Real Earth Textures & Atmospheric Fresnel
-  const textureLoader = new THREE.TextureLoader()
-  const dayTexture = textureLoader.load('/textures/earth/earth_day.jpg')
-  dayTexture.colorSpace = THREE.SRGBColorSpace
-  const specularTexture = textureLoader.load('/textures/earth/earth_specular.jpg')
-  const cloudsTexture = textureLoader.load('/textures/earth/earth_clouds.png')
-
-  const realEarthGeo = new THREE.SphereGeometry(radius, 64, 64)
-  realEarthMat = new THREE.MeshStandardMaterial({
-    map: dayTexture,
-    roughnessMap: specularTexture,
+  // Single Majestic Ringed Celestial Body in the distant background (z = -8.5)
+  const planetGeo = new THREE.SphereGeometry(1.35, 48, 48)
+  const planetMat = new THREE.MeshStandardMaterial({
+    map: createGasGiantTexture(),
     roughness: 0.65,
-    metalness: 0.08,
+    metalness: 0.15,
   })
-  realEarthMesh = new THREE.Mesh(realEarthGeo, realEarthMat)
-  realEarthMesh.visible = globeMode.value === 'real'
-  earthMasterGroup.add(realEarthMesh)
+  celestialPlanetMesh = new THREE.Mesh(planetGeo, planetMat)
+  celestialPlanetMesh.position.set(6.8, 3.4, -8.5)
+  spaceMasterGroup.add(celestialPlanetMesh)
 
-  // Dynamic Cloud Layer
-  const cloudsGeo = new THREE.SphereGeometry(radius * 1.01, 64, 64)
-  cloudsMat = new THREE.MeshStandardMaterial({
-    map: cloudsTexture,
+  // Subtle Atmospheric Fresnel Rim Glow
+  const atmosGeo = new THREE.SphereGeometry(1.41, 32, 32)
+  const atmosMat = new THREE.MeshBasicMaterial({
+    color: 0x38bdf8,
     transparent: true,
-    opacity: 0.8,
-    blending: THREE.NormalBlending,
-    depthWrite: false,
-    roughness: 0.9,
-  })
-  cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat)
-  cloudsMesh.visible = globeMode.value === 'real'
-  earthMasterGroup.add(cloudsMesh)
-
-  // Outer Atmospheric Fresnel Glow
-  const atmosphereGeo = new THREE.SphereGeometry(radius * 1.034, 64, 64)
-  atmosphereMat = new THREE.ShaderMaterial({
+    opacity: 0.15,
     side: THREE.BackSide,
-    transparent: true,
     blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    uniforms: {
-      uAtmosphereColor: { value: new THREE.Color(0x38bdf8) },
-      uSunDirection: { value: new THREE.Vector3(6, 4, 5).normalize() },
-    },
-    vertexShader: `
-      varying vec3 vNormal;
-      varying vec3 vWorldNormal;
-      varying vec3 vViewPosition;
-      void main() {
-        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-        vViewPosition = -mvPosition.xyz;
-        vNormal = normalize(normalMatrix * normal);
-        vWorldNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
-        gl_Position = projectionMatrix * mvPosition;
-      }
-    `,
-    fragmentShader: `
-      varying vec3 vNormal;
-      varying vec3 vWorldNormal;
-      varying vec3 vViewPosition;
-      uniform vec3 uAtmosphereColor;
-      uniform vec3 uSunDirection;
-      void main() {
-        vec3 viewDir = normalize(vViewPosition);
-        float edgeAlpha = clamp(dot(vNormal, viewDir) / 0.28, 0.0, 1.0);
-        float intensity = pow(edgeAlpha, 1.8);
-        vec3 outwardNormal = -vWorldNormal;
-        float sunDot = dot(outwardNormal, uSunDirection);
-        float dayFactor = clamp(sunDot * 0.7 + 0.35, 0.18, 1.0);
-        vec3 daySky = uAtmosphereColor;
-        vec3 sunset = vec3(0.98, 0.46, 0.22);
-        float twilightBand = smoothstep(0.28, -0.15, sunDot) * smoothstep(-0.45, 0.1, sunDot);
-        vec3 col = mix(daySky, sunset, twilightBand * 0.65);
-        gl_FragColor = vec4(col, intensity * dayFactor * 1.25);
-      }
-    `,
   })
-  atmosphereMesh = new THREE.Mesh(atmosphereGeo, atmosphereMat)
-  atmosphereMesh.visible = globeMode.value === 'real'
-  earthMasterGroup.add(atmosphereMesh)
+  const atmosMesh = new THREE.Mesh(atmosGeo, atmosMat)
+  celestialPlanetMesh.add(atmosMesh)
 
-  // Datum Orbital Reticle Rings
-  datumRings = []
-  const ring1Geo = new THREE.TorusGeometry(radius * 1.18, 0.005, 16, 64)
-  const ring1Mat = new THREE.MeshBasicMaterial({
-    color: 0x94a3b8,
-    transparent: true,
-    opacity: 0.3,
-  })
-  const ring1 = new THREE.Mesh(ring1Geo, ring1Mat)
-  ring1.rotation.x = Math.PI / 2
-  earthMasterGroup.add(ring1)
-  datumRings.push(ring1)
-
-  const ring2Geo = new THREE.TorusGeometry(radius * 1.24, 0.005, 16, 64)
-  const ring2Mat = new THREE.MeshBasicMaterial({
+  // Delicate Planetary Ring
+  const ringGeo = new THREE.RingGeometry(1.7, 2.55, 64)
+  const ringMat = new THREE.MeshBasicMaterial({
     color: 0x38bdf8,
     transparent: true,
-    opacity: 0.25,
+    opacity: 0.2,
+    side: THREE.DoubleSide,
   })
-  const ring2 = new THREE.Mesh(ring2Geo, ring2Mat)
-  ring2.rotation.y = Math.PI / 3
-  earthMasterGroup.add(ring2)
-  datumRings.push(ring2)
+  planetaryRingMesh = new THREE.Mesh(ringGeo, ringMat)
+  planetaryRingMesh.rotation.x = Math.PI / 2.3
+  planetaryRingMesh.rotation.y = 0.25
+  celestialPlanetMesh.add(planetaryRingMesh)
 }
 
-function buildProjectPreviews() {
-  projectNodes.length = 0
+function buildDeepSpaceCosmos() {
+  if (!scene) return
 
-  const isMob = isMobile.value
-  const cardWidth = isMob ? 1.25 : 1.40
-  const cardHeight = isMob ? 0.73 : 0.82
-  const cardDepth = 0.010
-  const cardGeo = new THREE.BoxGeometry(cardWidth, cardHeight, cardDepth)
-
-  const list = isMob
-    ? [
-        {
-          ...projectPreviews[0],
-          offset: [-1.25, -1.15, 0.35] as [number, number, number],
-          rotation: [0.02, 0.08, 0] as [number, number, number],
-        },
-        {
-          ...projectPreviews[1],
-          offset: [1.25, 1.15, 0.35] as [number, number, number],
-          rotation: [-0.02, -0.08, 0] as [number, number, number],
-        },
-      ]
-    : projectPreviews
-
-  list.forEach((proj, idx) => {
-    const nodeGroup = new THREE.Group()
-
-    const defaultTexture = createProjectCardTexture(proj, 'default', idx)
-    const hoverTexture = createProjectCardTexture(proj, 'hover', idx)
-    const activeTexture = createProjectCardTexture(proj, 'active', idx)
-
-    const edgeMat = new THREE.MeshBasicMaterial({
-      color: 0x070b12,
-      transparent: true,
-      opacity: 0.85,
-    })
-    const backMat = new THREE.MeshBasicMaterial({
-      color: 0x030508,
-      transparent: true,
-      opacity: 0.75,
-    })
-    const frontMat = new THREE.MeshStandardMaterial({
-      map: defaultTexture,
-      roughness: 0.5,
-      metalness: 0.15,
-      transparent: true,
-      opacity: 0.94,
-    })
-
-    const materials = [edgeMat, edgeMat, edgeMat, edgeMat, frontMat, backMat]
-    const mesh = new THREE.Mesh(cardGeo, materials)
-    mesh.userData = { projectId: proj.id }
-    nodeGroup.add(mesh)
-
-    const baseOffset = new THREE.Vector3(...proj.offset)
-    const baseRotation = new THREE.Euler(...proj.rotation)
-    nodeGroup.position.copy(baseOffset)
-    nodeGroup.rotation.copy(baseRotation)
-
-    // Orbital surface anchor ring on the globe
-    const earthRadius = isMob ? 1.05 : 1.35
-    const dir = baseOffset.clone().normalize()
-    const anchorPos = dir.clone().multiplyScalar(earthRadius * 1.004)
-    const anchorGeo = new THREE.RingGeometry(0.02, 0.038, 24)
-    const anchorMat = new THREE.MeshBasicMaterial({
-      color: 0x38bdf8,
-      transparent: true,
-      opacity: 0.28,
-      side: THREE.DoubleSide,
-    })
-    const anchorMesh = new THREE.Mesh(anchorGeo, anchorMat)
-    anchorMesh.position.copy(anchorPos)
-    anchorMesh.lookAt(anchorPos.clone().add(dir))
-    installationMasterGroup!.add(anchorMesh)
-
-    installationMasterGroup!.add(nodeGroup)
-
-    projectNodes.push({
-      project: proj,
-      group: nodeGroup,
-      mesh,
-      defaultTexture,
-      hoverTexture,
-      activeTexture,
-      baseOffset,
-      baseRotation,
-      anchorMesh,
-    })
-  })
-}
-
-function buildDomainLayers() {
-  domainNodes.length = 0
-
-  const isMob = isMobile.value
-  if (isMob) return // On small screens, hide background domain badges to maintain clean focus
-
-  const badgeWidth = 1.15
-  const badgeHeight = 0.36
-  const badgeDepth = 0.006
-  const badgeGeo = new THREE.BoxGeometry(badgeWidth, badgeHeight, badgeDepth)
-
-  engineeringDomains.forEach((domain, idx) => {
-    const nodeGroup = new THREE.Group()
-
-    const defaultTexture = createDomainBadgeTexture(domain.label, domain.code, domain.description, 'default', idx)
-    const hoverTexture = createDomainBadgeTexture(domain.label, domain.code, domain.description, 'hover', idx)
-
-    const sideMat = new THREE.MeshBasicMaterial({ color: 0x04070c, transparent: true, opacity: 0.65 })
-    const frontMat = new THREE.MeshStandardMaterial({
-      map: defaultTexture,
-      roughness: 0.55,
-      metalness: 0.1,
-      transparent: true,
-      opacity: 0.78, // Subtle background layer
-    })
-    const materials = [sideMat, sideMat, sideMat, sideMat, frontMat, sideMat]
-
-    const mesh = new THREE.Mesh(badgeGeo, materials)
-    mesh.userData = { domainId: domain.id }
-    nodeGroup.add(mesh)
-
-    const baseOffset = new THREE.Vector3(...domain.offset)
-    nodeGroup.position.copy(baseOffset)
-    nodeGroup.rotation.set(...domain.normal)
-
-    installationMasterGroup!.add(nodeGroup)
-
-    domainNodes.push({
-      domain,
-      group: nodeGroup,
-      mesh,
-      defaultTexture,
-      hoverTexture,
-      baseOffset,
-    })
-  })
-}
-
-function buildConnectorConduits() {
-  const totalConduits = projectNodes.length
-  if (totalConduits === 0) return
-
-  connectorPositions = new Float32Array(totalConduits * 6)
-
-  const lineGeo = new THREE.BufferGeometry()
-  lineGeo.setAttribute('position', new THREE.BufferAttribute(connectorPositions, 3))
-
-  const lineMat = new THREE.LineBasicMaterial({
-    color: 0x38bdf8,
-    transparent: true,
-    opacity: 0.14,
-  })
-
-  connectorLinesMesh = new THREE.LineSegments(lineGeo, lineMat)
-  installationMasterGroup!.add(connectorLinesMesh)
-}
-
-function updateConnectorConduits() {
-  if (!connectorPositions || !connectorLinesMesh) return
-
-  let offset = 0
-  const earthRadius = isMobile.value ? 1.05 : 1.35
-  let hasHoveredNode = false
-
-  for (const node of projectNodes) {
-    const isHovered = (hoveredProject.value?.id === node.project.id) || (selectedProject.value?.id === node.project.id)
-    if (isHovered) hasHoveredNode = true
-
-    const target = node.group.position
-    const dir = target.clone().normalize()
-    const start = dir.clone().multiplyScalar(earthRadius * 1.006)
-
-    connectorPositions[offset] = start.x
-    connectorPositions[offset + 1] = start.y
-    connectorPositions[offset + 2] = start.z
-
-    // Connect neatly to inner boundary of card
-    const end = target.clone().sub(dir.clone().multiplyScalar(0.08))
-    connectorPositions[offset + 3] = end.x
-    connectorPositions[offset + 4] = end.y
-    connectorPositions[offset + 5] = end.z
-
-    offset += 6
-
-    if (node.anchorMesh) {
-      const anchorMat = node.anchorMesh.material as THREE.MeshBasicMaterial
-      anchorMat.opacity = isHovered ? 0.85 : 0.28
-      const s = isHovered ? 1.25 : 1.0
-      node.anchorMesh.scale.set(s, s, s)
-    }
-  }
-
-  const attr = connectorLinesMesh.geometry.getAttribute('position') as THREE.BufferAttribute
-  attr.needsUpdate = true
-
-  const lineMat = connectorLinesMesh.material as THREE.LineBasicMaterial
-  lineMat.opacity = hasHoveredNode ? 0.38 : 0.14
-}
-
-function buildStarfield() {
-  const count = 1600
+  // 1. Distant Starfield (1,200 pinprick stars)
+  const count = 1200
   const positions = new Float32Array(count * 3)
   const colors = new Float32Array(count * 3)
 
   for (let i = 0; i < count; i++) {
-    const r = 12 + Math.random() * 18
+    const r = 12 + Math.random() * 24
     const theta = Math.random() * Math.PI * 2
     const phi = Math.acos(2 * Math.random() - 1) - Math.PI / 2
 
@@ -1081,12 +720,12 @@ function buildStarfield() {
     positions[i * 3 + 2] = r * Math.cos(phi) * Math.sin(theta)
 
     const cChoice = Math.random()
-    if (cChoice < 0.65) {
-      colors[i * 3] = 0.85; colors[i * 3 + 1] = 0.92; colors[i * 3 + 2] = 1.0
-    } else if (cChoice < 0.85) {
-      colors[i * 3] = 0.45; colors[i * 3 + 1] = 0.75; colors[i * 3 + 2] = 1.0
+    if (cChoice > 0.75) {
+      colors[i * 3] = 0.35; colors[i * 3 + 1] = 0.75; colors[i * 3 + 2] = 0.98
+    } else if (cChoice > 0.5) {
+      colors[i * 3] = 0.65; colors[i * 3 + 1] = 0.55; colors[i * 3 + 2] = 0.95
     } else {
-      colors[i * 3] = 0.98; colors[i * 3 + 1] = 0.72; colors[i * 3 + 2] = 0.45
+      colors[i * 3] = 0.82; colors[i * 3 + 1] = 0.88; colors[i * 3 + 2] = 0.96
     }
   }
 
@@ -1095,261 +734,419 @@ function buildStarfield() {
   starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
 
   const starMat = new THREE.PointsMaterial({
-    size: 0.042,
+    size: 0.045,
     vertexColors: true,
     transparent: true,
-    opacity: 0.7,
+    opacity: 0.65,
     blending: THREE.AdditiveBlending,
   })
 
-  const stars = new THREE.Points(starGeo, starMat)
-  scene!.add(stars)
+  const deepStars = new THREE.Points(starGeo, starMat)
+  scene.add(deepStars)
+
+  // 2. Subtle Cosmic Dust / Nebula Particles
+  const dustCount = 180
+  const dustPos = new Float32Array(dustCount * 3)
+  for (let i = 0; i < dustCount; i++) {
+    dustPos[i * 3] = (Math.random() - 0.5) * 22
+    dustPos[i * 3 + 1] = (Math.random() - 0.5) * 16
+    dustPos[i * 3 + 2] = (Math.random() - 0.5) * 16 - 2
+  }
+  const dustGeo = new THREE.BufferGeometry()
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3))
+  const dustMat = new THREE.PointsMaterial({
+    color: 0x38bdf8,
+    size: 0.07,
+    transparent: true,
+    opacity: 0.22,
+    blending: THREE.AdditiveBlending,
+  })
+  scene.add(new THREE.Points(dustGeo, dustMat))
 }
 
-function updateProjectNodes(delta: number, time: number) {
-  projectNodes.forEach((node, idx) => {
-    const isHovered = (hoveredProject.value?.id === node.project.id)
-    const isSelected = (selectedProject.value?.id === node.project.id)
-    const targetPos = node.baseOffset.clone()
+function buildConstellationStars() {
+  if (!constellationGroup) return
 
-    if (!prefersReducedMotion.value) {
-      targetPos.y += Math.sin(time * 0.70 + idx * 1.4) * 0.02
-      targetPos.x += Math.cos(time * 0.55 + idx * 1.1) * 0.012
-    }
+  starRuntimes.length = 0
+  pickableObjects.length = 0
 
-    if (isHovered || isSelected) {
-      targetPos.z += 0.18
-    }
+  const ringGeo = new THREE.RingGeometry(0.14, 0.17, 32)
 
-    node.group.position.lerp(targetPos, delta * 5.0)
+  HERO_STARS.forEach((star) => {
+    const nodeGroup = new THREE.Group()
+    nodeGroup.position.set(...star.basePos)
+    constellationGroup!.add(nodeGroup)
 
-    const targetScale = (isHovered || isSelected) ? 1.03 : 1.0
-    node.group.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5.0)
+    // Luminous Star Sprite
+    const texture = createStarSpriteTexture(star.color)
+    const spriteMat = new THREE.SpriteMaterial({
+      map: texture,
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.94,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+    const spriteMesh = new THREE.Sprite(spriteMat)
+    const baseScale = 0.44 * star.magnitude
+    spriteMesh.scale.set(baseScale, baseScale, 1)
+    spriteMesh.userData = { id: star.id }
+    nodeGroup.add(spriteMesh)
 
-    const frontMat = (node.mesh.material as THREE.Material[])[4] as THREE.MeshStandardMaterial
-    frontMat.map = isSelected
-      ? node.activeTexture
-      : (isHovered ? node.hoverTexture : node.defaultTexture)
-    frontMat.needsUpdate = true
+    // Ring target reticle for hover/active state
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(star.color),
+      transparent: true,
+      opacity: 0.8,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+    })
+    const glowRing = new THREE.Mesh(ringGeo, ringMat)
+    glowRing.visible = false
+    nodeGroup.add(glowRing)
+
+    // Invisible larger hit sphere for effortless touch/click targeting
+    const hitGeo = new THREE.SphereGeometry(0.3, 8, 8)
+    const hitMat = new THREE.MeshBasicMaterial({ visible: false })
+    const hitMesh = new THREE.Mesh(hitGeo, hitMat)
+    hitMesh.userData = { id: star.id }
+    nodeGroup.add(hitMesh)
+    pickableObjects.push(hitMesh)
+
+    starRuntimes.push({
+      star,
+      group: nodeGroup,
+      spriteMesh,
+      glowRing,
+      hitMesh,
+      baseScale,
+    })
   })
 }
 
-function updateDomainNodes(delta: number, time: number) {
-  domainNodes.forEach((node, idx) => {
-    const isHovered = hoveredDomainId.value === node.domain.id
-    const targetPos = node.baseOffset.clone()
-    if (!prefersReducedMotion.value) {
-      targetPos.y += Math.sin(time * 0.60 + idx * 1.3) * 0.015
-    }
-    if (isHovered) {
-      targetPos.z += 0.12
-    }
-    node.group.position.lerp(targetPos, delta * 4.5)
+function buildConstellationLines() {
+  if (!constellationGroup) return
 
-    const frontMat = (node.mesh.material as THREE.Material[])[4] as THREE.MeshStandardMaterial
-    frontMat.map = isHovered ? node.hoverTexture : node.defaultTexture
-    frontMat.needsUpdate = true
+  lineRuntimes.length = 0
+
+  HERO_EDGES.forEach(([uId, vId]) => {
+    const u = HERO_STARS.find((s) => s.id === uId)
+    const v = HERO_STARS.find((s) => s.id === vId)
+    if (!u || !v) return
+
+    const points = [
+      new THREE.Vector3(...u.basePos),
+      new THREE.Vector3(...v.basePos),
+    ]
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(points)
+
+    const isNexusLine = u.category === 'nexus' || v.category === 'nexus'
+    const lineColor = isNexusLine ? 0x38bdf8 : 0x0284c7
+
+    const lineMat = new THREE.LineBasicMaterial({
+      color: lineColor,
+      transparent: true,
+      opacity: 0.35,
+      blending: THREE.AdditiveBlending,
+    })
+    const lineMesh = new THREE.Line(lineGeo, lineMat)
+    constellationGroup!.add(lineMesh)
+
+    lineRuntimes.push({
+      u,
+      v,
+      lineMesh,
+      baseColor: lineColor,
+    })
   })
 }
 
-function updateInspectionLayout(delta: number) {
-  const isExpanded = inspectionMode.value === 'expanded'
-  const expandFactor = isExpanded ? 1.35 : 1.0
+// -------------------------------------------------------------
+// ANIMATION & INTERACTION FRAME LOOP
+// -------------------------------------------------------------
+function startRenderLoop() {
+  const clock = new THREE.Clock()
 
-  domainNodes.forEach(node => {
-    const target = node.baseOffset.clone().multiplyScalar(expandFactor)
-    node.baseOffset.lerp(target, delta * 4.0)
-  })
+  function animate(timestamp: number) {
+    if (!isVisible) {
+      animFrameId = requestAnimationFrame(animate)
+      return
+    }
+
+    const delta = Math.min(clock.getDelta(), 0.1)
+
+    // 1. Idle Gentle Stellar Rotation (when not dragging)
+    if (!isDragging && !prefersReducedMotion.value) {
+      targetRotY += delta * 0.08
+    }
+
+    // Smooth Damped Rotation
+    rotX += (targetRotX - rotX) * (delta * 4.5)
+    rotY += (targetRotY - rotY) * (delta * 4.5)
+
+    if (constellationGroup) {
+      constellationGroup.rotation.x = rotX
+      constellationGroup.rotation.y = rotY
+    }
+
+    // 2. Smooth Constellation Scale Transition (Assembled vs Exploded)
+    currentConstellationScale += (targetConstellationScale - currentConstellationScale) * (delta * 3.5)
+
+    // Update node positions and line vertices
+    starRuntimes.forEach((sr) => {
+      sr.group.position.set(
+        sr.star.basePos[0] * currentConstellationScale,
+        sr.star.basePos[1] * currentConstellationScale,
+        sr.star.basePos[2] * currentConstellationScale
+      )
+
+      // Animate active glow ring reticle
+      if (sr.glowRing.visible) {
+        sr.glowRing.rotation.z += delta * 1.5
+        const pulse = 1.0 + Math.sin(timestamp * 0.005) * 0.08
+        sr.glowRing.scale.set(pulse, pulse, pulse)
+      }
+    })
+
+    lineRuntimes.forEach((lr) => {
+      const posAttr = lr.lineMesh.geometry.getAttribute('position') as THREE.BufferAttribute
+      if (posAttr) {
+        posAttr.setXYZ(
+          0,
+          lr.u.basePos[0] * currentConstellationScale,
+          lr.u.basePos[1] * currentConstellationScale,
+          lr.u.basePos[2] * currentConstellationScale
+        )
+        posAttr.setXYZ(
+          1,
+          lr.v.basePos[0] * currentConstellationScale,
+          lr.v.basePos[1] * currentConstellationScale,
+          lr.v.basePos[2] * currentConstellationScale
+        )
+        posAttr.needsUpdate = true
+      }
+    })
+
+    // 3. Smooth Camera Zoom (Mouse wheel)
+    if (camera) {
+      currentCameraZ += (targetCameraZ - currentCameraZ) * (delta * 4.0)
+      camera.position.z = currentCameraZ
+    }
+
+    // 4. Distant Celestial Planet slow axial rotation
+    if (celestialPlanetMesh) {
+      celestialPlanetMesh.rotation.y += delta * 0.035
+    }
+
+    // 5. Render
+    if (renderer && scene && camera) {
+      renderer.render(scene, camera)
+    }
+
+    animFrameId = requestAnimationFrame(animate)
+  }
+
+  animFrameId = requestAnimationFrame(animate)
 }
 
-// Pointer & Interaction Handlers
+// -------------------------------------------------------------
+// POINTER & DRAG CONTROLS
+// -------------------------------------------------------------
 function onPointerDown(e: PointerEvent) {
   isDragging = true
-  touchStartX = e.clientX
-  touchStartY = e.clientY
-  prevPointerX = e.clientX
-  prevPointerY = e.clientY
-  gestureIntent = 'undecided'
+  hasInteracted.value = true
+  previousPointerPos = { x: e.clientX, y: e.clientY }
+
+  const rect = canvas.value?.getBoundingClientRect()
+  if (!rect) return
+  pointerNormalized.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+  pointerNormalized.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
 }
 
 function onPointerMove(e: PointerEvent) {
-  if (!canvas.value || !camera) return
+  const rect = canvas.value?.getBoundingClientRect()
+  if (!rect || !camera) return
 
-  const rect = canvas.value.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
-
-  mouse.x = (x / rect.width) * 2 - 1
-  mouse.y = -(y / rect.height) * 2 + 1
-
-  if (!isMobile.value) {
-    targetCamX = mouse.x * 0.22
-    targetCamY = mouse.y * 0.16
-  }
+  pointerNormalized.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+  pointerNormalized.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
 
   if (isDragging) {
-    const dx = e.clientX - prevPointerX
-    const dy = e.clientY - prevPointerY
-    prevPointerX = e.clientX
-    prevPointerY = e.clientY
+    const dx = e.clientX - previousPointerPos.x
+    const dy = e.clientY - previousPointerPos.y
+    previousPointerPos = { x: e.clientX, y: e.clientY }
 
-    const totalDx = Math.abs(e.clientX - touchStartX)
-    const totalDy = Math.abs(e.clientY - touchStartY)
+    targetRotY += dx * 0.006
+    targetRotX += dy * 0.005
+    targetRotX = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, targetRotX))
+    return
+  }
 
-    if (gestureIntent === 'undecided') {
-      if (Math.hypot(totalDx, totalDy) > 6) {
-        if (totalDx > totalDy * 1.1) {
-          gestureIntent = 'rotate'
-          hasInteracted.value = true
-        } else {
-          gestureIntent = 'scroll'
-        }
-      }
+  // Hover Raycasting
+  raycaster.setFromCamera(pointerNormalized, camera)
+  const intersects = raycaster.intersectObjects(pickableObjects)
+
+  if (intersects.length > 0) {
+    const starId = intersects[0].object.userData.id
+    const target = HERO_STARS.find((s) => s.id === starId) || null
+    if (hoveredStar.value?.id !== target?.id) {
+      hoveredStar.value = target
+      updateHighlightState(target?.id || null)
     }
-
-    if (gestureIntent === 'rotate' || !isMobile.value) {
-      if (e.cancelable && isMobile.value) e.preventDefault()
-      targetRotY += dx * (isMobile.value ? 0.0075 : 0.0035)
-      targetRotX = THREE.MathUtils.clamp(targetRotX + dy * (isMobile.value ? 0.005 : 0.0025), -0.45, 0.45)
-      hasInteracted.value = true
-    }
-  } else if (!isMobile.value) {
-    raycaster.setFromCamera(mouse, camera)
-    const projectMeshes = projectNodes.map(n => n.mesh)
-    const domainMeshes = domainNodes.map(n => n.mesh)
-    const allMeshes = [...projectMeshes, ...domainMeshes]
-    const intersects = raycaster.intersectObjects(allMeshes)
-
-    if (intersects.length > 0) {
-      const hitMesh = intersects[0].object
-      const projId = hitMesh.userData.projectId
-      const domainId = hitMesh.userData.domainId
-
-      if (projId) {
-        const found = projectPreviews.find(p => p.id === projId)
-        if (found) {
-          hoveredProject.value = found
-          hoveredDomainId.value = null
-          if (canvas.value) canvas.value.style.cursor = 'pointer'
-          return
-        }
-      } else if (domainId) {
-        hoveredDomainId.value = domainId
-        hoveredProject.value = null
-        if (canvas.value) canvas.value.style.cursor = 'default'
-        return
-      }
-    }
-
-    hoveredProject.value = null
-    hoveredDomainId.value = null
-    if (canvas.value) canvas.value.style.cursor = isDragging ? 'grabbing' : 'grab'
+  } else if (hoveredStar.value) {
+    hoveredStar.value = null
+    updateHighlightState(null)
   }
 }
 
 function onPointerUp(e: PointerEvent) {
-  if (isDragging) {
-    const dist = Math.hypot(e.clientX - touchStartX, e.clientY - touchStartY)
-    if (dist < 8 && camera) {
-      raycaster.setFromCamera(mouse, camera)
-      const meshes = projectNodes.map(n => n.mesh)
-      const intersects = raycaster.intersectObjects(meshes)
-      if (intersects.length > 0) {
-        const hitMesh = intersects[0].object
-        const projId = hitMesh.userData.projectId
-        const found = projectPreviews.find(p => p.id === projId)
-        if (found) {
-          if (isMobile.value) {
-            selectedProject.value = found
-          } else {
-            openProjectLink(found)
-          }
-        }
+  if (!isDragging) return
+  isDragging = false
+
+  // Click detection if movement was minimal
+  const dx = Math.abs(e.clientX - previousPointerPos.x)
+  const dy = Math.abs(e.clientY - previousPointerPos.y)
+
+  if (dx < 5 && dy < 5 && camera) {
+    const rect = canvas.value?.getBoundingClientRect()
+    if (!rect) return
+    pointerNormalized.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+    pointerNormalized.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+
+    raycaster.setFromCamera(pointerNormalized, camera)
+    const intersects = raycaster.intersectObjects(pickableObjects)
+
+    if (intersects.length > 0) {
+      const starId = intersects[0].object.userData.id
+      const target = HERO_STARS.find((s) => s.id === starId) || null
+      selectedStar.value = target
+      if (target) {
+        updateHighlightState(target.id)
       }
     }
   }
-  isDragging = false
-  gestureIntent = 'undecided'
 }
 
-function handleResize() {
-  if (!canvas.value || !camera || !renderer) return
-  const parent = canvas.value.parentElement || container.value
-  const width = parent?.clientWidth || window.innerWidth
-  const height = parent?.clientHeight || window.innerHeight
+function onWheel(e: WheelEvent) {
+  e.preventDefault()
+  targetCameraZ += e.deltaY * 0.003
+  targetCameraZ = Math.max(4.0, Math.min(8.0, targetCameraZ))
+}
 
-  const mob = width < 640
+function updateHighlightState(activeStarId: string | null) {
+  starRuntimes.forEach((sr) => {
+    const isTarget = sr.star.id === activeStarId
+    sr.glowRing.visible = isTarget
+    const mat = sr.spriteMesh.material as THREE.SpriteMaterial
+    if (activeStarId) {
+      mat.opacity = isTarget ? 1.0 : 0.65
+    } else {
+      mat.opacity = 0.94
+    }
+  })
+
+  lineRuntimes.forEach((lr) => {
+    const mat = lr.lineMesh.material as THREE.LineBasicMaterial
+    if (!activeStarId) {
+      mat.opacity = 0.35
+      mat.color.setHex(lr.baseColor)
+    } else if (lr.u.id === activeStarId || lr.v.id === activeStarId) {
+      mat.opacity = 0.9
+      mat.color.setHex(0x38bdf8)
+    } else {
+      mat.opacity = 0.12
+      mat.color.setHex(lr.baseColor)
+    }
+  })
+}
+
+// -------------------------------------------------------------
+// RESIZE & LIFECYCLE
+// -------------------------------------------------------------
+function handleResize() {
+  if (!container.value || !renderer || !camera) return
+  const rect = container.value.getBoundingClientRect()
+  const width = Math.max(rect.width, 320)
+  const height = Math.max(rect.height, 240)
 
   camera.aspect = width / height
   camera.updateProjectionMatrix()
-  const targetDist = mob ? (isSmallMobile.value ? 7.6 : 7.0) : 6.3
-  camera.position.z = targetDist
   renderer.setSize(width, height)
-
-  const groupCenterX = mob ? 0.0 : 1.45
-  const groupCenterY = mob ? 0.0 : -0.1
-  if (installationMasterGroup) {
-    installationMasterGroup.position.set(groupCenterX, groupCenterY, 0)
-    installationMasterGroup.scale.setScalar(mob ? (isSmallMobile.value ? 0.85 : 0.95) : 1.0)
-  }
 }
 
 onMounted(() => {
-  initThree()
+  initThreeScene()
+  window.addEventListener('resize', handleResize, { passive: true })
 
+  // Visibility observer for performance
   if (container.value) {
-    observer = new IntersectionObserver(([entry]) => {
-      isVisible = entry.isIntersecting
-    }, { threshold: 0.1 })
+    observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisible = entry.isIntersecting
+        })
+      },
+      { threshold: 0.05 }
+    )
     observer.observe(container.value)
-
-    window.addEventListener('resize', handleResize, { passive: true })
   }
 })
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(animFrameId)
-  observer?.disconnect()
   window.removeEventListener('resize', handleResize)
-
-  if (scene) {
-    scene.traverse(obj => {
-      if (obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Points) {
-        obj.geometry?.dispose()
-        if (Array.isArray(obj.material)) {
-          obj.material.forEach(m => m.dispose())
-        } else if (obj.material) {
-          obj.material.dispose()
-        }
-      }
-    })
+  if (observer) {
+    observer.disconnect()
+    observer = null
   }
 
-  renderer?.dispose()
+  // Cleanup Three.js resources
+  if (renderer) {
+    renderer.dispose()
+    renderer.forceContextLoss()
+    renderer = null
+  }
+  scene = null
+  camera = null
 })
 </script>
 
 <style scoped>
-.hero-digital-core-scene {
-  background: radial-gradient(circle at 60% 50%, #060b14 0%, #03060b 75%, #010204 100%);
+.hero-constellation-scene {
+  touch-action: pan-y;
+}
+
+.cosmic-deep-glow {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(6, 182, 212, 0.08) 0%,
+    rgba(14, 165, 233, 0.04) 35%,
+    rgba(2, 3, 7, 0) 70%
+  );
+}
+
+.space-celestial-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 80px 80px;
 }
 
 .gallery-ambient-vignette {
-  background: radial-gradient(circle at 60% 50%, transparent 35%, rgba(3, 6, 11, 0.45) 75%, rgba(3, 6, 11, 0.85) 100%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(2, 3, 7, 0) 50%,
+    rgba(2, 3, 7, 0.85) 100%
+  );
 }
 
-.showcase-glow-dark {
-  background: radial-gradient(circle at 60% 50%, rgba(56, 189, 248, 0.06) 0%, transparent 65%);
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.showcase-glow-light {
-  background: radial-gradient(circle at 60% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
-}
-
-.showcase-grid-dark {
-  background-size: 36px 36px;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
 }
 </style>

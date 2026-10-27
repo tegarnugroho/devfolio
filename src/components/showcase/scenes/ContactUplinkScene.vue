@@ -3,7 +3,7 @@
     ref="container"
     class="contact-communication-scene relative w-full h-full select-none overflow-hidden bg-[#03060b]"
   >
-    <!-- WebGL Canvas for 3D Communication Field -->
+    <!-- WebGL Canvas for 3D Earth Deep Space Communication Field -->
     <canvas
       ref="canvas"
       class="w-full h-full block cursor-grab active:cursor-grabbing outline-none touch-none"
@@ -16,58 +16,63 @@
     <!-- Deep Ambient Vignette (Seamless background blend) -->
     <div class="pointer-events-none absolute inset-0 gallery-ambient-vignette" aria-hidden="true"></div>
 
-    <!-- Editorial Contact Information Panel (Left Side on Desktop ~30-35% width) -->
+    <!-- Editorial Contact Information Panel (Left Side on Desktop ~35% width) -->
     <div
-      class="pointer-events-auto absolute top-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] sm:top-20 left-4 sm:left-12 right-4 sm:right-auto z-20 max-w-xs sm:max-w-sm space-y-2.5 sm:space-y-4 select-none"
+      class="pointer-events-auto absolute top-[max(4.25rem,calc(env(safe-area-inset-top)+3.5rem))] sm:top-20 left-4 sm:left-12 right-4 sm:right-auto z-20 max-w-xs sm:max-w-sm space-y-3 sm:space-y-4 select-none"
     >
       <!-- Section Header -->
       <div class="space-y-1">
         <div class="flex items-center gap-2">
-          <span class="font-mono text-[10px] text-zinc-400 tracking-widest font-semibold">06</span>
-          <span class="w-3.5 h-[1px] bg-zinc-600"></span>
-          <span class="font-mono text-[10px] text-zinc-300 uppercase tracking-widest font-medium">CONTACT</span>
+          <span class="font-mono text-[10px] text-zinc-500 tracking-widest font-semibold">06</span>
+          <span class="w-3.5 h-[1px] bg-zinc-700"></span>
+          <span class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest font-medium">UPLINK // CONTACT</span>
         </div>
 
         <h1 class="text-2xl sm:text-3xl font-light tracking-tight text-white font-sans leading-tight pt-1">
-          Let's Connect
+          Let's <span class="font-semibold text-white">Connect<span class="text-sky-400">.</span></span>
         </h1>
 
-        <p class="text-[11.5px] text-zinc-400 leading-relaxed font-sans max-w-[310px] font-normal pt-1">
+        <p class="text-[11.5px] text-zinc-400 leading-relaxed font-sans max-w-[310px] font-normal pt-0.5">
           {{ contact.description }}
         </p>
       </div>
 
-      <!-- Communication Channels (Direct Links) -->
-      <div class="space-y-1.5 pt-2">
+      <!-- Communication Channels (Direct Interactive Links) -->
+      <div class="space-y-2 pt-1">
         <a
           v-for="item in contactNodesData"
           :key="item.type"
           :href="item.href"
           target="_blank"
           rel="noopener noreferrer"
-          class="group flex items-center justify-between p-2.5 rounded-xl border transition-all duration-200 cursor-pointer"
+          class="group flex items-center justify-between p-2.5 sm:p-3 rounded-lg border transition-all duration-200 cursor-pointer"
           :class="
             activeNodeType === item.type
-              ? 'bg-white/10 border-white/30 text-white shadow-lg'
-              : 'bg-black/40 hover:bg-white/5 border-white/10 text-zinc-300 hover:text-white'
+              ? 'bg-sky-500/10 border-sky-400/40 text-white shadow-[0_0_15px_rgba(56,189,248,0.15)] translate-x-1'
+              : 'bg-black/60 hover:bg-white/5 border-white/10 text-zinc-300 hover:text-white'
           "
           @mouseenter="setActiveNode(item.type)"
           @mouseleave="setActiveNode(null)"
         >
-          <div class="flex items-center gap-2">
-            <!-- Signal Beacon -->
+          <div class="flex items-center gap-2.5">
+            <!-- Signal Beacon Indicator -->
             <span
               class="w-1.5 h-1.5 rounded-full transition-colors duration-200"
-              :class="activeNodeType === item.type ? 'bg-sky-400 shadow-[0_0_8px_#38bdf8]' : 'bg-zinc-500'"
+              :class="activeNodeType === item.type ? 'bg-sky-400 shadow-[0_0_8px_#38bdf8] animate-pulse' : 'bg-zinc-500'"
             ></span>
-            <span class="font-mono text-[9.5px] uppercase tracking-wider text-zinc-400 group-hover:text-zinc-200">
-              {{ item.label }}
-            </span>
+            <div class="flex flex-col">
+              <span class="font-mono text-[8.5px] uppercase tracking-wider text-zinc-500 group-hover:text-zinc-300">
+                {{ item.metaLabel }}
+              </span>
+              <span class="font-mono text-[10.5px] font-semibold text-white tracking-wide">
+                {{ item.label }}
+              </span>
+            </div>
           </div>
 
-          <span class="font-mono text-[11px] font-medium flex items-center gap-1.5 text-zinc-200 group-hover:text-white">
-            <span class="truncate max-w-[170px] sm:max-w-[190px]">{{ item.value }}</span>
-            <span class="text-zinc-400 group-hover:text-sky-300 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-[10px]">
+          <span class="font-mono text-[11px] font-medium flex items-center gap-1.5 text-zinc-300 group-hover:text-white">
+            <span class="truncate max-w-[150px] sm:max-w-[175px]">{{ item.value }}</span>
+            <span class="text-zinc-500 group-hover:text-sky-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-[10px]">
               ↗
             </span>
           </span>
@@ -75,10 +80,10 @@
       </div>
 
       <!-- Primary Action Button: Transmit Message -->
-      <div class="pt-2">
+      <div class="pt-1.5">
         <a
           :href="`mailto:${emailContact?.value || 'tegar@wolkk.com'}?subject=Hello%20Tegar%20-%20Project%20Inquiry`"
-          class="group w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 active:scale-98 text-white font-mono text-[11px] uppercase tracking-widest font-semibold transition-all shadow-lg backdrop-blur-md cursor-pointer"
+          class="group w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border border-sky-400/40 bg-sky-500/15 hover:bg-sky-500/25 active:scale-98 text-white font-mono text-[11px] uppercase tracking-widest font-semibold transition-all shadow-lg backdrop-blur-md cursor-pointer"
           @mouseenter="setActiveNode('email')"
           @mouseleave="setActiveNode(null)"
         >
@@ -87,14 +92,14 @@
         </a>
       </div>
 
-      <!-- Status Beacon / Interactive Hint -->
-      <div class="pt-1 flex items-center gap-2 font-mono text-[9px] text-zinc-500 tracking-wider">
+      <!-- Status Beacon / Telemetry Hint -->
+      <div class="pt-1 flex items-center gap-2 font-mono text-[9px] text-zinc-400 tracking-wider">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)] animate-pulse"></span>
-        <span>CHANNEL ACTIVE · DIRECT TRANSMISSION READY</span>
+        <span>CHANNEL ACTIVE · DIRECT ORBITAL TRANSMISSION READY</span>
       </div>
     </div>
 
-    <!-- Floating 3D Node Billboards (Screen-projected labels next to 3D nodes) -->
+    <!-- Floating 3D Satellite Node Projected Badges -->
     <div
       v-for="node in contactNodesData"
       :key="node.type"
@@ -110,11 +115,11 @@
       @click="openNodeLink(node)"
     >
       <div
-        class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border backdrop-blur-xl transition-all duration-200 shadow-xl"
+        class="flex items-center gap-1.5 px-2.5 py-1 rounded-md border backdrop-blur-xl transition-all duration-200 shadow-xl"
         :class="
           activeNodeType === node.type
-            ? 'bg-zinc-950/95 border-sky-400/50 text-white scale-105 shadow-[0_0_16px_rgba(56,189,248,0.3)]'
-            : 'bg-zinc-950/80 border-white/15 text-zinc-300 hover:border-white/30 hover:text-white'
+            ? 'bg-black/95 border-sky-400/60 text-white scale-105 shadow-[0_0_16px_rgba(56,189,248,0.3)]'
+            : 'bg-black/80 border-white/15 text-zinc-300 hover:border-white/30 hover:text-white'
         "
       >
         <span
@@ -141,6 +146,7 @@ const emailContact = computed(() => contact.items.find(i => i.type === 'email'))
 export interface ContactNodeMeta {
   type: 'email' | 'linkedin' | 'github'
   label: string
+  metaLabel: string
   value: string
   href: string
   baseOffset: [number, number, number]
@@ -156,23 +162,26 @@ const contactNodesData = computed<ContactNodeMeta[]>(() => {
     {
       type: 'email',
       label: 'EMAIL',
+      metaLabel: 'DIRECT CHANNEL',
       value: getValue('email', 'tegar@wolkk.com'),
       href: getHref('email', 'mailto:tegar@wolkk.com'),
-      baseOffset: [-0.65, 1.85, 0.25], // Upper-left
+      baseOffset: [0.65, 1.85, 0.35], // Upper-right orbit
     },
     {
       type: 'linkedin',
       label: 'LINKEDIN',
+      metaLabel: 'PROFESSIONAL NETWORK',
       value: getValue('linkedin', 'linkedin.com/in/tegaranugroho'),
       href: getHref('linkedin', 'https://linkedin.com/in/tegaranugroho'),
-      baseOffset: [-2.15, -1.15, 0.35], // Lower-left
+      baseOffset: [-2.05, -0.95, 0.40], // Lower-left orbit
     },
     {
       type: 'github',
       label: 'GITHUB',
+      metaLabel: 'SOURCE ARCHIVE',
       value: getValue('github', 'github.com/tegarnugroho'),
       href: getHref('github', 'https://github.com/tegarnugroho'),
-      baseOffset: [2.25, -0.85, -0.2], // Lower-right
+      baseOffset: [2.15, -0.75, 0.35], // Lower-right orbit
     },
   ]
 })
@@ -195,7 +204,7 @@ function openNodeLink(node: ContactNodeMeta) {
 }
 
 // -------------------------------------------------------------
-// THREE.JS SPATIAL COMMUNICATION FIELD
+// THREE.JS REALISTIC EARTH & SATELLITE COMMUNICATION ENGINE
 // -------------------------------------------------------------
 const container = ref<HTMLElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
@@ -207,20 +216,24 @@ let animFrameId = 0
 let isVisible = true
 let observer: IntersectionObserver | null = null
 
-// Groups & Meshes
+// Hierarchical Groups
 let fieldMasterGroup: THREE.Group | null = null
-let orbGroup: THREE.Group | null = null
-let outerGlassMesh: THREE.Mesh | null = null
-let innerCoreMesh: THREE.Mesh | null = null
-let signalRings: Array<{ mesh: THREE.LineLoop; speed: number; axis: THREE.Vector3 }> = []
+let earthMasterGroup: THREE.Group | null = null
+
+// Realistic Earth Meshes
+let realEarthMesh: THREE.Mesh | null = null
+let cloudsMesh: THREE.Mesh | null = null
+let atmosphereMesh: THREE.Mesh | null = null
+let datumRings: THREE.Mesh[] = []
 
 interface ThreeNodeEntity {
   type: 'email' | 'linkedin' | 'github'
   group: THREE.Group
   basePos: THREE.Vector3
-  targetPos: THREE.Vector3
+  anchorPos: THREE.Vector3
   sphereMesh: THREE.Mesh
   haloMesh: THREE.Mesh
+  anchorRingMesh: THREE.Mesh
   lineGeometry: THREE.BufferGeometry
   lineMaterial: THREE.LineBasicMaterial
   pulseMesh: THREE.Mesh
@@ -279,7 +292,7 @@ function initThree() {
 
   // Perspective camera
   camera = new THREE.PerspectiveCamera(44, width / height, 0.1, 100)
-  camera.position.set(0, 0.1, width < 390 ? 8.4 : (isMobile.value ? 7.6 : 6.2))
+  camera.position.set(0, 0.1, width < 390 ? 8.2 : (isMobile.value ? 7.4 : 6.2))
 
   // WebGL Renderer
   renderer = new THREE.WebGLRenderer({
@@ -292,79 +305,34 @@ function initThree() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75))
   renderer.outputColorSpace = THREE.SRGBColorSpace
 
-  // Subtle studio lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.65)
+  // Realistic Studio Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.45)
   scene.add(ambientLight)
 
-  const keyLight = new THREE.DirectionalLight(0xffffff, 0.9)
-  keyLight.position.set(3, 4, 5)
-  scene.add(keyLight)
+  const sunLight = new THREE.DirectionalLight(0xe0f2fe, 2.2)
+  sunLight.position.set(6, 4, 6)
+  scene.add(sunLight)
 
-  const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.5)
-  rimLight.position.set(-3, -2, -2)
+  const rimLight = new THREE.DirectionalLight(0x38bdf8, 1.0)
+  rimLight.position.set(-6, -3, -4)
   scene.add(rimLight)
 
   // Master Field Group
   fieldMasterGroup = new THREE.Group()
-  // Offset to the right on desktop to leave 35% on left for editorial panel
-  const fieldCenterX = isMobile.value ? 0.0 : 1.25
-  const fieldCenterY = isMobile.value ? -0.35 : 0.05
+  const fieldCenterX = isMobile.value ? 0.0 : 1.35
+  const fieldCenterY = isMobile.value ? -0.35 : 0.0
   fieldMasterGroup.position.set(fieldCenterX, fieldCenterY, 0)
   scene.add(fieldMasterGroup)
 
-  // 1. Central Communication Orb
-  orbGroup = new THREE.Group()
-  fieldMasterGroup.add(orbGroup)
+  // 1. Build Deep Space Starfield Background
+  buildStarfield()
 
-  // Outer Translucent Glass-like Sphere
-  const orbRadius = isMobile.value ? 0.88 : 1.05
-  const outerSphereGeo = new THREE.SphereGeometry(orbRadius, 48, 48)
-  const outerGlassMat = new THREE.MeshPhysicalMaterial({
-    color: 0x0a1017,
-    roughness: 0.12,
-    metalness: 0.15,
-    transmission: 0.68,
-    ior: 1.45,
-    transparent: true,
-    opacity: 0.85,
-  })
-  outerGlassMesh = new THREE.Mesh(outerSphereGeo, outerGlassMat)
-  orbGroup.add(outerGlassMesh)
+  // 2. Build Realistic 3D Earth Globe
+  const earthRadius = isMobile.value ? 0.95 : 1.25
+  buildRealisticEarth(earthRadius)
 
-  // Inner Core Sphere (Glowing Endpoint)
-  const innerCoreGeo = new THREE.SphereGeometry(orbRadius * 0.52, 32, 32)
-  const innerCoreMat = new THREE.MeshStandardMaterial({
-    color: 0x0f172a,
-    emissive: 0x38bdf8,
-    emissiveIntensity: 0.45,
-    roughness: 0.35,
-    metalness: 0.2,
-  })
-  innerCoreMesh = new THREE.Mesh(innerCoreGeo, innerCoreMat)
-  orbGroup.add(innerCoreMesh)
-
-  // White Incandescent Center Nexus
-  const nexusGeo = new THREE.SphereGeometry(orbRadius * 0.18, 16, 16)
-  const nexusMat = new THREE.MeshBasicMaterial({ color: 0xffffff })
-  const nexusMesh = new THREE.Mesh(nexusGeo, nexusMat)
-  orbGroup.add(nexusMesh)
-
-  // Equatorial Titanium Datum Ring
-  const datumRingGeo = new THREE.TorusGeometry(orbRadius * 1.01, 0.007, 16, 64)
-  const datumRingMat = new THREE.MeshBasicMaterial({
-    color: 0x94a3b8,
-    transparent: true,
-    opacity: 0.35,
-  })
-  const datumRing = new THREE.Mesh(datumRingGeo, datumRingMat)
-  datumRing.rotation.x = Math.PI / 2
-  orbGroup.add(datumRing)
-
-  // 2. Three Thin Elliptical Signal Rings
-  createSignalRings(orbRadius)
-
-  // 3. Three Communication Nodes (Email, LinkedIn, GitHub)
-  createCommunicationNodes(orbRadius)
+  // 3. Build Communication Satellite Nodes around Earth
+  buildCommunicationNodes(earthRadius)
 
   // Start Animation Loop
   let lastTime = performance.now()
@@ -382,7 +350,11 @@ function initThree() {
 
     // 1. Smooth Field Rotation Damping
     currentFieldRotY = THREE.MathUtils.lerp(currentFieldRotY, targetFieldRotY, delta * 4.5)
-    currentFieldRotX = THREE.MathUtils.lerp(currentFieldRotX, targetFieldRotX, delta * 4.5)
+    currentFieldRotX = THREE.MathUtils.clamp(
+      THREE.MathUtils.lerp(currentFieldRotX, targetFieldRotX, delta * 4.5),
+      -0.45,
+      0.45
+    )
     if (fieldMasterGroup) {
       fieldMasterGroup.rotation.y = currentFieldRotY
       fieldMasterGroup.rotation.x = currentFieldRotX
@@ -394,31 +366,26 @@ function initThree() {
     if (camera) {
       camera.position.x = currentCamX
       camera.position.y = 0.1 + currentCamY
-      camera.lookAt(fieldCenterX * 0.4, fieldCenterY, 0)
+      camera.lookAt(fieldCenterX * 0.35, fieldCenterY, 0)
     }
 
-    // 3. Orb Micro Floating Movement
-    if (orbGroup && !prefersReducedMotion.value) {
-      orbGroup.position.y = Math.sin(time * 0.75) * 0.05
-      orbGroup.rotation.y = time * 0.08
+    // 3. Earth Rotation & Clouds Atmospheric Drift
+    if (realEarthMesh && !prefersReducedMotion.value) {
+      realEarthMesh.rotation.y = time * 0.04
+    }
+    if (cloudsMesh && !prefersReducedMotion.value) {
+      cloudsMesh.rotation.y = time * 0.055
     }
 
-    // 4. Signal Rings Slow Independent Rotation
-    if (!prefersReducedMotion.value) {
-      signalRings.forEach(sr => {
-        sr.mesh.rotateOnAxis(sr.axis, sr.speed * delta)
-      })
-    }
-
-    // 5. Automatic Staggered Signal Pulses (~every 4.5s)
+    // 4. Automatic Staggered Signal Pulses (~every 4s)
     cycleTimer += delta
-    if (cycleTimer >= 4.5 && !activeNodeType.value) {
+    if (cycleTimer >= 4.0 && !activeNodeType.value) {
       cycleTimer = 0
       triggerSignalPulse(cycleOrder[cycleIndex % cycleOrder.length])
       cycleIndex++
     }
 
-    // 6. Update Nodes, Connection Lines, Pulses & Projected Screen Coordinates
+    // 5. Update Nodes, Connection Lines, Pulses & Projected Screen Coordinates
     updateNodesAndSignals(delta, time)
 
     if (renderer && scene && camera) {
@@ -429,73 +396,137 @@ function initThree() {
   animFrameId = requestAnimationFrame(loop)
 }
 
-function createSignalRings(orbRadius: number) {
-  signalRings = []
-  const ringConfigs = [
-    {
-      rx: orbRadius * 1.55,
-      ry: orbRadius * 1.38,
-      tiltX: 0.42,
-      tiltZ: 0.22,
-      color: 0x94a3b8,
-      opacity: 0.35,
-      speed: 0.04,
-      axis: new THREE.Vector3(0, 1, 0.2).normalize(),
-    },
-    {
-      rx: orbRadius * 1.95,
-      ry: orbRadius * 1.68,
-      tiltX: -0.58,
-      tiltY: 0.32,
-      color: 0x38bdf8,
-      opacity: 0.26,
-      speed: -0.03,
-      axis: new THREE.Vector3(0.3, 1, 0).normalize(),
-    },
-    {
-      rx: orbRadius * 2.38,
-      ry: orbRadius * 2.05,
-      tiltX: 0.28,
-      tiltY: -0.65,
-      color: 0x64748b,
-      opacity: 0.2,
-      speed: 0.02,
-      axis: new THREE.Vector3(-0.2, 1, 0.3).normalize(),
-    },
-  ]
+function buildStarfield() {
+  const count = 900
+  const positions = new Float32Array(count * 3)
+  const colors = new Float32Array(count * 3)
 
-  ringConfigs.forEach(cfg => {
-    // Generate elliptical curve points
-    const points: THREE.Vector3[] = []
-    const segments = 64
-    for (let i = 0; i <= segments; i++) {
-      const theta = (i / segments) * Math.PI * 2
-      points.push(new THREE.Vector3(Math.cos(theta) * cfg.rx, 0, Math.sin(theta) * cfg.ry))
+  for (let i = 0; i < count; i++) {
+    const r = 10 + Math.random() * 20
+    const theta = Math.random() * Math.PI * 2
+    const phi = Math.acos(2 * Math.random() - 1) - Math.PI / 2
+
+    positions[i * 3] = r * Math.cos(phi) * Math.cos(theta)
+    positions[i * 3 + 1] = r * Math.sin(phi)
+    positions[i * 3 + 2] = r * Math.cos(phi) * Math.sin(theta)
+
+    const cChoice = Math.random()
+    if (cChoice > 0.8) {
+      colors[i * 3] = 0.35; colors[i * 3 + 1] = 0.75; colors[i * 3 + 2] = 0.98
+    } else {
+      colors[i * 3] = 0.85; colors[i * 3 + 1] = 0.88; colors[i * 3 + 2] = 0.95
     }
-    const ringGeo = new THREE.BufferGeometry().setFromPoints(points)
-    const ringMat = new THREE.LineBasicMaterial({
-      color: cfg.color,
-      transparent: true,
-      opacity: cfg.opacity,
-    })
-    const ringMesh = new THREE.LineLoop(ringGeo, ringMat)
-    ringMesh.rotation.x = cfg.tiltX
-    if (cfg.tiltY) ringMesh.rotation.y = cfg.tiltY
-    if (cfg.tiltZ) ringMesh.rotation.z = cfg.tiltZ
+  }
 
-    orbGroup!.add(ringMesh)
-    signalRings.push({ mesh: ringMesh, speed: cfg.speed, axis: cfg.axis })
+  const starGeo = new THREE.BufferGeometry()
+  starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+  starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+
+  const starMat = new THREE.PointsMaterial({
+    size: 0.04,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending,
   })
+
+  scene!.add(new THREE.Points(starGeo, starMat))
 }
 
-function createCommunicationNodes(orbRadius: number) {
+function buildRealisticEarth(radius: number) {
+  earthMasterGroup = new THREE.Group()
+  fieldMasterGroup!.add(earthMasterGroup)
+
+  const textureLoader = new THREE.TextureLoader()
+  const dayTex = textureLoader.load('/textures/earth/earth_day.jpg')
+  const cloudsTex = textureLoader.load('/textures/earth/earth_clouds.png')
+  const specularTex = textureLoader.load('/textures/earth/earth_specular.jpg')
+
+  // 1. Realistic Photorealistic Earth Surface
+  const earthGeo = new THREE.SphereGeometry(radius, 64, 64)
+  const earthMat = new THREE.MeshStandardMaterial({
+    map: dayTex,
+    roughnessMap: specularTex,
+    roughness: 0.65,
+    metalness: 0.1,
+  })
+  realEarthMesh = new THREE.Mesh(earthGeo, earthMat)
+  earthMasterGroup.add(realEarthMesh)
+
+  // 2. Realistic Clouds Layer
+  const cloudsGeo = new THREE.SphereGeometry(radius * 1.01, 64, 64)
+  const cloudsMat = new THREE.MeshStandardMaterial({
+    map: cloudsTex,
+    transparent: true,
+    opacity: 0.35,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  })
+  cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat)
+  earthMasterGroup.add(cloudsMesh)
+
+  // 3. Atmospheric Fresnel Halo
+  const atmosphereGeo = new THREE.SphereGeometry(radius * 1.034, 64, 64)
+  const atmosphereMat = new THREE.ShaderMaterial({
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vNormal;
+      varying vec3 vPosition;
+      void main() {
+        vec3 viewDir = normalize(-vPosition);
+        float intensity = pow(1.0 - max(dot(vNormal, viewDir), 0.0), 2.2);
+        gl_FragColor = vec4(0.22, 0.74, 0.97, intensity * 0.75);
+      }
+    `,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    transparent: true,
+    depthWrite: false,
+  })
+  atmosphereMesh = new THREE.Mesh(atmosphereGeo, atmosphereMat)
+  earthMasterGroup.add(atmosphereMesh)
+
+  // 4. Subtle Titanium Datum Orbit Ring
+  datumRings = []
+  const ring1Geo = new THREE.TorusGeometry(radius * 1.35, 0.005, 16, 96)
+  const ring1Mat = new THREE.MeshBasicMaterial({
+    color: 0x38bdf8,
+    transparent: true,
+    opacity: 0.22,
+  })
+  const ring1 = new THREE.Mesh(ring1Geo, ring1Mat)
+  ring1.rotation.x = Math.PI / 2.2
+  earthMasterGroup.add(ring1)
+  datumRings.push(ring1)
+
+  const ring2Geo = new THREE.TorusGeometry(radius * 1.62, 0.004, 16, 96)
+  const ring2Mat = new THREE.MeshBasicMaterial({
+    color: 0x64748b,
+    transparent: true,
+    opacity: 0.16,
+  })
+  const ring2 = new THREE.Mesh(ring2Geo, ring2Mat)
+  ring2.rotation.x = -Math.PI / 3.5
+  ring2.rotation.y = 0.35
+  earthMasterGroup.add(ring2)
+  datumRings.push(ring2)
+}
+
+function buildCommunicationNodes(earthRadius: number) {
   nodeEntities.length = 0
 
   contactNodesData.value.forEach(meta => {
     const nodeGroup = new THREE.Group()
 
-    // Base position scaled for mobile/desktop
-    const scaleFactor = isMobile.value ? 0.8 : 1.0
+    const scaleFactor = isMobile.value ? 0.85 : 1.0
     const basePos = new THREE.Vector3(
       meta.baseOffset[0] * scaleFactor,
       meta.baseOffset[1] * scaleFactor,
@@ -504,67 +535,101 @@ function createCommunicationNodes(orbRadius: number) {
     nodeGroup.position.copy(basePos)
     fieldMasterGroup!.add(nodeGroup)
 
-    // Outer Sphere
-    const sphereGeo = new THREE.SphereGeometry(0.14, 24, 24)
-    const sphereMat = new THREE.MeshStandardMaterial({
+    // Satellite Probe Main Bus (Aerospace metallic cube)
+    const busGeo = new THREE.BoxGeometry(0.10, 0.10, 0.10)
+    const busMat = new THREE.MeshStandardMaterial({
       color: 0x1e293b,
-      emissive: 0x38bdf8,
-      emissiveIntensity: 0.25,
-      roughness: 0.2,
-      metalness: 0.8,
+      metalness: 0.85,
+      roughness: 0.25,
     })
-    const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat)
-    sphereMesh.userData = { nodeType: meta.type }
-    nodeGroup.add(sphereMesh)
+    const busMesh = new THREE.Mesh(busGeo, busMat)
+    busMesh.userData = { nodeType: meta.type }
+    nodeGroup.add(busMesh)
 
-    // Inner White Beacon Point
-    const beaconGeo = new THREE.SphereGeometry(0.055, 16, 16)
+    // Solar Wing Arrays
+    const wingGeo = new THREE.PlaneGeometry(0.24, 0.07)
+    const wingMat = new THREE.MeshStandardMaterial({
+      color: 0x0284c7,
+      metalness: 0.5,
+      roughness: 0.2,
+      side: THREE.DoubleSide,
+    })
+    const wingMesh = new THREE.Mesh(wingGeo, wingMat)
+    wingMesh.rotation.y = Math.PI / 2
+    busMesh.add(wingMesh)
+
+    // Central Luminous Transceiver Beacon
+    const beaconGeo = new THREE.SphereGeometry(0.045, 16, 16)
     const beaconMat = new THREE.MeshBasicMaterial({ color: 0xffffff })
     const beaconMesh = new THREE.Mesh(beaconGeo, beaconMat)
     nodeGroup.add(beaconMesh)
 
-    // Subtle Outer Halo Ring
-    const haloGeo = new THREE.RingGeometry(0.18, 0.22, 28)
+    // Orbital Beacon Halo Ring
+    const haloGeo = new THREE.RingGeometry(0.14, 0.17, 28)
     const haloMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.45,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+    })
+    const haloMesh = new THREE.Mesh(haloGeo, haloMat)
+    nodeGroup.add(haloMesh)
+
+    // Generous Invisible Hit Sphere for reliable clicking/touch
+    const hitGeo = new THREE.SphereGeometry(0.26, 8, 8)
+    const hitMat = new THREE.MeshBasicMaterial({ visible: false })
+    const hitMesh = new THREE.Mesh(hitGeo, hitMat)
+    hitMesh.userData = { nodeType: meta.type }
+    nodeGroup.add(hitMesh)
+
+    // Surface Anchor Ring on Earth's surface
+    const dir = basePos.clone().normalize()
+    const anchorPos = dir.clone().multiplyScalar(earthRadius * 1.006)
+    const anchorRingGeo = new THREE.RingGeometry(0.02, 0.04, 24)
+    const anchorRingMat = new THREE.MeshBasicMaterial({
       color: 0x38bdf8,
       transparent: true,
       opacity: 0.35,
       side: THREE.DoubleSide,
     })
-    const haloMesh = new THREE.Mesh(haloGeo, haloMat)
-    nodeGroup.add(haloMesh)
+    const anchorRingMesh = new THREE.Mesh(anchorRingGeo, anchorRingMat)
+    anchorRingMesh.position.copy(anchorPos)
+    anchorRingMesh.lookAt(anchorPos.clone().add(dir))
+    fieldMasterGroup!.add(anchorRingMesh)
 
-    // Connection Line between Orb Center (0, 0, 0) and Node Position
+    // Telemetric Connection Conduit from Earth surface anchor to Satellite node
     const lineGeo = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(0, 0, 0),
+      anchorPos.clone(),
       basePos.clone(),
     ])
     const lineMat = new THREE.LineBasicMaterial({
-      color: 0x64748b,
+      color: 0x38bdf8,
       transparent: true,
-      opacity: 0.3,
+      opacity: 0.22,
     })
     const lineMesh = new THREE.Line(lineGeo, lineMat)
     fieldMasterGroup!.add(lineMesh)
 
     // Signal Pulse Packet Mesh
-    const pulseGeo = new THREE.SphereGeometry(0.045, 12, 12)
+    const pulseGeo = new THREE.SphereGeometry(0.038, 12, 12)
     const pulseMat = new THREE.MeshBasicMaterial({
       color: 0xffffff,
       transparent: true,
       opacity: 0.0,
     })
     const pulseMesh = new THREE.Mesh(pulseGeo, pulseMat)
-    pulseMesh.position.copy(new THREE.Vector3(0, 0, 0))
+    pulseMesh.position.copy(anchorPos)
     fieldMasterGroup!.add(pulseMesh)
 
     nodeEntities.push({
       type: meta.type,
       group: nodeGroup,
       basePos: basePos.clone(),
-      targetPos: basePos.clone(),
-      sphereMesh,
+      anchorPos: anchorPos.clone(),
+      sphereMesh: busMesh,
       haloMesh,
+      anchorRingMesh,
       lineGeometry: lineGeo,
       lineMaterial: lineMat,
       pulseMesh,
@@ -585,58 +650,60 @@ function updateNodesAndSignals(delta: number, time: number) {
     // 1. Target Position with Micro Floating & Forward Elevation on Hover
     const target = entity.basePos.clone()
     if (!prefersReducedMotion.value) {
-      target.y += Math.sin(time * 0.9 + idx * 1.8) * 0.04
-      target.x += Math.cos(time * 0.7 + idx * 1.5) * 0.02
+      target.y += Math.sin(time * 0.9 + idx * 1.8) * 0.03
+      target.x += Math.cos(time * 0.7 + idx * 1.5) * 0.015
     }
     if (isActive) {
-      target.z += 0.3
+      target.z += 0.25
     }
     entity.group.position.lerp(target, delta * 5.0)
 
-    // 2. Halo Orientation (Always face camera)
+    // 2. Halo Orientation (Face Camera)
     entity.haloMesh.quaternion.copy(camera!.quaternion)
 
     // 3. Highlight Scaling & Materials
-    const targetScale = isActive ? 1.2 : 1.0
+    const targetScale = isActive ? 1.25 : 1.0
     entity.group.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), delta * 5.0)
 
-    const sphereMat = entity.sphereMesh.material as THREE.MeshStandardMaterial
-    sphereMat.emissiveIntensity = THREE.MathUtils.lerp(
-      sphereMat.emissiveIntensity,
-      isActive ? 0.9 : 0.25,
-      delta * 5.0
-    )
-
-    // Line Highlight
-    const targetLineOpacity = isActive ? 0.95 : 0.25
+    // Line Highlight & Telemetry Color
+    const targetLineOpacity = isActive ? 0.85 : 0.22
     entity.lineMaterial.opacity = THREE.MathUtils.lerp(
       entity.lineMaterial.opacity,
       targetLineOpacity,
       delta * 5.0
     )
-    entity.lineMaterial.color.setHex(isActive ? 0x38bdf8 : 0x64748b)
+    entity.lineMaterial.color.setHex(isActive ? 0x38bdf8 : 0x0284c7)
 
-    // Update line endpoint
+    // Surface Anchor Ring Highlight
+    const anchorMat = entity.anchorRingMesh.material as THREE.MeshBasicMaterial
+    anchorMat.opacity = isActive ? 0.85 : 0.35
+    const anchorScale = isActive ? 1.3 : 1.0
+    entity.anchorRingMesh.scale.set(anchorScale, anchorScale, anchorScale)
+
+    // Update connection line endpoints
     const posAttr = entity.lineGeometry.getAttribute('position') as THREE.BufferAttribute
     const array = posAttr.array as Float32Array
-    // Index 0, 1, 2 = Orb center (0, 0, 0)
-    // Index 3, 4, 5 = Node position
+    // Index 0, 1, 2 = Earth Anchor Pos
+    array[0] = entity.anchorPos.x
+    array[1] = entity.anchorPos.y
+    array[2] = entity.anchorPos.z
+    // Index 3, 4, 5 = Satellite Node Pos
     array[3] = entity.group.position.x
     array[4] = entity.group.position.y
     array[5] = entity.group.position.z
     posAttr.needsUpdate = true
 
-    // 4. Animate Signal Pulse along Connection Line
+    // 4. Animate Signal Pulse along Conduit (from Earth anchor to satellite)
     if (entity.pulseActive) {
-      entity.pulseProgress += delta * 0.85 // ~1.2s travel time
+      entity.pulseProgress += delta * 1.0 // ~1.0s travel time
       if (entity.pulseProgress >= 1.0) {
         entity.pulseProgress = 1.0
         entity.pulseActive = false
       }
 
-      // Position along line from (0,0,0) to node
+      // Position along line from anchorPos to satellite
       entity.pulseMesh.position.lerpVectors(
-        new THREE.Vector3(0, 0, 0),
+        entity.anchorPos,
         entity.group.position,
         entity.pulseProgress
       )
@@ -651,9 +718,8 @@ function updateNodesAndSignals(delta: number, time: number) {
     // 5. Project 3D Node Position to 2D Screen Coordinates for HTML Badges
     const worldPos = new THREE.Vector3()
     entity.group.getWorldPosition(worldPos)
-    // Offset label slightly next to node
-    worldPos.x += 0.38
-    worldPos.y += 0.12
+    worldPos.x += 0.35
+    worldPos.y += 0.10
 
     const screenPos = worldPos.clone().project(camera!)
     const isBehind = screenPos.z > 1.0
@@ -697,19 +763,22 @@ function onPointerMove(e: PointerEvent) {
     prevPointerX = e.clientX
     prevPointerY = e.clientY
 
-    targetFieldRotY = THREE.MathUtils.clamp(targetFieldRotY + dx * 0.0035, -0.35, 0.35)
-    targetFieldRotX = THREE.MathUtils.clamp(targetFieldRotX + dy * 0.0025, -0.2, 0.2)
+    targetFieldRotY = THREE.MathUtils.clamp(targetFieldRotY + dx * 0.0035, -0.45, 0.45)
+    targetFieldRotX = THREE.MathUtils.clamp(targetFieldRotX + dy * 0.0025, -0.25, 0.25)
   } else {
-    // Raycasting against node spheres
+    // Raycasting against node satellite meshes
     raycaster.setFromCamera(mouse, camera)
     const meshes = nodeEntities.map(n => n.sphereMesh)
-    const intersects = raycaster.intersectObjects(meshes)
+    const intersects = raycaster.intersectObjects(meshes, true)
 
     if (intersects.length > 0) {
-      const hitMesh = intersects[0].object
-      const nodeType = hitMesh.userData.nodeType
-      if (nodeType) {
-        setActiveNode(nodeType)
+      let topObj: THREE.Object3D | null = intersects[0].object
+      while (topObj && !topObj.userData?.nodeType && topObj.parent) {
+        topObj = topObj.parent
+      }
+
+      if (topObj && topObj.userData?.nodeType) {
+        setActiveNode(topObj.userData.nodeType)
         if (canvas.value) canvas.value.style.cursor = 'pointer'
         return
       }
@@ -725,12 +794,17 @@ function onPointerUp(e: PointerEvent) {
     if (dist < 6 && camera) {
       raycaster.setFromCamera(mouse, camera)
       const meshes = nodeEntities.map(n => n.sphereMesh)
-      const intersects = raycaster.intersectObjects(meshes)
+      const intersects = raycaster.intersectObjects(meshes, true)
       if (intersects.length > 0) {
-        const nodeType = intersects[0].object.userData.nodeType
-        const meta = contactNodesData.value.find(n => n.type === nodeType)
-        if (meta) {
-          openNodeLink(meta)
+        let topObj: THREE.Object3D | null = intersects[0].object
+        while (topObj && !topObj.userData?.nodeType && topObj.parent) {
+          topObj = topObj.parent
+        }
+        if (topObj && topObj.userData?.nodeType) {
+          const meta = contactNodesData.value.find(n => n.type === topObj!.userData.nodeType)
+          if (meta) {
+            openNodeLink(meta)
+          }
         }
       }
     }
@@ -748,13 +822,13 @@ function onResize() {
   isMobile.value = width < 768
 
   camera.aspect = width / height
-  camera.position.z = width < 390 ? 8.4 : (isMobile.value ? 7.6 : 6.2)
+  camera.position.z = width < 390 ? 8.2 : (isMobile.value ? 7.4 : 6.2)
   camera.updateProjectionMatrix()
 
   renderer.setSize(width, height)
 
-  const fieldCenterX = isMobile.value ? 0.0 : 1.25
-  const fieldCenterY = isMobile.value ? -0.35 : 0.05
+  const fieldCenterX = isMobile.value ? 0.0 : 1.35
+  const fieldCenterY = isMobile.value ? -0.35 : 0.0
   fieldMasterGroup.position.set(fieldCenterX, fieldCenterY, 0)
 }
 
@@ -777,26 +851,35 @@ onBeforeUnmount(() => {
 
   window.removeEventListener('resize', onResize)
 
-  // Dispose Geometries and Materials
-  if (outerGlassMesh) {
-    outerGlassMesh.geometry.dispose()
-    ;(outerGlassMesh.material as THREE.Material).dispose()
+  // Dispose Realistic Earth Meshes
+  if (realEarthMesh) {
+    realEarthMesh.geometry.dispose()
+    ;(realEarthMesh.material as THREE.Material).dispose()
   }
-  if (innerCoreMesh) {
-    innerCoreMesh.geometry.dispose()
-    ;(innerCoreMesh.material as THREE.Material).dispose()
+  if (cloudsMesh) {
+    cloudsMesh.geometry.dispose()
+    ;(cloudsMesh.material as THREE.Material).dispose()
   }
-
-  signalRings.forEach(sr => {
-    sr.mesh.geometry.dispose()
-    ;(sr.mesh.material as THREE.Material).dispose()
+  if (atmosphereMesh) {
+    atmosphereMesh.geometry.dispose()
+    ;(atmosphereMesh.material as THREE.Material).dispose()
+  }
+  datumRings.forEach(r => {
+    r.geometry.dispose()
+    ;(r.material as THREE.Material).dispose()
   })
 
   nodeEntities.forEach(n => {
-    n.sphereMesh.geometry.dispose()
-    ;(n.sphereMesh.material as THREE.Material).dispose()
+    n.sphereMesh.geometry?.dispose()
+    if (Array.isArray(n.sphereMesh.material)) {
+      n.sphereMesh.material.forEach(m => m.dispose())
+    } else {
+      n.sphereMesh.material?.dispose()
+    }
     n.haloMesh.geometry.dispose()
     ;(n.haloMesh.material as THREE.Material).dispose()
+    n.anchorRingMesh.geometry.dispose()
+    ;(n.anchorRingMesh.material as THREE.Material).dispose()
     n.lineGeometry.dispose()
     n.lineMaterial.dispose()
     n.pulseMesh.geometry.dispose()
