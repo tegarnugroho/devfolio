@@ -402,12 +402,13 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
   padding: 22px 32px;
   background: var(--secondary-background);
 }
-.counter { font-family: ui-monospace,monospace; font-size: 12px; color: var(--secondary); letter-spacing: .06em; }
+.counter { font-family: ui-monospace,monospace; font-size: 12px; font-weight: 600; color: var(--label); letter-spacing: .08em; }
 .showcase-controls { display: flex; align-items: center; gap: 12px; }
-.showcase-controls button { display: grid; place-items: center; width: 48px; height: 38px; border: 1px solid var(--strong-border); border-radius: 4px; font-size: 21px; background: transparent; }
-.showcase-controls button:hover { border-color: var(--secondary); }
+.showcase-controls button { display: grid; place-items: center; width: 48px; height: 38px; border: 1px solid var(--strong-border); border-radius: 4px; font-size: 21px; background: transparent; transition: border-color 200ms, color 200ms; }
+.showcase-controls button:hover { border-color: var(--label); color: var(--label); }
 .control-divider { height: 24px; width: 1px; background: var(--strong-border); margin-inline: 10px; }
 .showcase-controls .close-button { border-color: transparent; width: 36px; font-size: 28px; }
+.showcase-controls .close-button:hover { border-color: transparent; color: var(--label); }
 .showcase-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(340px, 24vw, 420px);
@@ -455,8 +456,9 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
   transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .gallery-zoom-controls { display: none; align-items: center; gap: 8px; margin-top: 10px; }
-.gallery-zoom-controls button { min-width: 44px; min-height: 44px; border: 1px solid var(--strong-border); border-radius: 4px; background: var(--surface); font-size: 20px; }
-.gallery-zoom-controls .zoom-reset { min-width: 64px; font-size: 12px; }
+.gallery-zoom-controls button { min-width: 44px; min-height: 44px; border: 1px solid var(--strong-border); border-radius: 4px; background: var(--surface); font-size: 20px; transition: border-color 200ms, color 200ms; }
+.gallery-zoom-controls button:hover:not(:disabled) { border-color: var(--label); color: var(--label); }
+.gallery-zoom-controls .zoom-reset { min-width: 64px; font-size: 12px; font-weight: 600; color: var(--label); }
 .gallery-zoom-controls button:disabled { opacity: .4; }
 .gallery-zoom-controls span { color: var(--secondary); font-size: 11px; }
 @media (hover: none), (pointer: coarse), (max-width: 767px) {
@@ -473,24 +475,28 @@ onBeforeUnmount(() => { selectionVersion++; cancelPreload(); resetZoom(); zoomOb
   background: var(--surface);
   overflow: hidden;
   opacity: .6;
-  transition: opacity 220ms, border-color 220ms, transform 200ms ease;
+  transition: opacity 220ms, border-color 220ms, transform 200ms ease, box-shadow 220ms;
 }
-.gallery-thumbnails button.selected { border-color: var(--primary); opacity: 1; }
-.gallery-thumbnails button:hover { opacity: 1; transform: translateY(-1px); }
+.gallery-thumbnails button.selected { border-color: var(--label); box-shadow: 0 0 0 1px var(--label); opacity: 1; }
+.gallery-thumbnails button:hover { opacity: 1; border-color: var(--label); transform: translateY(-1px); }
 .gallery-thumbnails img { width: 100%; height: 100%; object-fit: cover; }
-.metadata, .showcase-information h3 { font-family: ui-monospace,monospace; text-transform: uppercase; letter-spacing: .15em; font-size: 11px; color: var(--secondary); }
+.metadata { font-family: ui-monospace,monospace; text-transform: uppercase; letter-spacing: .16em; font-size: 11px; font-weight: 600; color: var(--label); }
+.showcase-information h3 { font-family: ui-monospace,monospace; text-transform: uppercase; letter-spacing: .15em; font-size: 11px; font-weight: 600; color: var(--secondary); }
 .showcase-information h2 { font-size: clamp(26px, 2.2vw, 34px); line-height: 1.2; font-weight: 600; margin-top: 12px; overflow-wrap: anywhere; }
 .subtitle { color: var(--secondary); font-size: 15px; margin-top: 8px; }
 .description { margin-top: 24px; }
 .description p { font-size: 14px; line-height: 1.65; color: var(--secondary); margin-top: 10px; }
 .stack { padding-top: 20px; margin-top: 24px; border-top: 1px solid var(--border); }
 .stack ul { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-.stack li { font-size: 11px; color: var(--secondary); border: 1px solid var(--strong-border); border-radius: 3px; padding: 4px 10px; }
+.stack li { font-size: 11px; color: var(--secondary); border: 1px solid var(--strong-border); border-radius: 3px; padding: 4px 10px; transition: border-color 200ms, color 200ms; }
+.stack li:hover { border-color: var(--label); color: var(--label); }
 .showcase-actions { display: flex; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--border); padding-top: 20px; margin-top: 24px; }
-.showcase-actions a { display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex: 1 1 130px; border: 1px solid var(--strong-border); border-radius: 4px; padding: 12px 18px; font-size: 13px; }
-.showcase-actions a:hover { border-color: var(--secondary); }
-.showcase-actions .primary-action { background: var(--button); color: var(--button-text); }
-.showcase-actions .primary-action:hover { background: var(--button-hover); }
+.showcase-actions a { display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex: 1 1 130px; border: 1px solid var(--strong-border); border-radius: 4px; padding: 12px 18px; font-size: 13px; transition: border-color 200ms, color 200ms, background-color 200ms; }
+.showcase-actions a:hover { border-color: var(--label); color: var(--label); }
+.showcase-actions .primary-action { background: var(--button); color: var(--button-text); border-color: var(--button); font-weight: 500; }
+.showcase-actions .primary-action span { color: var(--label); font-weight: 600; transition: transform 200ms ease; }
+.showcase-actions .primary-action:hover { background: var(--button-hover); border-color: var(--label); color: var(--button-text); }
+.showcase-actions .primary-action:hover span { transform: translate(2px, -2px); }
 .showcase-enter-active, .showcase-leave-active { transition: opacity 220ms; }
 .showcase-enter-active .showcase-dialog, .showcase-leave-active .showcase-dialog { transition: transform 220ms; }
 .showcase-enter-from, .showcase-leave-to { opacity: 0; }
