@@ -20,8 +20,11 @@
           </Transition>
         </div>
 
+        <!-- 2.1 Mission Control Loading & Transition Overlay -->
+        <ShowcaseTransitionOverlay />
+
         <!-- 3. Top Header: Exit Button, Section HUD, and Shortcuts -->
-        <header class="relative z-20 w-full px-4 sm:px-8 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 sm:py-6 flex items-center justify-between pointer-events-none">
+        <header class="relative z-50 w-full px-4 sm:px-8 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 sm:py-6 flex items-center justify-between pointer-events-none">
           <!-- Left: Exit Showcase Button -->
           <div class="pointer-events-auto flex items-center gap-2">
             <button
@@ -74,7 +77,7 @@
         </header>
 
         <!-- Mobile Bottom Section Navigation Bar -->
-        <footer class="relative z-20 w-full px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden pointer-events-none flex justify-center">
+        <footer class="relative z-50 w-full px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden pointer-events-none flex justify-center">
           <div class="pointer-events-auto w-full max-w-sm">
             <ShowcaseNavigation />
           </div>
@@ -93,6 +96,7 @@ import {
 import { getSectionMeta } from '@/composables/useShowcaseNavigation'
 import type { ShowcaseSection } from '@/types/showcase'
 import ShowcaseNavigation from './ShowcaseNavigation.vue'
+import ShowcaseTransitionOverlay from './ShowcaseTransitionOverlay.vue'
 import ShowcaseLoading from './ShowcaseLoading.vue'
 import ShowcaseError from './ShowcaseError.vue'
 import { portfolioContent } from '@/content/portfolioContent'

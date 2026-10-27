@@ -180,7 +180,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
-import { registerContentNavigator, setSection } from '@/composables/useShowcase'
+import { registerContentNavigator, setSection, markSectionReady } from '@/composables/useShowcase'
 import { latLngToVector3 } from '@/components/globe/globeMath'
 
 // Globe Radius
@@ -821,6 +821,7 @@ onMounted(() => {
   timerInterval = window.setInterval(updateClock, 1000)
 
   initScene()
+  markSectionReady('about')
   window.addEventListener('resize', onResize)
 
   unregisterContentNav = registerContentNavigator(() => {

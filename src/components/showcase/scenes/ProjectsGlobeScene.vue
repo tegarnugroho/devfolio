@@ -213,6 +213,7 @@ import {
   prevProject,
   setActiveProjectId,
   registerContentNavigator,
+  markSectionReady,
 } from '@/composables/useShowcase'
 import { globeMarkers } from '@/components/globe/globeData'
 import { portfolioContent } from '@/content/portfolioContent'
@@ -234,6 +235,7 @@ function onZoomOut() {
 }
 
 onMounted(() => {
+  markSectionReady('projects')
   unregisterNav = registerContentNavigator((dir) => {
     if (dir === 'next') nextProject()
     else prevProject()

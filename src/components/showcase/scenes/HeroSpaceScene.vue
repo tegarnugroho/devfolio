@@ -366,7 +366,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
 import { portfolioContent } from '@/content/portfolioContent'
-import { setSection } from '@/composables/useShowcase'
+import { setSection, markSectionReady } from '@/composables/useShowcase'
 import { useResponsive3D } from '@/composables/useResponsive3D'
 import {
   createStarSpriteTexture,
@@ -1075,6 +1075,7 @@ function handleResize() {
 
 onMounted(() => {
   initThreeScene()
+  markSectionReady('hero')
   window.addEventListener('resize', handleResize, { passive: true })
 
   // Visibility observer for performance

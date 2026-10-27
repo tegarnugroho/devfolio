@@ -242,7 +242,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
-import { registerContentNavigator } from '@/composables/useShowcase'
+import { registerContentNavigator, markSectionReady } from '@/composables/useShowcase'
 import { portfolioContent } from '@/content/portfolioContent'
 import { useWritingPosts, type BlogPost } from '@/composables/useWritingPosts'
 import type { KnowledgeArticle, CategoryFilter } from '../writing/knowledgeTypes'
@@ -779,6 +779,7 @@ let unregisterNavigator: (() => void) | null = null
 
 onMounted(() => {
   initThree()
+  markSectionReady('writing')
 
   if (container.value) {
     resizeObserver = new ResizeObserver(handleResize)

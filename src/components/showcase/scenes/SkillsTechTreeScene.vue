@@ -220,7 +220,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
-import { registerContentNavigator, setSection } from '@/composables/useShowcase'
+import { registerContentNavigator, setSection, markSectionReady } from '@/composables/useShowcase'
 import {
   CONSTELLATION_CATEGORIES,
   CONSTELLATION_STARS,
@@ -912,6 +912,7 @@ function onResize() {
 
 onMounted(() => {
   initScene()
+  markSectionReady('skills')
   window.addEventListener('resize', onResize)
 
   unregisterContentNav = registerContentNavigator((direction) => {

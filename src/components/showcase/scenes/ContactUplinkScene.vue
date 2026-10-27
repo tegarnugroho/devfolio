@@ -139,6 +139,7 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import * as THREE from 'three'
 import { portfolioContent } from '@/content/portfolioContent'
+import { markSectionReady } from '@/composables/useShowcase'
 
 const contact = portfolioContent.contact
 const emailContact = computed(() => contact.items.find(i => i.type === 'email'))
@@ -834,6 +835,7 @@ function onResize() {
 
 onMounted(() => {
   initThree()
+  markSectionReady('contact')
 
   window.addEventListener('resize', onResize)
 

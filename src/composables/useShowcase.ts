@@ -2,6 +2,26 @@ import { ref, computed } from 'vue'
 import type { ShowcaseSection, ShowcaseTransitionState } from '@/types/showcase'
 import { SHOWCASE_SECTIONS, sectionIds, isValidShowcaseSection, activePageShowcaseSection, detectCurrentPageSection } from './useShowcaseNavigation'
 import { globeMarkers, globeClusters, type GlobeMarker, type GlobeCluster } from '@/components/globe/globeData'
+import {
+  startSectionTransition,
+  markSectionReady,
+  markSectionError,
+  resetTransitionState,
+  isTransitioning,
+  transitionPhase,
+  currentLoadingIdentity,
+  currentPhaseMessage,
+} from './useShowcaseTransition'
+
+export {
+  markSectionReady,
+  markSectionError,
+  resetTransitionState,
+  isTransitioning,
+  transitionPhase,
+  currentLoadingIdentity,
+  currentPhaseMessage,
+}
 
 // ==========================================
 // UNIFIED SHOWCASE STATE
@@ -47,11 +67,12 @@ export function openShowcase(sectionOrProjectId?: ShowcaseSection | string) {
   }
 
   // 1. Determine target section
+  let initialSection: ShowcaseSection = 'projects'
   if (sectionOrProjectId && isValidShowcaseSection(sectionOrProjectId)) {
-    currentSection.value = sectionOrProjectId
+    initialSection = sectionOrProjectId
   } else if (typeof sectionOrProjectId === 'string') {
     // If a project id was passed, target 'projects' section and activate that project
-    currentSection.value = 'projects'
+    initialSection = 'projects'
     const idx = globeMarkers.value.findIndex(m => m.id === sectionOrProjectId)
     if (idx !== -1) {
       activeMarkerIndex.value = idx
@@ -59,8 +80,13 @@ export function openShowcase(sectionOrProjectId?: ShowcaseSection | string) {
     }
   } else {
     // Default to the current active section on page
-    currentSection.value = detectCurrentPageSection() || activePageShowcaseSection.value || 'projects'
+    initialSection = detectCurrentPageSection() || activePageShowcaseSection.value || 'projects'
   }
+
+  currentSection.value = initialSection
+  startSectionTransition(initialSection, (sec) => {
+    currentSection.value = sec
+  })
 
   // 2. Reset transient states
   isSatelliteZoomed.value = false
@@ -86,6 +112,7 @@ export function openShowcase(sectionOrProjectId?: ShowcaseSection | string) {
 export function closeShowcase() {
   if (!isShowcaseOpen.value) return
 
+  resetTransitionState()
   transitionState.value = 'exiting'
 
   setTimeout(() => {
@@ -123,10 +150,12 @@ export function toggleShowcase(section?: ShowcaseSection) {
   }
 }
 
-export function setSection(section: ShowcaseSection) {
-  if (currentSection.value === section) return
-  currentSection.value = section
+export function setSection(section: ShowcaseSection, force = false) {
+  if (currentSection.value === section && !force) return
   isSatelliteZoomed.value = false
+  startSectionTransition(section, (sec) => {
+    currentSection.value = sec
+  }, force)
 }
 
 export function nextSection() {
@@ -267,6 +296,10 @@ export function useShowcase() {
     transitionState,
     isLoading: isSceneLoading,
     isError: isSceneError,
+    isTransitioning,
+    transitionPhase,
+    markSectionReady,
+    markSectionError,
     openShowcase,
     closeShowcase,
     toggleShowcase,
