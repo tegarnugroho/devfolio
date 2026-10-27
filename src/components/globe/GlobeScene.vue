@@ -1392,7 +1392,7 @@ function animate(currentTime: number) {
   if (camera && container.value) {
     const w = container.value.clientWidth
     const baseGlobalDist = w < 640 ? 4.8 : (w < 1024 ? 4.3 : 3.8)
-    const satelliteZoomDist = w < 640 ? 2.55 : 2.2
+    const satelliteZoomDist = w < 640 ? 4.1 : (w < 1024 ? 3.65 : 3.2)
     const targetCamDist = props.isZoomed ? satelliteZoomDist : baseGlobalDist
 
     camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetCamDist, 0.065)
